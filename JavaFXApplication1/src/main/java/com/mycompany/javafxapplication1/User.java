@@ -11,27 +11,32 @@ import javafx.beans.property.SimpleStringProperty;
  * @author ntu-user
  */
 public class User {
-    private SimpleStringProperty user;
-    private SimpleStringProperty pass;
+    private int userId;
+    private String username;
+    private String passwordHash;
+    private String role;
 
-    User(String user, String pass) {
-        this.user = new SimpleStringProperty(user);
-        this.pass = new SimpleStringProperty(pass);
+    public User(int userId, String username, String passwordHash, String role) {
+        this.userId = userId;
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.role = role;
     }
 
-    public String getUser() {
-        return user.get();
+    public int getUserId() { 
+        return userId; 
     }
-
-    public void setUser(String user) {
-        this.user.set(user);
+    
+    public String getUsername() { 
+        return username; 
     }
-
-    public String getPass() {
-        return pass.get();
+    
+    public String getPasswordHash() { 
+        return passwordHash; 
     }
-
-    public void setPass(String pass) {
-        this.pass.set(pass);
+    
+    public String getRole() { 
+        return role; 
     }
+    
 }
