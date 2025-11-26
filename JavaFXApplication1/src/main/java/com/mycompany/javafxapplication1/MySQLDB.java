@@ -4,6 +4,10 @@
  */
 package com.mycompany.javafxapplication1;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
@@ -14,6 +18,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Random;
+import java.util.Scanner;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.crypto.SecretKeyFactory;
@@ -25,126 +31,148 @@ import javax.crypto.spec.PBEKeySpec;
  */
 public class MySQLDB {
     
-    private final int iterations = 10000;
-    private final int keyLength = 256;
+    private int iterations = 10000;
+    private int keyLength = 256;
+    private String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    private Random random = new SecureRandom();
+    private String saltValue;
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(
                 "jdbc:mysql://lamp-server:3306/soft40051?useSSL=false",
                 "admin",
-                "WJpzznmM4ZdU"
+                "CVkhqybr3UuD"
         );
     }
     
-    public String hashPassword(String password) {
+    public MySQLDB() {
         try {
-            byte[] salt = new byte[16];
-            new SecureRandom().nextBytes(salt);
-            byte[] hashed = pbkdf2(password.toCharArray(), salt);
-            return Base64.getEncoder().encodeToString(salt) + ":" +
-                   Base64.getEncoder().encodeToString(hashed);
-        } catch (Exception e) {
+            File fp = new File(".salt");
+            if (!fp.exists()) {
+                saltValue = getSaltValue(30);
+                FileWriter fw = new FileWriter(fp);
+                fw.write(saltValue);
+                fw.close();
+            } else {
+                Scanner sc = new Scanner(fp);
+                saltValue = sc.nextLine();
+                sc.close();
+            }
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    
-    public boolean verifyPassword(String password, String stored) {
-        try {
-            String[] parts = stored.split(":");
-            byte[] salt = Base64.getDecoder().decode(parts[0]);
-            byte[] hashStored = Base64.getDecoder().decode(parts[1]);
-            byte[] hashInput = pbkdf2(password.toCharArray(), salt);
-            return Arrays.equals(hashStored, hashInput);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+
+    private String getSaltValue(int length) {
+        StringBuilder finalVal = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            finalVal.append(characters.charAt(random.nextInt(characters.length())));
         }
+        return finalVal.toString();
     }
-    
-    private byte[] pbkdf2(char[] password, byte[] salt) throws InvalidKeySpecException {
+
+    private byte[] hash(char[] password, byte[] salt) throws InvalidKeySpecException {
         PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
+        Arrays.fill(password, Character.MIN_VALUE);
         try {
             SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             return skf.generateSecret(spec).getEncoded();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         } finally {
-            Arrays.fill(password, Character.MIN_VALUE);
             spec.clearPassword();
         }
     }
 
-    public boolean addUser(String username, String hash, String role) {
-        String sql = "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            stmt.setString(2, hash);
-            stmt.setString(3, role);
-            return stmt.executeUpdate() > 0;
+    public String hashPassword(String password) {
+        try {
+            byte[] securePassword = hash(password.toCharArray(), saltValue.getBytes());
+            return Base64.getEncoder().encodeToString(securePassword);
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean verifyPassword(String password, String storedHash) {
+        String inputHash = hashPassword(password);
+        return storedHash.equals(inputHash);
+    }
+
+    public void ensureDefaultAdmin() throws Exception {
+        try (Connection conn = getConnection()) {
+            PreparedStatement check = conn.prepareStatement(
+                "SELECT user_id FROM users WHERE username = 'admin' LIMIT 1"
+            );
+            ResultSet rs = check.executeQuery();
+            if (rs.next()) return;
+            String hash = hashPassword("admin");
+            PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO users (username, password_hash, role) VALUES ('admin', ?, 'admin')"
+            );
+            insert.setString(1, hash);
+            insert.executeUpdate();
         }
     }
     
-    public User getUserByName(String username) {
+    public void testConnection() throws Exception {
+        Connection conn = getConnection();
+        conn.close();
+    }
+    
+    public User getUserByName(String username) throws Exception {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return new User(
-                        rs.getInt("user_id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash"),
-                        rs.getString("role")
+                    rs.getInt("user_id"),
+                    rs.getString("username"),
+                    rs.getString("password_hash"),
+                    rs.getString("role")
                 );
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
 
-    public boolean deleteUser(int userId) {
-        String sql = "DELETE FROM users WHERE user_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            return stmt.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace(); 
+    public void addUser(String username, String hash, String role) throws Exception {
+        String sql = "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)";
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            stmt.setString(2, hash);
+            stmt.setString(3, role);
+            stmt.executeUpdate();
         }
-        return false;
     }
 
-    public boolean updateRole(int userId, String role) {
+    public void deleteUser(int userId) throws Exception {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
+        }
+    }
+
+    public void updateRole(int userId, String role) throws Exception {
         String sql = "UPDATE users SET role = ? WHERE user_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, role);
             stmt.setInt(2, userId);
-            return stmt.executeUpdate() > 0;
-        } catch (Exception e) { 
-            e.printStackTrace(); 
+            stmt.executeUpdate();
         }
-        return false;
     }
 
-    public boolean updatePassword(int userId, String hash) {
+    public void updatePassword(int userId, String hash) throws Exception {
         String sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, hash);
             stmt.setInt(2, userId);
-            return stmt.executeUpdate() > 0;
-        } catch (Exception e) { 
-            e.printStackTrace();
+            stmt.executeUpdate();
         }
-        return false;
     }
 
-    public ObservableList<User> getAllUsers() {
+    public ObservableList<User> getAllUsers() throws Exception {
         ObservableList<User> list = FXCollections.observableArrayList();
         String sql = "SELECT * FROM users";
         try (Connection conn = getConnection();
@@ -152,24 +180,21 @@ public class MySQLDB {
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new User(
-                        rs.getInt("user_id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash"),
-                        rs.getString("role")
+                    rs.getInt("user_id"),
+                    rs.getString("username"),
+                    rs.getString("password_hash"),
+                    rs.getString("role")
                 ));
             }
-        } catch (Exception e) { 
-            e.printStackTrace();
         }
         return list;
     }
 
-    public void log(String action, String detail) {
+
+    public void log(String action, String detail) throws Exception {
         Integer uid = null;
         User sessionUser = new SQLiteDB().loadSession();
-        if (sessionUser != null) {
-            uid = sessionUser.getUserId();
-        }
+        if (sessionUser != null) uid = sessionUser.getUserId();
         try (Connection conn = getConnection()) {
             String sql = "INSERT INTO logs (user_id, action, detail) VALUES (?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -178,9 +203,6 @@ public class MySQLDB {
             stmt.setString(2, action);
             stmt.setString(3, detail);
             stmt.executeUpdate();
-        } catch (Exception e) { 
-            e.printStackTrace();
         }
     }
-    
 }

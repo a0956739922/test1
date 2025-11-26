@@ -14,8 +14,9 @@ import java.sql.PreparedStatement;
  * @author ntu-user
  */
 public class SQLiteDB {
-    private final String DB_URL = "jdbc:sqlite:soft40051.db";
-    private final int timeout = 30;
+    
+    private String dbUrl = "jdbc:sqlite:soft40051.db";
+    private int timeout = 30;
 
     public SQLiteDB() {
         createLocalSessionTable();
@@ -28,7 +29,7 @@ public class SQLiteDB {
                  "role TEXT, " +
                  "last_login TEXT" +
                  ");";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
             stmt.setQueryTimeout(timeout);
             stmt.executeUpdate(sql);
@@ -40,7 +41,7 @@ public class SQLiteDB {
     public void saveSession(User user) {
         clearSession();
         String sql = "INSERT INTO local_session (user_id, username, role, last_login) VALUES (?, ?, ?, datetime('now'))";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, user.getUserId());
             stmt.setString(2, user.getUsername());
@@ -53,7 +54,7 @@ public class SQLiteDB {
     
     public User loadSession() {
         String sql = "SELECT * FROM local_session LIMIT 1";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
@@ -71,7 +72,7 @@ public class SQLiteDB {
     }
     
     public void clearSession() {
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate("DELETE FROM local_session");
         } catch (Exception e) {

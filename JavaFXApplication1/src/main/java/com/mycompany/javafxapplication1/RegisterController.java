@@ -82,7 +82,7 @@ public class RegisterController {
     }
 
     @FXML
-    private void registerBtnHandler(ActionEvent event) throws IOException {
+    private void registerBtnHandler(ActionEvent event) throws IOException, Exception {
         String username = userTextField.getText();
         String pass = passPasswordField.getText();
         String rePass = rePassPasswordField.getText();

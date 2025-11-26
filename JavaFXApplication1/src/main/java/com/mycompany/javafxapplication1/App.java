@@ -17,16 +17,40 @@ public class App extends Application {
     public void start(Stage stage) throws IOException {
         try {
             SQLiteDB sqlite = new SQLiteDB();
-            sqlite.log("SQLite local session initialized.");
+            User cached = sqlite.loadSession();
+            boolean mysqlOnline = true;
+            try {
+                MySQLDB mysql = new MySQLDB();
+                mysql.testConnection();
+            } catch (Exception e) {
+                mysqlOnline = false;
+            }
+            if (!mysqlOnline && cached != null) {
+                openSecondary(stage, cached, true);
+                return;
+            }
             FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
             Parent root = loader.load();
             Scene scene = new Scene(root, 640, 480);
             stage.setScene(scene);
-            stage.setTitle("Primary View");
+            stage.setTitle("Login");
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void openSecondary(Stage stage, User user, boolean offline) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+        Parent root = loader.load();
+        SecondaryController controller = loader.getController();
+        controller.initialise(user);
+        Scene scene = new Scene(root, 640, 480);
+        stage.setScene(scene);
+        String title = "Welcome, " + user.getUsername();
+        if (offline) title += " (Offline Mode)";
+        stage.setTitle(title);
+        stage.show();
     }
 
     public static void main(String[] args) {

@@ -25,14 +25,12 @@ public class PrimaryController {
     @FXML
     private void registerBtnHandler(ActionEvent event) {
         try {
-            Stage primaryStage = (Stage) registerBtn.getScene().getWindow();
-            Stage secondaryStage = new Stage();
+            Stage stage = (Stage) registerBtn.getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("register.fxml"));
             Scene scene = new Scene(root, 640, 480);
-            secondaryStage.setScene(scene);
-            secondaryStage.setTitle("Register a new User");
-            secondaryStage.show();
-            primaryStage.close();
+            stage.setScene(scene);
+            stage.setTitle("Register a new User");
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -45,7 +43,7 @@ public class PrimaryController {
         alert.setContentText(contentMsg);
         alert.showAndWait();
     }
-
+    
     @FXML
     private void switchToSecondary() {
         String username = userTextField.getText();
@@ -54,26 +52,32 @@ public class PrimaryController {
             dialogue("Missing Information", "Please enter username and password.");
             return;
         }
+        UserService service = new UserService();
         try {
-            UserService service = new UserService();
-            boolean ok = service.login(username, password);
-            if (!ok) {
-                dialogue("Invalid Login", "Username or Password incorrect. Please try again.");
-                return;
-            }
+            service.login(username, password);
             User sessionUser = service.getSessionUser();
-            Stage primaryStage = (Stage) registerBtn.getScene().getWindow();
-            Stage secondaryStage = new Stage();
+            Stage stage = (Stage) registerBtn.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
             Parent root = loader.load();
+            SecondaryController controller = loader.getController();
+            controller.initialise(sessionUser);
             Scene scene = new Scene(root, 640, 480);
-            secondaryStage.setScene(scene);
-            secondaryStage.setTitle("Welcome, " + sessionUser.getUsername());
-            secondaryStage.show();
-            primaryStage.close();
+            stage.setScene(scene);
+            stage.setTitle("Welcome, " + sessionUser.getUsername());
+        } catch (IllegalArgumentException e) {
+            switch (e.getMessage()) {
+                case "USER_NOT_FOUND":
+                    dialogue("Login Failed", "User does not exist.");
+                    break;
+                case "PASSWORD_WRONG":
+                    dialogue("Login Failed", "Incorrect password.");
+                    break;
+                default:
+                    dialogue("Error", "Unknown validation error.");
+            }
         } catch (Exception e) {
-            e.printStackTrace();
-            dialogue("Error", "Login failed due to system error.");
+            dialogue("Login Failed", "Cannot connect to MySQL.");
         }
     }
+
 }
