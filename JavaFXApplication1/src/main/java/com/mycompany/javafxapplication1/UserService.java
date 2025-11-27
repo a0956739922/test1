@@ -49,29 +49,39 @@ public class UserService {
         remote.log(null, username, "CREATE_USER", "role=" + role);
     }
 
-    public void deleteUser(int userId) throws Exception {
-        String deletedName = remote.getUserById(userId).getUsername();
-        remote.deleteUser(userId);
-        remote.log(null, deletedName, "DELETE_USER", "id=" + userId);
+    public void deleteUser(User actor, User target) throws Exception {
+        if (target.getUsername().equals("admin")) throw new IllegalArgumentException("CANNOT_DELETE_DEFAULT_ADMIN");
+        Integer currentUser = actor.getUserId();
+        if (actor.getUserId() == target.getUserId()) {
+            currentUser = null;
+        }
+        remote.deleteUser(target.getUserId());
+        remote.log(currentUser, actor.getUsername(), "DELETE_USER", "target_id=" + target.getUserId());
     }
 
-    public void promote(int userId) throws Exception {
-        String username = remote.getUserById(userId).getUsername();
-        remote.updateRole(userId, "admin");
-        remote.log(userId, username, "PROMOTE_USER", "id=" + userId);
+    public void promote(User admin, User target) throws Exception {
+        remote.updateRole(target.getUserId(), "admin");
+        remote.log(admin.getUserId(), admin.getUsername(), "PROMOTE_USER", "target_id=" + target.getUserId());
     }
 
-    public void demote(int userId) throws Exception {
-        String username = remote.getUserById(userId).getUsername();
-        remote.updateRole(userId, "standard");
-        remote.log(userId, username, "DEMOTE_USER", "id=" + userId);
+    public void demote(User admin, User target) throws Exception {
+        remote.updateRole(target.getUserId(), "standard");
+        remote.log(admin.getUserId(), admin.getUsername(), "DEMOTE_USER", "target_id=" + target.getUserId());
     }
 
-    public void updatePassword(int userId, String newPass) throws Exception {
+    public void updatePassword(User user, String currentPass, String newPass) throws Exception {
         if (newPass.isEmpty()) throw new IllegalArgumentException("PASSWORD_EMPTY");
-        String username = remote.getUserById(userId).getUsername();
-        remote.updatePassword(userId, remote.hashPassword(newPass));
-        remote.log(userId, username, "UPDATE_PASSWORD", "id=" + userId);
+        User fresh = remote.getUserByName(user.getUsername());
+        if (!remote.verifyPassword(currentPass, fresh.getPasswordHash()))
+            throw new IllegalArgumentException("WRONG_CURRENT_PASSWORD");
+        remote.updatePassword(fresh.getUserId(), remote.hashPassword(newPass));
+        remote.log(fresh.getUserId(), fresh.getUsername(), "UPDATE_PASSWORD", "target_id=" + fresh.getUserId());
+    }
+    
+    public void adminUpdatePassword(User admin, User target, String newPass) throws Exception {
+        if (newPass.isEmpty()) throw new IllegalArgumentException("PASSWORD_EMPTY");
+        remote.updatePassword(target.getUserId(), remote.hashPassword(newPass));
+        remote.log(admin.getUserId(),admin.getUsername(),"ADMIN_UPDATE_PASSWORD","target_id=" + target.getUserId());
     }
 
     public ObservableList<User> getAllUsers() throws Exception {

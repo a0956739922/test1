@@ -4,6 +4,7 @@
  */
 package com.mycompany.javafxapplication1;
 
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 /**
@@ -11,32 +12,32 @@ import javafx.beans.property.SimpleStringProperty;
  * @author ntu-user
  */
 public class User {
-    private int userId;
-    private String username;
-    private String passwordHash;
-    private String role;
+
+    private SimpleIntegerProperty userId;
+    private SimpleStringProperty username;
+    private SimpleStringProperty passwordHash;
+    private SimpleStringProperty role;
 
     public User(int userId, String username, String passwordHash, String role) {
-        this.userId = userId;
-        this.username = username;
-        this.passwordHash = passwordHash;
-        this.role = role;
+        this.userId = new SimpleIntegerProperty(userId);
+        this.username = new SimpleStringProperty(username);
+        this.passwordHash = new SimpleStringProperty(passwordHash);
+        this.role = new SimpleStringProperty(role);
     }
 
     public int getUserId() { 
-        return userId; 
+        return userId.get(); 
     }
     
     public String getUsername() { 
-        return username; 
+        return username.get(); 
     }
     
     public String getPasswordHash() { 
-        return passwordHash; 
+        return passwordHash.get(); 
     }
     
     public String getRole() { 
-        return role; 
+        return role.get(); 
     }
-    
 }

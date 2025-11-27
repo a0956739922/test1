@@ -12,19 +12,8 @@
         <VBox spacing="20"
               style="-fx-padding: 20; -fx-background-color: #1A5675; -fx-pref-width: 200;">
 
-            <Label text="Menu"
-                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
-
-            <Button text="Back"
-                    fx:id="backBtn"
-                    prefWidth="160"
-                    onAction="#goBack"
-                    style="-fx-background-color: white;" />
-
-            <Separator />
-
             <Label text="Account"
-                   style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" />
+                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
 
             <Button fx:id="updatePasswordBtn"
                     text="Update Password"
@@ -37,8 +26,14 @@
                     prefWidth="160"
                     onAction="#deleteAccount"
                     style="-fx-background-color: white;" />
-            
+
             <Pane VBox.vgrow="ALWAYS" />
+
+            <Button text="Back"
+                    fx:id="backBtn"
+                    prefWidth="160"
+                    onAction="#goBack"
+                    style="-fx-background-color: white;" />
 
             <Button fx:id="logoutBtn"
                     text="Logout"

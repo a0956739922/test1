@@ -25,15 +25,27 @@ public class AdvancedController {
     @FXML
     private Button backBtn;
     
-    @FXML 
+    @FXML
+    private Button userManageBtn;
+    
+    @FXML
     private Button logoutBtn;
     
     private User sessionUser;
 
     @FXML
     private void openUserManagement() {
-        System.out.println("User Management clicked.");
-        // TODO
+            try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/advancedUserManagement.fxml"));
+            Parent root = loader.load();
+            AdvancedUserManagementController controller = loader.getController();
+            controller.initialise(sessionUser);
+            Stage stage = (Stage) userManageBtn.getScene().getWindow();
+            stage.setScene(new Scene(root, 640, 480));
+            stage.setTitle("Admin User Management");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

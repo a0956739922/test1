@@ -67,21 +67,22 @@ public class UserManagementController {
             return;
         }
         try {
-            MySQLDB mysql = new MySQLDB();
-            User fresh = mysql.getUserByName(sessionUser.getUsername());
-            if (fresh == null) {
-                dialogue("Error", "Your account no longer exists.");
-                return;
-            }
-            if (!mysql.verifyPassword(currentPass, fresh.getPasswordHash())) {
-                dialogue("Incorrect Password", "Current password incorrect.");
-                return;
-            }
-            userService.updatePassword(fresh.getUserId(), newPass);
+            userService.updatePassword(sessionUser, currentPass, newPass);
             dialogue("Success", "Password updated.");
             currentPassField.clear();
             newPassField.clear();
             retypeField.clear();
+        } catch (IllegalArgumentException e) {
+            switch (e.getMessage()) {
+                case "PASSWORD_EMPTY":
+                    dialogue("Error", "Password cannot be empty.");
+                    break;
+                case "WRONG_CURRENT_PASSWORD":
+                    dialogue("Incorrect Password", "Current password incorrect.");
+                    break;
+                default:
+                    dialogue("Error", "Unexpected error.");
+            }
         } catch (Exception e) {
             dialogue("Offline Mode", "Cannot update password offline.");
         }
@@ -97,7 +98,7 @@ public class UserManagementController {
             return;
         }
         try {
-            userService.deleteUser(sessionUser.getUserId());
+            userService.deleteUser(sessionUser, sessionUser);
             userService.logout();
             dialogue("Deleted", "Your account has been deleted.");
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
@@ -126,7 +127,7 @@ public class UserManagementController {
     }
     
     @FXML
-    private void logout() {  
+    private void logout() {
         if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
             return;
         }
