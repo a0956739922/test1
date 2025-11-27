@@ -1,5 +1,7 @@
-package com.mycompany.javafxapplication1;
+package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.User;
+import com.mycompany.javafxapplication1.UserService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.event.ActionEvent;
@@ -26,7 +28,7 @@ public class PrimaryController {
     private void registerBtnHandler(ActionEvent event) {
         try {
             Stage stage = (Stage) registerBtn.getScene().getWindow();
-            Parent root = FXMLLoader.load(getClass().getResource("register.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/register.fxml"));
             Scene scene = new Scene(root, 640, 480);
             stage.setScene(scene);
             stage.setTitle("Register a new User");
@@ -57,7 +59,7 @@ public class PrimaryController {
             service.login(username, password);
             User sessionUser = service.getSessionUser();
             Stage stage = (Stage) registerBtn.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
             controller.initialise(sessionUser);

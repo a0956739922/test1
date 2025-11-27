@@ -1,5 +1,6 @@
 package com.mycompany.javafxapplication1;
 
+import com.mycompany.javafxapplication1.controller.SecondaryController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

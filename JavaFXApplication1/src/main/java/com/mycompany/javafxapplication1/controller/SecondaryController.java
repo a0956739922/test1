@@ -1,5 +1,7 @@
-package com.mycompany.javafxapplication1;
+package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.SQLiteDB;
+import com.mycompany.javafxapplication1.User;
 import java.io.IOException;
 import java.util.Optional;
 import javafx.fxml.FXML;
@@ -9,7 +11,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 
@@ -38,7 +39,7 @@ public class SecondaryController {
         try {
             new SQLiteDB().clearSession();
             Stage stage = (Stage) logoutBtn.getScene().getWindow();
-            Parent root = FXMLLoader.load(getClass().getResource("primary.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             stage.setScene(new Scene(root, 640, 480));
             stage.setTitle("Login");
             stage.show();
@@ -50,7 +51,7 @@ public class SecondaryController {
     @FXML
     private void openUserManagement() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("userManagement.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/userManagement.fxml"));
             Parent root = loader.load();
             UserManagementController controller = loader.getController();
             controller.initialise(sessionUser);
@@ -70,8 +71,17 @@ public class SecondaryController {
     
     @FXML
     private void openAdvancedPanel() {
-        System.out.println("Advanced Panel clicked (admin).");
-        // TODO: Add your advanced panel UI here
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/advanced.fxml"));
+            Parent root = loader.load();
+            AdvancedController controller = loader.getController();
+            controller.initialise(sessionUser);
+            Stage stage = (Stage) advancedPanelBtn.getScene().getWindow();
+            stage.setScene(new Scene(root, 640, 480));
+            stage.setTitle("Advanced Panel");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     private boolean dialogue(String headerMsg, String contentMsg) {

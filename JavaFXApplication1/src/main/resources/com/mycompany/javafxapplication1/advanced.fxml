@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.controller.SecondaryController">
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.controller.AdvancedController">
 
     <left>
         <VBox spacing="20"
               style="-fx-padding: 20; -fx-background-color: #1A5675; -fx-pref-width: 200;">
-            
-            <Label text="Menu"
+
+            <Label text="Advanced"
                    style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
+
+            <Button fx:id="backBtn"
+                    text="Back"
+                    prefWidth="160"
+                    onAction="#goBack"
+                    style="-fx-background-color: white;" />
+
+            <Separator />
+
+            <Label text="Management"
+                   style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" />
 
             <Button fx:id="userManageBtn"
                     text="User Management"
@@ -25,10 +36,10 @@
                     onAction="#openFileManagement"
                     style="-fx-background-color: white;" />
 
-            <Button fx:id="advancedPanelBtn"
-                    text="Advanced Panel"
+            <Button fx:id="logBtn"
+                    text="Logs"
                     prefWidth="160"
-                    onAction="#openAdvancedPanel"
+                    onAction="#openLogView"
                     style="-fx-background-color: white;" />
 
             <Pane VBox.vgrow="ALWAYS" />
@@ -43,10 +54,16 @@
     </left>
 
     <center>
-        <StackPane style="-fx-background-color: #E8F1F5;">
-            <Label text="Dashboard Area (Empty for now)"
-                   style="-fx-font-size: 18px; -fx-text-fill: #333;" />
-        </StackPane>
+        <VBox spacing="15"
+              style="-fx-padding: 30; -fx-background-color: #E8F1F5;">
+
+            <Label text="Advanced Panel"
+                   style="-fx-font-size: 24px; -fx-text-fill: #333; -fx-font-weight: bold;" />
+
+            <Label text="(System logs will appear here)"
+                   style="-fx-font-size: 14px; -fx-text-fill: #555;" />
+
+        </VBox>
     </center>
 
 </BorderPane>

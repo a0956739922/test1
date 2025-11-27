@@ -2,8 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.javafxapplication1;
+package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.MySQLDB;
+import com.mycompany.javafxapplication1.SQLiteDB;
+import com.mycompany.javafxapplication1.User;
+import com.mycompany.javafxapplication1.UserService;
 import java.io.IOException;
 import java.util.Optional;
 import javafx.fxml.FXML;
@@ -96,7 +100,7 @@ public class UserManagementController {
             userService.deleteUser(sessionUser.getUserId());
             userService.logout();
             dialogue("Deleted", "Your account has been deleted.");
-            Parent root = FXMLLoader.load(getClass().getResource("primary.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Stage stage = (Stage) deleteAccountBtn.getScene().getWindow();
             stage.setScene(new Scene(root, 640, 480));
             stage.setTitle("Login");
@@ -109,7 +113,7 @@ public class UserManagementController {
     @FXML
     private void goBack() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
             controller.initialise(sessionUser);
@@ -129,7 +133,7 @@ public class UserManagementController {
         try {
             new SQLiteDB().clearSession();
             Stage stage = (Stage) logoutBtn.getScene().getWindow();
-            Parent root = FXMLLoader.load(getClass().getResource("primary.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             stage.setScene(new Scene(root, 640, 480));
             stage.setTitle("Login");
             stage.show();

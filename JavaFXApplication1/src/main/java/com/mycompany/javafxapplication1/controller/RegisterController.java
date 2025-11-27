@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
  */
-package com.mycompany.javafxapplication1;
+package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.UserService;
 import java.io.File;
 import java.io.IOException;
 import javafx.event.ActionEvent;
@@ -96,7 +97,7 @@ public class RegisterController {
             dialogue("Registration Successful!", "User created successfully.");
             Stage primaryStage = (Stage) registerBtn.getScene().getWindow();
             Stage secondaryStage = new Stage();
-            Parent root = FXMLLoader.load(getClass().getResource("primary.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 640, 480);
             secondaryStage.setScene(scene);
             secondaryStage.setTitle("Login");
@@ -132,7 +133,7 @@ public class RegisterController {
         try {
             Stage primaryStage = (Stage) backLoginBtn.getScene().getWindow();
             Stage secondaryStage = new Stage();
-            Parent root = FXMLLoader.load(getClass().getResource("primary.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 640, 480);
             secondaryStage.setScene(scene);
             secondaryStage.setTitle("Login");
