@@ -41,7 +41,7 @@ public class MySQLDB {
         return DriverManager.getConnection(
                 "jdbc:mysql://lamp-server:3306/soft40051?useSSL=false",
                 "admin",
-                "CVkhqybr3UuD"
+                "GPx5ZPfEG0ek"
         );
     }
     
@@ -135,6 +135,23 @@ public class MySQLDB {
         }
         return null;
     }
+    
+    public User getUserById(int userId) throws Exception {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new User(
+                    rs.getInt("user_id"),
+                    rs.getString("username"),
+                    rs.getString("password_hash"),
+                    rs.getString("role")
+                );
+            }
+        }
+        return null;
+    }
 
     public void addUser(String username, String hash, String role) throws Exception {
         String sql = "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)";
@@ -190,19 +207,17 @@ public class MySQLDB {
         return list;
     }
 
-
-    public void log(String action, String detail) throws Exception {
-        Integer uid = null;
-        User sessionUser = new SQLiteDB().loadSession();
-        if (sessionUser != null) uid = sessionUser.getUserId();
+    public void log(Integer userId, String username, String action, String detail) throws Exception {
         try (Connection conn = getConnection()) {
-            String sql = "INSERT INTO logs (user_id, action, detail) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO logs (user_id, username, action, detail) VALUES (?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            if (uid == null) stmt.setNull(1, Types.INTEGER);
-            else stmt.setInt(1, uid);
-            stmt.setString(2, action);
-            stmt.setString(3, detail);
+            if (userId == null) stmt.setNull(1, Types.INTEGER);
+            else stmt.setInt(1, userId);
+            stmt.setString(2, username);  
+            stmt.setString(3, action);
+            stmt.setString(4, detail);
             stmt.executeUpdate();
         }
     }
+
 }

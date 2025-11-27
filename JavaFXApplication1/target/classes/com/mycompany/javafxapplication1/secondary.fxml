@@ -9,34 +9,36 @@
     <left>
         <VBox spacing="20"
               style="-fx-padding: 20; -fx-background-color: #1A5675; -fx-pref-width: 200;">
+            
             <Label text="Menu"
                    style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
 
             <Button fx:id="userManageBtn"
                     text="User Management"
                     prefWidth="160"
-                    onAction="#openUserManagement" 
+                    onAction="#openUserManagement"
                     style="-fx-background-color: white;" />
 
             <Button fx:id="fileManageBtn"
                     text="File Management"
                     prefWidth="160"
-                    onAction="#openFileManagement" 
+                    onAction="#openFileManagement"
                     style="-fx-background-color: white;" />
 
             <Button fx:id="advancedPanelBtn"
                     text="Advanced Panel"
                     prefWidth="160"
-                    onAction="#openAdvancedPanel" 
+                    onAction="#openAdvancedPanel"
                     style="-fx-background-color: white;" />
 
-            <Separator />
+            <Pane VBox.vgrow="ALWAYS" />
 
             <Button fx:id="logoutBtn"
                     text="Logout"
                     prefWidth="160"
-                    onAction="#logout" 
+                    onAction="#logout"
                     style="-fx-background-color: #FF6666; -fx-text-fill: white;" />
+
         </VBox>
     </left>
 

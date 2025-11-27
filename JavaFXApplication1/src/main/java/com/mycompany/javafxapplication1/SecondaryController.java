@@ -28,6 +28,8 @@ public class SecondaryController {
     @FXML 
     private Button logoutBtn;
     
+    private User sessionUser;
+    
     @FXML
     private void logout() {  
         if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
@@ -47,8 +49,17 @@ public class SecondaryController {
 
     @FXML
     private void openUserManagement() {
-        System.out.println("User Management clicked.");
-        // TODO: Add your user management UI here
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("userManagement.fxml"));
+            Parent root = loader.load();
+            UserManagementController controller = loader.getController();
+            controller.initialise(sessionUser);
+            Stage stage = (Stage) userManageBtn.getScene().getWindow();
+            stage.setScene(new Scene(root, 640, 480));
+            stage.setTitle("User Management");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML
@@ -63,7 +74,6 @@ public class SecondaryController {
         // TODO: Add your advanced panel UI here
     }
     
-    
     private boolean dialogue(String headerMsg, String contentMsg) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation");
@@ -74,6 +84,7 @@ public class SecondaryController {
     }
 
     public void initialise(User user) {
+        sessionUser = user;
         if (!"admin".equals(user.getRole())) {
             advancedPanelBtn.setVisible(false);
         }
