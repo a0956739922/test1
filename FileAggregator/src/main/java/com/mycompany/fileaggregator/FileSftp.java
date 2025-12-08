@@ -41,6 +41,16 @@ public class FileSftp {
         sftp.connect(CHANNEL_TIMEOUT);
         return (ChannelSftp) sftp;
     }
+    
+    private void close(ChannelSftp channel) {
+        try {
+            if (channel != null) channel.disconnect();
+            Session session = channel.getSession();
+            if (session != null && session.isConnected()) session.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public synchronized String nextServer() {
         String s = servers[index];
@@ -50,39 +60,47 @@ public class FileSftp {
 
     public void upload(String localFile, String remoteFile, String server) throws Exception {
         ChannelSftp channelSftp = connect(server);
-        channelSftp.put(localFile, remoteFile);
-        channelSftp.exit();
-        channelSftp.getSession().disconnect();
+        try {
+            channelSftp.put(localFile, remoteFile);
+        } finally {
+            close(channelSftp);
+        }
     }
 
     public void download(String remoteFile, String localFile, String server) throws Exception {
         ChannelSftp channelSftp = connect(server);
-        channelSftp.get(remoteFile, localFile);
-        channelSftp.exit();
-        channelSftp.getSession().disconnect();
+        try {
+            channelSftp.get(remoteFile, localFile);
+        } finally {
+            close(channelSftp);
+        }
     }
 
     public void delete(String remoteFile, String server) throws Exception {
         ChannelSftp channelSftp = connect(server);
-        channelSftp.rm(remoteFile);
-        channelSftp.exit();
-        channelSftp.getSession().disconnect();
+        try {
+            channelSftp.rm(remoteFile);
+        } finally {
+            close(channelSftp);
+        }
     }
     
     public void mkdirIfNotExists(String path, String server) throws Exception {
         ChannelSftp channelSftp = connect(server);
-        try { 
-            channelSftp.stat(BASE);
-        } catch (Exception e) {
-            channelSftp.mkdir(BASE);
-        }
         try {
-            channelSftp.stat(path);
-        } catch (Exception e) {
-            channelSftp.mkdir(path);
+            try {
+                channelSftp.stat(BASE);
+            } catch (Exception e) {
+                channelSftp.mkdir(BASE);
+            }
+            try {
+                channelSftp.stat(path);
+            } catch (Exception e) {
+                channelSftp.mkdir(path);
+            }
+        } finally {
+            close(channelSftp);
         }
-        channelSftp.exit();
-        channelSftp.getSession().disconnect();
     }
 
 }

@@ -22,11 +22,6 @@ public class test {
 //        } catch (Exception ex) {
 //            ex.printStackTrace();
 //        }
-        try {
-            fs.renameMove(15, "/home/ntu-user/w123.pdf", "/abc");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
 
     }
 }
