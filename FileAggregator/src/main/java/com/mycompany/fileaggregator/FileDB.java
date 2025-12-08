@@ -63,6 +63,27 @@ public class FileDB {
         }
         return -1;
     }
+    
+    public void updateFile(long fileId, String newName, String newLogicalPath, Long newSize) throws Exception {
+        String sql;
+        if (newSize == null) {
+            sql = "UPDATE files SET name = ?, logical_path = ?, updated_at = NOW() WHERE id = ?";
+        } else {
+            sql = "UPDATE files SET name = ?, logical_path = ?, size_bytes = ?, updated_at = NOW() WHERE id = ?";
+        }
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newName);
+            stmt.setString(2, newLogicalPath);
+            if (newSize == null) {
+                stmt.setLong(3, fileId);
+            } else {
+                stmt.setLong(3, newSize);
+                stmt.setLong(4, fileId);
+            }
+            stmt.executeUpdate();
+        }
+    }
 
     public void updateMetadata(long fileId, JsonObject metadata) throws Exception {
         String sql = "UPDATE files SET metadata = ?, updated_at = NOW() WHERE id = ?";

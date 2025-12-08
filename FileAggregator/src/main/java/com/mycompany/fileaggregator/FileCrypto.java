@@ -94,7 +94,7 @@ public class FileCrypto {
     public void mergeChunks(String chunkDir, String outputZipPath) throws Exception {
         File dir = new File(chunkDir);
         File[] parts = dir.listFiles((d, name) -> name.endsWith(".part"));
-        Arrays.sort(parts, Comparator.comparingInt(f -> Integer.parseInt(f.getName().split("\\.")[1])));
+        Arrays.sort(parts, Comparator.comparingInt(f -> {String[] t = f.getName().split("\\.");return Integer.valueOf(t[t.length - 2]);}));
         try (FileOutputStream fos = new FileOutputStream(outputZipPath)) {
             for (File part : parts) {
                 Files.copy(part.toPath(), fos);

@@ -5,6 +5,9 @@
 package com.mycompany.fileaggregator;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -65,6 +68,8 @@ public class FileService {
                 .add("chunks", chunkArr.build())
                 .build();
         db.updateMetadata(fileId, finalMeta);
+        for (File chunk : chunks) chunk.delete();
+        new File(zipPath).delete();
         return fileId;
     }
 
@@ -96,26 +101,23 @@ public class FileService {
         String zipOut = outputDir + File.separator + fileName + ".zip";
         crypto.mergeChunks(chunkDirPath, zipOut);
         crypto.decryptZip(zipOut, outputDir, key);
-
+        new File(zipOut).delete();
+        Files.walk(Path.of(chunkDirPath)).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
         return outputDir + File.separator + fileName;
     }
 
-    public void updateFile(long fileId, String newLocalFilePath) throws Exception {
+    public void update(long fileId, String newLocalFilePath, String newLogicalPath) throws Exception {
         JsonObject oldMeta = db.getMetadata(fileId);
-        if (oldMeta == null) {
-            throw new Exception("File metadata not found for id=" + fileId);
-        }
+        if (oldMeta == null) throw new Exception("metadata missing");
         JsonArray oldChunks = oldMeta.getJsonArray("chunks");
         for (int i = 0; i < oldChunks.size(); i++) {
             JsonObject c = oldChunks.getJsonObject(i);
-            String server = c.getString("server");
-            String remotePath = c.getString("remote_path");
-            sftp.delete(remotePath, server);
+            sftp.delete(c.getString("remote_path"), c.getString("server"));
         }
         File newFile = new File(newLocalFilePath);
         long sizeBytes = newFile.length();
-        String logicalPath = oldMeta.getString("logical_path");
-        String fileName = oldMeta.getString("file_name");
+        String newName = newFile.getName();
+        String logicalPath = newLogicalPath != null ? newLogicalPath : oldMeta.getString("logical_path");
         String key = crypto.generateFileKey();
         String zipPath = newLocalFilePath + ".zip";
         crypto.encryptZip(newLocalFilePath, zipPath, key);
@@ -124,29 +126,45 @@ public class FileService {
         for (int i = 0; i < chunks.size(); i++) {
             File chunk = chunks.get(i);
             String server = sftp.nextServer();
-            String remotePath = "/data/" + fileId + "/" + i + ".part";
+            String remotePath = "/home/ntu-user/data/" + fileId + "/" + i + ".part";
             String crc32 = crypto.calcFileCRC32(chunk.getAbsolutePath());
             sftp.upload(chunk.getAbsolutePath(), remotePath, server);
-            chunkArr.add(
-                    Json.createObjectBuilder()
-                            .add("index", i)
-                            .add("server", server)
-                            .add("remote_path", remotePath)
-                            .add("crc32", crc32)
-                            .add("size_bytes", chunk.length())
-            );
+            chunkArr.add(Json.createObjectBuilder()
+                    .add("index", i)
+                    .add("server", server)
+                    .add("remote_path", remotePath)
+                    .add("crc32", crc32)
+                    .add("size_bytes", chunk.length()));
         }
         JsonObject newMeta = Json.createObjectBuilder()
                 .add("file_id", fileId)
-                .add("file_name", fileName)
+                .add("file_name", newName)
                 .add("logical_path", logicalPath)
                 .add("size_bytes", sizeBytes)
                 .add("encryption_key", key)
                 .add("total_chunks", chunks.size())
                 .add("chunks", chunkArr.build())
                 .build();
-
         db.updateMetadata(fileId, newMeta);
+        db.updateFile(fileId, newName, logicalPath, sizeBytes);
+        for (File chunk : chunks) chunk.delete();
+        new File(zipPath).delete();
+    }
+    
+    public void renameMove(long fileId, String newName, String newLogicalPath) throws Exception {
+        JsonObject meta = db.getMetadata(fileId);
+        if (meta == null) throw new Exception("metadata missing");
+        String oldName = meta.getString("file_name");
+        String oldPath = meta.getString("logical_path");
+        boolean nameChanged = newName != null && !newName.equals(oldName);
+        boolean pathChanged = newLogicalPath != null && !newLogicalPath.equals(oldPath);
+        if (!nameChanged && !pathChanged) return;
+        JsonObject updated = Json.createObjectBuilder(meta)
+                .add("file_name", nameChanged ? newName : oldName)
+                .add("logical_path", pathChanged ? newLogicalPath : oldPath)
+                .build();
+        db.updateMetadata(fileId, updated);
+        db.updateFile(fileId, newName, newLogicalPath, null);
     }
 
     public void delete(long fileId) throws Exception {

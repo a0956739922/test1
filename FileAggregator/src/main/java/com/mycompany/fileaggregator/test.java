@@ -12,9 +12,18 @@ public class test {
     public static void main(String[] args){
         FileService fs = new FileService();
         long id;
+//        try {
+//            id = fs.upload(1, "/home/ntu-user/w5p.pdf", "/docs");
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+//        try {
+//            fs.download(13, "/home/ntu-user/");
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
         try {
-            id = fs.upload(1, "/home/ntu-user/update.sh", "/docs");
-            System.out.println("uploaded id=" + id);
+            fs.renameMove(15, "/home/ntu-user/w123.pdf", "/abc");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
