@@ -1,0 +1,88 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.mycompany.fileaggregator;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+import java.util.Properties;
+
+/**
+ *
+ * @author ntu-user
+ */
+public class FileSftp {
+
+    private final String[] servers = {
+            "soft40051-files-container1", "soft40051-files-container2", "soft40051-files-container3", "soft40051-files-container4"
+    };
+
+    private final String USERNAME = "ntu-user";
+    private final String PASSWORD = "ntu-user";
+    private final int REMOTE_PORT = 22;
+    private static final String BASE = "/home/ntu-user/data";
+    private final int SESSION_TIMEOUT = 10000;
+    private final int CHANNEL_TIMEOUT = 5000;
+    private int index = 0;
+
+    private ChannelSftp connect(String host) throws Exception {
+        JSch jsch = new JSch();
+        jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
+        Session session = jsch.getSession(USERNAME, host, REMOTE_PORT);
+        Properties config = new Properties();
+        config.put("StrictHostKeyChecking", "no");
+        session.setConfig(config);
+        session.setPassword(PASSWORD);
+        session.connect(SESSION_TIMEOUT);
+        Channel sftp = session.openChannel("sftp");
+        sftp.connect(CHANNEL_TIMEOUT);
+        return (ChannelSftp) sftp;
+    }
+
+    public synchronized String nextServer() {
+        String s = servers[index];
+        index = (index + 1) % servers.length;
+        return s;
+    }
+
+    public void upload(String localFile, String remoteFile, String server) throws Exception {
+        ChannelSftp channelSftp = connect(server);
+        channelSftp.put(localFile, remoteFile);
+        channelSftp.exit();
+        channelSftp.getSession().disconnect();
+    }
+
+    public void download(String remoteFile, String localFile, String server) throws Exception {
+        ChannelSftp channelSftp = connect(server);
+        channelSftp.get(remoteFile, localFile);
+        channelSftp.exit();
+        channelSftp.getSession().disconnect();
+    }
+
+    public void delete(String remoteFile, String server) throws Exception {
+        ChannelSftp channelSftp = connect(server);
+        channelSftp.rm(remoteFile);
+        channelSftp.exit();
+        channelSftp.getSession().disconnect();
+    }
+    
+    public void mkdirIfNotExists(String path, String server) throws Exception {
+        ChannelSftp channelSftp = connect(server);
+        try { 
+            channelSftp.stat(BASE);
+        } catch (Exception e) {
+            channelSftp.mkdir(BASE);
+        }
+        try {
+            channelSftp.stat(path);
+        } catch (Exception e) {
+            channelSftp.mkdir(path);
+        }
+        channelSftp.exit();
+        channelSftp.getSession().disconnect();
+    }
+
+}
