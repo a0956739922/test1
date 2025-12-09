@@ -59,14 +59,23 @@ public class SecondaryController {
             stage.setScene(new Scene(root, 640, 480));
             stage.setTitle("User Management");
         } catch (IOException e) {
-            e.printStackTrace();
+            dialogue("User Management Unavailable", "Cannot open User Management in offline mode.");
         }
     }
     
     @FXML
     private void openFileManagement() {
-        System.out.println("File Management clicked.");
-        // TODO: Add your file management UI here
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/fileManagement.fxml"));
+            Parent root = loader.load();
+            FileManagementController controller = loader.getController();
+            controller.initialise(sessionUser);
+            Stage stage = (Stage) fileManageBtn.getScene().getWindow();
+            stage.setScene(new Scene(root, 640, 480));
+            stage.setTitle("File Management");
+        } catch (Exception e) {
+            
+        }
     }
     
     @FXML

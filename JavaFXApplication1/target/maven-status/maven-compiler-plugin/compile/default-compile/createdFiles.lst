@@ -4,10 +4,12 @@ com/mycompany/javafxapplication1/controller/SecondaryController.class
 com/mycompany/javafxapplication1/controller/UserManagementController.class
 com/mycompany/javafxapplication1/controller/PrimaryController.class
 com/mycompany/javafxapplication1/controller/RegisterController.class
+com/mycompany/javafxapplication1/FileModel.class
 com/mycompany/javafxapplication1/MySQLDB.class
 com/mycompany/javafxapplication1/controller/AdvancedController.class
 module-info.class
 com/mycompany/javafxapplication1/App.class
 com/mycompany/javafxapplication1/controller/AdminChangePasswordController.class
 com/mycompany/javafxapplication1/User.class
+com/mycompany/javafxapplication1/controller/FileManagementController.class
 com/mycompany/javafxapplication1/controller/AdvancedUserManagementController.class

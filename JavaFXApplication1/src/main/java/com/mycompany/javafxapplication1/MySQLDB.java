@@ -16,8 +16,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import javafx.collections.FXCollections;
@@ -151,6 +153,26 @@ public class MySQLDB {
             }
         }
         return null;
+    }
+    
+    public List<FileModel> getAllFilesByUser(int userId) throws Exception {
+        String sql = "SELECT id, name, logical_path, size_bytes FROM files WHERE owner_user_id = ? AND is_deleted = 0";
+        List<FileModel> files = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                files.add(new FileModel(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("logical_path"),
+                    rs.getLong("size_bytes")
+                ));
+            }
+        }
+
+        return files;
     }
 
     public void addUser(String username, String hash, String role) throws Exception {

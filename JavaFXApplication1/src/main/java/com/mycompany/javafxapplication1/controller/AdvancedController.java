@@ -35,7 +35,7 @@ public class AdvancedController {
 
     @FXML
     private void openUserManagement() {
-            try {
+        try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/advancedUserManagement.fxml"));
             Parent root = loader.load();
             AdvancedUserManagementController controller = loader.getController();
