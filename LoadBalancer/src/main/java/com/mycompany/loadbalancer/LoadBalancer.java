@@ -57,7 +57,7 @@ public class LoadBalancer {
         }
         Request req = new Request(id, type, size);
         emulator.add(req);
-        System.out.println("[LB] New Request → " + req);
+        System.out.println("[LB] New Request " + req);
         return req;
     }
 }

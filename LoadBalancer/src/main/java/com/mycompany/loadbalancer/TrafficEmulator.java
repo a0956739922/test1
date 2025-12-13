@@ -19,61 +19,62 @@ public class TrafficEmulator {
     private final Queue<Request> processingQueue = new LinkedList<>();
     private final Queue<Request> readyQueue = new LinkedList<>();
     private final long[] resources;
-    private int effectiveServerCount;
     private final Scheduler scheduler;
     private final Random random = new Random();
 
     public TrafficEmulator(int serverCount, Scheduler scheduler) {
         this.scheduler = scheduler;
         this.resources = new long[serverCount];
-        this.effectiveServerCount = serverCount;
     }
 
     public void add(Request r) {
+        long arrivalDelay = 1000L + random.nextInt(4000);
+        r.setArrivalTime(System.currentTimeMillis() + arrivalDelay);
         waitingQueue.offer(r);
-        effectiveServerCount = estimateServers(r.getSize());
-        System.out.println("[LB] Estimated servers = " + effectiveServerCount);
-    }
-    
-    private int estimateServers(long sizeBytes) {
-        if (sizeBytes < 5 * 1024 * 1024) return 1;
-        if (sizeBytes < 20 * 1024 * 1024) return 2;
-        if (sizeBytes < 50 * 1024 * 1024) return 3;
-        return resources.length;
     }
 
     public void step() {
         long now = System.currentTimeMillis();
-        Iterator<Request> it = processingQueue.iterator();
-        while (it.hasNext()) {
-            Request r = it.next();
+        Iterator<Request> pit = processingQueue.iterator();
+        while (pit.hasNext()) {
+            Request r = pit.next();
             int s = r.getAssignedServer();
             if (now >= resources[s]) {
-                it.remove();
-                readyQueue.offer(r);
+                pit.remove();
                 resources[s] = 0;
-                System.out.println("Ready → " + r + " (server " + s + ")");
+                readyQueue.offer(r);
             }
         }
         while (!waitingQueue.isEmpty()) {
             Request head = waitingQueue.peek();
+            if (now < head.getArrivalTime()) {
+                break;
+            }
             Scheduler.Algorithm algo = scheduler.chooseAlgo(head.getSize());
             Request selected;
             switch (algo) {
-                case FCFS:        selected = scheduler.pickFCFS(waitingQueue); break;
-                case SJF:         selected = scheduler.pickSJF(waitingQueue);  break;
-                case ROUND_ROBIN: selected = scheduler.pickRR(waitingQueue);   break;
-                default:          selected = scheduler.pickFCFS(waitingQueue);
+                case FCFS:
+                    selected = scheduler.pickFCFS(waitingQueue);
+                    break;
+                case SJF:
+                    selected = scheduler.pickSJF(waitingQueue);
+                    break;
+                case ROUND_ROBIN:
+                    selected = scheduler.pickRR(waitingQueue);
+                    break;
+                default:
+                    selected = scheduler.pickFCFS(waitingQueue);
             }
-            int server = scheduler.nextServer(effectiveServerCount);
-            if (resources[server] != 0) break;
+            int server = scheduler.nextServer(resources.length);
+            if (resources[server] != 0) {
+                break;
+            }
             waitingQueue.remove(selected);
-            long delay = (1 + random.nextInt(5)) * 1000L;
-            selected.setStartTime(now);
+            long serviceDelay = 1000L + random.nextInt(4000);
             selected.setAssignedServer(server);
+            selected.setStartTime(now);
             processingQueue.offer(selected);
-            resources[server] = now + delay;
-            System.out.println("Dispatch → " + selected + " server=" + server + " delay=" + delay);
+            resources[server] = now + serviceDelay;
         }
     }
 

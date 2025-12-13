@@ -16,6 +16,7 @@ public class Request {
     private final Type type;
     private final long size;
 
+    private long arrivalTime;
     private long startTime;
     private int assignedServer = -1;
 
@@ -28,6 +29,9 @@ public class Request {
     public String getId() { return id; }
     public Type getType() { return type; }
     public long getSize() { return size; }
+
+    public long getArrivalTime() { return arrivalTime; }
+    public void setArrivalTime(long t) { this.arrivalTime = t; }
 
     public long getStartTime() { return startTime; }
     public void setStartTime(long t) { this.startTime = t; }
