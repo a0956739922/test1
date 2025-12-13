@@ -13,7 +13,8 @@
     <modules>
         <module>FileAggregator</module>
         <module>LoadBalancer</module>
-        <module>MqttProject</module>
+        <module>MqttHost</module>
+        <module>JavaFXApplication1</module>
     </modules>
 
 </project>

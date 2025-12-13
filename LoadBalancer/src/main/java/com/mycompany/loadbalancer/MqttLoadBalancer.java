@@ -2,10 +2,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.mqttproject;
+package com.mycompany.loadbalancer;
 
-import com.mycompany.loadbalancer.LoadBalancer;
-import com.mycompany.loadbalancer.Request;
 import org.eclipse.paho.client.mqttv3.*;
 import java.io.StringReader;
 import java.util.Map;
@@ -52,7 +50,7 @@ public class MqttLoadBalancer {
             String raw = new String(msg.getPayload());
             Request req = lb.acceptRaw(raw);
             RAW.put(req.getId(), raw);
-            System.out.println("[LB] Queued → " + req);
+            System.out.println("[LB] Queued " + req);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,7 +64,7 @@ public class MqttLoadBalancer {
                 String raw = RAW.remove(r.getId());
                 if (r.getType() == Request.Type.META) {
                     client.publish(LB_META, new MqttMessage(raw.getBytes()));
-                    System.out.println("[LB → AGG META] " + raw);
+                    System.out.println("[LB AGG META] " + raw);
                 } else {
                     int idx = r.getAssignedServer();
                     String serverName = "soft40051-files-container" + (idx + 1);
@@ -76,7 +74,7 @@ public class MqttLoadBalancer {
                             .add("request", Json.createReader(new StringReader(raw)).readObject())
                             .build();
                     client.publish(LB_HOST, new MqttMessage(out.toString().getBytes()));
-                    System.out.println("[LB → HOST] " + out);
+                    System.out.println("[LB HOST] " + out);
                 }
             }
         } catch (Exception e) {

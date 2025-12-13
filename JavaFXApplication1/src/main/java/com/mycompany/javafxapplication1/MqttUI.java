@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.mqttproject;
+package com.mycompany.javafxapplication1;
 
 import org.eclipse.paho.client.mqttv3.*;
 import javax.json.JsonObject;

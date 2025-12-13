@@ -4,7 +4,6 @@
  */
 package com.mycompany.javafxapplication1;
 
-import com.mycompany.mqttproject.MqttUI;
 import javax.json.Json;
 import javax.json.JsonObject;
 /**
