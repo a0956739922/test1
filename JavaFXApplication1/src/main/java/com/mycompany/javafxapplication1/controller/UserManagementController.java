@@ -152,7 +152,7 @@ public class UserManagementController {
     }
     
     public void initialise(User user) {
-        sessionUser = user;
+        this.sessionUser = user;
         usernameField.setText(user.getUsername());
         usernameField.setEditable(false);
     }

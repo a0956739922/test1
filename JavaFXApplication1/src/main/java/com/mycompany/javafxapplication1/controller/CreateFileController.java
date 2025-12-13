@@ -6,6 +6,7 @@ package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.User;
+import java.util.Optional;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
@@ -15,9 +16,14 @@ import javafx.stage.Stage;
  */
 public class CreateFileController {
 
-    @FXML private TextField txtName;
-    @FXML private TextField txtPath;
-    @FXML private TextArea txtContent;
+    @FXML
+    private TextField nameField;
+
+    @FXML
+    private TextField pathField;
+
+    @FXML
+    private TextArea contentArea;
 
     private User sessionUser;
     private FileService fileService;
@@ -30,32 +36,40 @@ public class CreateFileController {
     @FXML
     private void createFile() {
         try {
-            String name = txtName.getText().trim();
-            String path = txtPath.getText().trim();
-            String content = txtContent.getText();
+            String name = nameField.getText().trim();
+            String path = pathField.getText().trim();
+            String content = contentArea.getText();
             long sizeBytes = content.getBytes().length;
             if (name.isEmpty() || path.isEmpty()) {
-                showAlert("Name and Path cannot be empty.");
+                dialogue("Missing Fields", "Name and Path cannot be empty.");
                 return;
             }
-            fileService.create(sessionUser.getUserId(), name, path, content, sizeBytes);
+            fileService.create(
+                    sessionUser.getUserId(),
+                    name,
+                    path,
+                    content,
+                    sizeBytes
+            );
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Failed to create file.");
+            dialogue("Error", "Failed to create file.");
         }
     }
 
     @FXML
     private void closeWindow() {
-        Stage stage = (Stage) txtName.getScene().getWindow();
+        Stage stage = (Stage) nameField.getScene().getWindow();
         stage.close();
     }
 
-    private void showAlert(String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setHeaderText("Error");
-        alert.setContentText(msg);
-        alert.show();
+    private boolean dialogue(String headerMsg, String contentMsg) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText(headerMsg);
+        alert.setContentText(contentMsg);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
     }
 }

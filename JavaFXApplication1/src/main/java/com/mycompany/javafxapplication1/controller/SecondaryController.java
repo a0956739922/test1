@@ -103,7 +103,7 @@ public class SecondaryController {
     }
 
     public void initialise(User user) {
-        sessionUser = user;
+        this.sessionUser = user;
         if (!"admin".equals(user.getRole())) {
             advancedPanelBtn.setVisible(false);
         }

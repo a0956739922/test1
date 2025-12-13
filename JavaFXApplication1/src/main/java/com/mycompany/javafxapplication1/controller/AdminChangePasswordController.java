@@ -82,8 +82,8 @@ public class AdminChangePasswordController {
     }
     
     public void initialise(User admin, User target) {
-        adminUser = admin;
-        targetUser = target;
+        this.adminUser = admin;
+        this.targetUser = target;
         infoLabel.setText("Change password for: " + target.getUsername());
     }
     

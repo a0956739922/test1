@@ -69,7 +69,7 @@ public class FileManagementController {
     private User sessionUser;
 
     public void initialise(User user) {
-        sessionUser = user;
+        this.sessionUser = user;
         loadFiles();
     }
     

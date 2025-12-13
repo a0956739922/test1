@@ -102,7 +102,7 @@ public class AdvancedController {
     }
     
     public void initialise(User user) {
-        sessionUser = user;
+        this.sessionUser = user;
     }
     
 }
