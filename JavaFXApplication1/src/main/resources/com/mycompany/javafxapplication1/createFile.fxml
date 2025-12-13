@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.mycompany.javafxapplication1.controller.CreateFileController"
+      style="-fx-padding: 20;"
+      spacing="12">
+
+    <Label text="Create New File" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+    <Label text="File Name:"/>
+    <TextField fx:id="txtName"/>
+
+    <Label text="File Path:"/>
+    <TextField fx:id="txtPath"/>
+
+    <Label text="Content:"/>
+    <TextArea fx:id="txtContent" prefRowCount="8"/>
+
+    <HBox spacing="10">
+        <Button text="Create" onAction="#createFile"/>
+        <Button text="Cancel" onAction="#closeWindow"/>
+    </HBox>
+
+</VBox>

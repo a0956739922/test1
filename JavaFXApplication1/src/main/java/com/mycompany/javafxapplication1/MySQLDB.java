@@ -154,26 +154,6 @@ public class MySQLDB {
         }
         return null;
     }
-    
-    public List<FileModel> getAllFilesByUser(int userId) throws Exception {
-        String sql = "SELECT id, name, logical_path, size_bytes FROM files WHERE owner_user_id = ? AND is_deleted = 0";
-        List<FileModel> files = new ArrayList<>();
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                files.add(new FileModel(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("logical_path"),
-                    rs.getLong("size_bytes")
-                ));
-            }
-        }
-
-        return files;
-    }
 
     public void addUser(String username, String hash, String role) throws Exception {
         String sql = "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)";
@@ -227,6 +207,25 @@ public class MySQLDB {
             }
         }
         return list;
+    }
+    
+    public List<FileModel> getAllFilesByUser(long userId) throws Exception {
+        String sql = "SELECT id, owner_user_id, name, logical_path FROM files WHERE owner_user_id = ? AND is_deleted = 0";
+        List<FileModel> files = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                files.add(new FileModel(
+                    rs.getLong("id"),
+                    rs.getLong("owner_user_id"),
+                    rs.getString("name"),
+                    rs.getString("logical_path")
+                ));
+            }
+        }
+        return files;
     }
 
     public void log(Integer userId, String username, String action, String detail) throws Exception {

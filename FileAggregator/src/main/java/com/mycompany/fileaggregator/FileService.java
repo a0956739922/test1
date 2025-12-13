@@ -25,7 +25,7 @@ public class FileService {
     private final FileSftp sftp = new FileSftp();
     private static final int CHUNK_SIZE = 512 * 1024;
 
-    public long upload(long ownerId, String localFilePath, String logicalPath) throws Exception {
+    public long upload(long ownerId, String localFilePath, String fileName, String logicalPath, String serverName) throws Exception {
         File original = new File(localFilePath);
         long sizeBytes = original.length();
         String key = crypto.generateFileKey();
@@ -33,7 +33,7 @@ public class FileService {
         crypto.encryptZip(localFilePath, zipPath, key);
         JsonObject initMeta = Json.createObjectBuilder()
                 .add("file_id", -1)
-                .add("file_name", original.getName())
+                .add("file_name", fileName)
                 .add("logical_path", logicalPath)
                 .add("size_bytes", sizeBytes)
                 .add("encryption_key", key)
@@ -45,7 +45,7 @@ public class FileService {
         JsonArrayBuilder chunkArr = Json.createArrayBuilder();
         for (int i = 0; i < chunks.size(); i++) {
             File chunk = chunks.get(i);
-            String server = sftp.nextServer();
+            String server = serverName;
             String remoteDir = "/home/ntu-user/data/" + fileId;
             String remotePath = remoteDir + "/" + i + ".part";
             sftp.mkdirIfNotExists(remoteDir, server);
@@ -60,7 +60,7 @@ public class FileService {
         }
         JsonObject finalMeta = Json.createObjectBuilder()
                 .add("file_id", fileId)
-                .add("file_name", original.getName())
+                .add("file_name", fileName)
                 .add("logical_path", logicalPath)
                 .add("size_bytes", sizeBytes)
                 .add("encryption_key", key)
@@ -73,22 +73,24 @@ public class FileService {
         return fileId;
     }
 
-    public long create(long ownerId, String localFilePath, String logicalPath) throws Exception {
-        return upload(ownerId, localFilePath, logicalPath);
+    public long create(long ownerId, String fileName, String logicalPath, String content, String serverName) throws Exception {
+        Path tmp = Files.createTempFile("create-", ".tmp");
+        try {
+            Files.writeString(tmp, content);
+            return upload(ownerId, tmp.toString(), fileName, logicalPath, serverName);
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
     }
 
     public String download(long fileId, String outputDir) throws Exception {
         JsonObject meta = db.getMetadata(fileId);
-        if (meta == null) {
-            throw new Exception("File metadata not found for id=" + fileId);
-        }
+        if (meta == null) throw new Exception("File metadata not found for id=" + fileId);
         String key = meta.getString("encryption_key");
         String fileName = meta.getString("file_name");
         String chunkDirPath = outputDir + File.separator + "chunks_" + fileId;
         File chunkDir = new File(chunkDirPath);
-        if (!chunkDir.exists()) {
-            chunkDir.mkdirs();
-        }
+        if (!chunkDir.exists()) chunkDir.mkdirs();
         JsonArray chunksMeta = meta.getJsonArray("chunks");
         for (int i = 0; i < chunksMeta.size(); i++) {
             JsonObject c = chunksMeta.getJsonObject(i);
@@ -102,11 +104,14 @@ public class FileService {
         crypto.mergeChunks(chunkDirPath, zipOut);
         crypto.decryptZip(zipOut, outputDir, key);
         new File(zipOut).delete();
-        Files.walk(Path.of(chunkDirPath)).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+        Files.walk(Path.of(chunkDirPath))
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
         return outputDir + File.separator + fileName;
     }
 
-    public void update(long fileId, String newLocalFilePath, String newLogicalPath) throws Exception {
+    public void update(long fileId, String newLocalFilePath, String newLogicalPath, String serverName) throws Exception {
         JsonObject oldMeta = db.getMetadata(fileId);
         if (oldMeta == null) throw new Exception("metadata missing");
         JsonArray oldChunks = oldMeta.getJsonArray("chunks");
@@ -125,10 +130,11 @@ public class FileService {
         JsonArrayBuilder chunkArr = Json.createArrayBuilder();
         for (int i = 0; i < chunks.size(); i++) {
             File chunk = chunks.get(i);
-            String server = sftp.nextServer();
+            String server = serverName;
             String remotePath = "/home/ntu-user/data/" + fileId + "/" + i + ".part";
             String crc32 = crypto.calcFileCRC32(chunk.getAbsolutePath());
             sftp.upload(chunk.getAbsolutePath(), remotePath, server);
+
             chunkArr.add(Json.createObjectBuilder()
                     .add("index", i)
                     .add("server", server)

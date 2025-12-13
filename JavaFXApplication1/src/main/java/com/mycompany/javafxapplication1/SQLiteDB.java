@@ -38,6 +38,26 @@ public class SQLiteDB {
         }
     }
     
+    private void createLocalFilesTable() {
+        String sql = "CREATE TABLE IF NOT EXISTS local_files (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "remote_file_id INTEGER, " +
+                "owner_user_id INTEGER NOT NULL, " +
+                "name TEXT NOT NULL, " +
+                "logical_path TEXT NOT NULL, " +
+                "size_bytes INTEGER, " +
+                "updated_at TEXT, " +
+                "metadata TEXT" +
+                ");";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             Statement stmt = conn.createStatement()) {
+            stmt.setQueryTimeout(timeout);
+            stmt.executeUpdate(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     public void saveSession(User user) {
         clearSession();
         String sql = "INSERT INTO local_session (user_id, username, role, last_login) VALUES (?, ?, ?, datetime('now'))";
@@ -79,7 +99,7 @@ public class SQLiteDB {
             e.printStackTrace();
         }
     }
-    
+
     public void log(String msg) {
         System.out.println("[SQLiteDB] " + msg);
     }

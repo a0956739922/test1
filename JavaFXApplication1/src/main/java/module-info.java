@@ -3,9 +3,10 @@ module com.mycompany.javafxapplication1 {
     requires javafx.fxml;
     requires javafx.graphics;
     requires java.base;
-    requires java.sql; // added
+    requires java.sql;
     requires javafx.base;
 
     opens com.mycompany.javafxapplication1 to javafx.fxml;
     exports com.mycompany.javafxapplication1;
+    requires MqttProject;
 }

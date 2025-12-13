@@ -21,7 +21,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.mycompany.mqttproject.MqttLoadBalancer</mainClass>
+                  <mainClass>com.mycompany.mqttproject.MqttDockerMain</mainClass>
                 </transformer>
               </transformers>
             </configuration>

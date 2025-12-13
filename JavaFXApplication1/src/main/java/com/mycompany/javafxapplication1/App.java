@@ -8,12 +8,11 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-
 /**
  * JavaFX App
  */
 public class App extends Application {
-
+    
     @Override
     public void start(Stage stage) throws IOException {
         try {

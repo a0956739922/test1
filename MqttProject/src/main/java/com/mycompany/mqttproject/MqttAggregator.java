@@ -4,9 +4,10 @@
  */
 package com.mycompany.mqttproject;
 
-import com.mycompany.fileaggregator.FileService;
+import com.mycompany.fileaggregator.FileAggregator;
 import java.io.StringReader;
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.*;
 /**
@@ -18,116 +19,46 @@ public class MqttAggregator {
     private static final String BROKER     = "tcp://mqtt-broker:1883";
     private static final String HOST_REQ   = "/host/requests";
     private static final String META_REQ   = "/lb/meta";
-    private static final String UI_RES     = "/ui/results";
     private static final String CLIENT_ID  = "AggregatorClient";
-    private static final FileService fileService = new FileService();
+
+    private static final FileAggregator aggregator = new FileAggregator();
 
     public static void main(String[] args) {
         try {
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
-            client.connect();
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+            System.out.println("[AGG] Connecting to MQTT broker...");
+            client.connect(options);
+            System.out.println("[AGG] Connected.");
             System.out.println("[AGG] Listening on:");
             System.out.println("   " + HOST_REQ);
             System.out.println("   " + META_REQ);
-            client.subscribe(HOST_REQ, (topic, msg) -> handleMessage(client, msg, true));
-            client.subscribe(META_REQ, (topic, msg) -> handleMessage(client, msg, false));
+            client.subscribe(HOST_REQ, (topic, msg) -> handleMessage(msg, true));
+            client.subscribe(META_REQ, (topic, msg) -> handleMessage(msg, false));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void handleMessage(MqttClient client, MqttMessage msg, boolean fromHost) {
+    private static void handleMessage(MqttMessage msg, boolean fromHost) {
         try {
-            String payload = new String(msg.getPayload());
-            System.out.println("[AGG] Received: " + payload);
-            JsonObject root = Json.createReader(new StringReader(payload)).readObject();
-            JsonObject json;
+            String raw = new String(msg.getPayload());
+            JsonObject root = Json.createReader(new StringReader(raw)).readObject();
             String serverName = null;
+            String requestRaw;
             if (fromHost) {
-                serverName = root.getString("server");
-                json = root.getJsonObject("request");
+                JsonArray servers = root.getJsonArray("server");
+                serverName = servers.getString(0);
+                requestRaw = root.getJsonObject("request").toString();
             } else {
-                json = root;
+                requestRaw = raw;
             }
-            String action = json.getString("action");
-            switch (action) {
-                case "upload":
-                case "create": {
-                    long ownerId = json.getJsonNumber("ownerId").longValue();
-                    String localFile = json.getString("localFilePath");
-                    String logicalPath = json.getString("logicalPath");
-                    long fileId = fileService.upload(ownerId, localFile, logicalPath, serverName);
-                    sendResult(client, action + "_success", fileId);
-                    break;
-                }
-                case "update": {
-                    long fileId = json.getJsonNumber("fileId").longValue();
-                    String newLocal = json.getString("newLocalFilePath");
-                    String newLogical = json.getString("newLogicalPath");
-                    fileService.update(fileId, newLocal, newLogical, serverName);
-                    sendResult(client, "update_success", fileId);
-                    break;
-                }
-                case "download": {
-                    long fileId = json.getJsonNumber("fileId").longValue();
-                    String out = json.getString("outputDir");
-                    String resultPath = fileService.download(fileId, out);
-                    sendResult(client, "download_success", resultPath);
-                    break;
-                }
-                case "delete": {
-                    long fileId = json.getJsonNumber("fileId").longValue();
-                    fileService.delete(fileId);
-                    sendResult(client, "delete_success", fileId);
-                    break;
-                }
-                case "share": {
-                    long fileId = json.getJsonNumber("fileId").longValue();
-                    long ownerId = json.getJsonNumber("ownerId").longValue();
-                    long targetId = json.getJsonNumber("targetId").longValue();
-                    String perm = json.getString("permission");
-                    fileService.share(fileId, ownerId, targetId, perm);
-                    sendResult(client, "share_success", fileId);
-                    break;
-                }
-                case "renameMove": {
-                    long fileId = json.getJsonNumber("fileId").longValue();
-                    String newName = json.getString("newName");
-                    String newLogical = json.getString("newLogicalPath");
-                    fileService.renameMove(fileId, newName, newLogical);
-                    sendResult(client, "rename_success", fileId);
-                    break;
-                }
-                default:
-                    sendError(client, "Unknown action: " + action);
-            }
-
+            aggregator.acceptRaw(requestRaw, serverName);
+            System.out.println("[AGG] Request processed successfully");
         } catch (Exception e) {
             e.printStackTrace();
-            sendError(client, e.getMessage());
+            System.err.println("[AGG] Error handling request: " + e.getMessage());
         }
-    }
-
-    private static void sendResult(MqttClient client, String type, Object data) {
-        try {
-            JsonObject result = Json.createObjectBuilder()
-                    .add("status", "ok")
-                    .add("type", type)
-                    .add("data", data.toString())
-                    .build();
-            client.publish(UI_RES, new MqttMessage(result.toString().getBytes()));
-            System.out.println("[AGG] Sent result → UI");
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private static void sendError(MqttClient client, String msg) {
-        try {
-            JsonObject result = Json.createObjectBuilder()
-                    .add("status", "error")
-                    .add("message", msg)
-                    .build();
-            client.publish(UI_RES, new MqttMessage(result.toString().getBytes()));
-            System.out.println("[AGG] Sent ERROR → UI");
-        } catch (Exception e) { e.printStackTrace(); }
     }
 }

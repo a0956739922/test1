@@ -71,9 +71,10 @@
             <TableView fx:id="fileTable"
                         prefHeight="400">
                 <columns>
-                    <TableColumn fx:id="colName" text="Name" prefWidth="90"/>
-                    <TableColumn fx:id="colPath" text="Path" prefWidth="165"/>
-                    <TableColumn fx:id="colSize" text="Size" prefWidth="130"/>
+                    <TableColumn fx:id="colOwner" text="Owner" prefWidth="70"/>
+                    <TableColumn fx:id="colFilename" text="Filename" prefWidth="90"/>
+                    <TableColumn fx:id="colPath" text="Path" prefWidth="145"/>
+                    <TableColumn fx:id="colPermission" text="role" prefWidth="80"/>
                 </columns>
             </TableView>
 

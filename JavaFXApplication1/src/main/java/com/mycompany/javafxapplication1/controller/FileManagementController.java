@@ -5,12 +5,14 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileModel;
+import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -27,18 +29,21 @@ import javafx.stage.Stage;
  * @author ntu-user
  */
 public class FileManagementController {
-
+    
     @FXML
     private TableView<FileModel> fileTable;
 
     @FXML
-    private TableColumn<FileModel, String> colName;
+    private TableColumn<FileModel, String> colOwner;
+
+    @FXML
+    private TableColumn<FileModel, String> colFilename;
 
     @FXML
     private TableColumn<FileModel, String> colPath;
 
     @FXML
-    private TableColumn<FileModel, Long> colSize;
+    private TableColumn<FileModel, String> colPermission;
 
     @FXML
     private Button createBtn;
@@ -72,9 +77,10 @@ public class FileManagementController {
         try {
             MySQLDB mysql = new MySQLDB();
             List<FileModel> files = mysql.getAllFilesByUser(sessionUser.getUserId());
-            colName.setCellValueFactory(new PropertyValueFactory<>("name"));
+            colFilename.setCellValueFactory(new PropertyValueFactory<>("name"));
             colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
-            colSize.setCellValueFactory(new PropertyValueFactory<>("sizeBytes"));
+            colOwner.setCellValueFactory(cellData -> new SimpleStringProperty(sessionUser.getUsername()));
+            colPermission.setCellValueFactory(cellData -> new SimpleStringProperty("owner"));
             fileTable.getItems().setAll(files);
             fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             colPath.setMaxWidth(Integer.MAX_VALUE);
@@ -85,7 +91,18 @@ public class FileManagementController {
 
     @FXML
     private void createFile() {
-        openModal("/com/mycompany/javafxapplication1/create_file.fxml");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/createFile.fxml"));
+            Parent root = loader.load();
+            CreateFileController controller = loader.getController();
+            controller.initialise(sessionUser, new FileService());
+            Stage stage = new Stage();
+            stage.setTitle("Create File");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -103,7 +120,6 @@ public class FileManagementController {
 
     @FXML
     private void uploadFile() {
-        openModal("/com/mycompany/javafxapplication1/upload_file.fxml");
     }
 
     @FXML
@@ -142,17 +158,6 @@ public class FileManagementController {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void openModal(String fxml) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-            Parent root = loader.load();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (Exception ignored) {
         }
     }
 

@@ -52,12 +52,6 @@ public class FileSftp {
         }
     }
 
-    public synchronized String nextServer() {
-        String s = servers[index];
-        index = (index + 1) % servers.length;
-        return s;
-    }
-
     public void upload(String localFile, String remoteFile, String server) throws Exception {
         ChannelSftp channelSftp = connect(server);
         try {
