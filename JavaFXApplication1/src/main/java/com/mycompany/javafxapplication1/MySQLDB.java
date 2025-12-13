@@ -26,7 +26,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-
 /**
  *
  * @author ntu-user
@@ -209,8 +208,22 @@ public class MySQLDB {
         return list;
     }
     
+//    public JsonObject getFileMetadataByFileId(long fileId) throws Exception {
+//        String sql = "SELECT metadata FROM files WHERE id = ? AND is_deleted = 0";
+//        try (Connection conn = getConnection();
+//             PreparedStatement stmt = conn.prepareStatement(sql)) {
+//            stmt.setLong(1, fileId);
+//            ResultSet rs = stmt.executeQuery();
+//            if (!rs.next()) {
+//                throw new RuntimeException("File not found: " + fileId);
+//            }
+//            String metadataStr = rs.getString("metadata");
+//            return Json.createReader(new StringReader(metadataStr)).readObject();
+//        }
+//    }
+    
     public List<FileModel> getAllFilesByUser(long userId) throws Exception {
-        String sql = "SELECT id, owner_user_id, name, logical_path FROM files WHERE owner_user_id = ? AND is_deleted = 0";
+        String sql = "SELECT id, owner_user_id, name, logical_path, size_bytes FROM files WHERE owner_user_id = ? AND is_deleted = 0";
         List<FileModel> files = new ArrayList<>();
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -221,7 +234,8 @@ public class MySQLDB {
                     rs.getLong("id"),
                     rs.getLong("owner_user_id"),
                     rs.getString("name"),
-                    rs.getString("logical_path")
+                    rs.getString("logical_path"),
+                    rs.getLong("size_bytes")
                 ));
             }
         }

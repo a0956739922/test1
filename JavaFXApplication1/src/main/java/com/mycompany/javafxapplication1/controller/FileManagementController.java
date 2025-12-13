@@ -67,9 +67,11 @@ public class FileManagementController {
     private Button logoutBtn;
 
     private User sessionUser;
+    private FileService fileService;
 
     public void initialise(User user) {
         this.sessionUser = user;
+        this.fileService = new FileService();
         loadFiles();
     }
     
@@ -85,6 +87,7 @@ public class FileManagementController {
             fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             colPath.setMaxWidth(Integer.MAX_VALUE);
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Cannot load files.");
         }
     }
@@ -95,7 +98,7 @@ public class FileManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/createFile.fxml"));
             Parent root = loader.load();
             CreateFileController controller = loader.getController();
-            controller.initialise(sessionUser, new FileService());
+            controller.initialise(sessionUser, fileService);
             Stage stage = new Stage();
             stage.setTitle("Create File");
             stage.setScene(new Scene(root));
@@ -107,9 +110,39 @@ public class FileManagementController {
 
     @FXML
     private void updateFile() {
-//        String selected = fileListView.getSelectionModel().getSelectedItem();
-//        if (selected != null) openModal("/com/mycompany/javafxapplication1/update_file.fxml");
+
+        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            dialogue(
+                    "No File Selected",
+                    "Please select a file to update."
+            );
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml")
+            );
+            Parent root = loader.load();
+
+            UpdateFileController controller = loader.getController();
+            controller.initialise(
+                    sessionUser,
+                    fileService,
+                    selected
+            );
+            Stage stage = new Stage();
+            stage.setTitle("Update File");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+            loadFiles();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
     @FXML
     private void deleteFile() {
@@ -124,9 +157,30 @@ public class FileManagementController {
 
     @FXML
     private void downloadFile() {
-//        String selected = fileListView.getSelectionModel().getSelectedItem();
-//        if (selected == null) return;
-        if (!dialogue("Download", "Proceed to download?")) return;
+        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            dialogue(
+                    "No File Selected",
+                    "Please select a file to download."
+            );
+            return;
+        }
+        if (!dialogue("Download", "Proceed to download?")) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Save File As");
+        chooser.setInitialFileName(selected.getName());
+        Stage stage = (Stage) downloadBtn.getScene().getWindow();
+        java.io.File file = chooser.showSaveDialog(stage);
+        if (file == null) {
+            return;
+        }
+        try {
+            fileService.download(selected.getId(), file.getParent(), selected.getSizeBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

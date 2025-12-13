@@ -44,13 +44,7 @@ public class CreateFileController {
                 dialogue("Missing Fields", "Name and Path cannot be empty.");
                 return;
             }
-            fileService.create(
-                    sessionUser.getUserId(),
-                    name,
-                    path,
-                    content,
-                    sizeBytes
-            );
+            fileService.create(sessionUser.getUserId(), name, path, content, sizeBytes);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

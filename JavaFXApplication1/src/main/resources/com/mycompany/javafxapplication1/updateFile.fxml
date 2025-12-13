@@ -5,12 +5,14 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.mycompany.javafxapplication1.controller.CreateFileController"
+      fx:controller="com.mycompany.javafxapplication1.controller.UpdateFileController"
       style="-fx-padding: 20;"
       spacing="12">
 
-    <Label text="Create New File" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <Label text="Update File"
+           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
 
     <Label text="File Name:"/>
     <TextField fx:id="nameField"/>
@@ -22,7 +24,7 @@
     <TextArea fx:id="contentArea" prefRowCount="8"/>
 
     <HBox spacing="10">
-        <Button text="Create" onAction="#createFile"/>
+        <Button text="Save" onAction="#updateFile"/>
         <Button text="Cancel" onAction="#closeWindow"/>
     </HBox>
 

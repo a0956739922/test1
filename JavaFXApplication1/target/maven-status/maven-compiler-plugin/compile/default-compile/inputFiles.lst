@@ -11,6 +11,7 @@
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/CreateFileController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/UserManagementController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/User.java
+/home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/UpdateFileController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/MySQLDB.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/UserService.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/module-info.java

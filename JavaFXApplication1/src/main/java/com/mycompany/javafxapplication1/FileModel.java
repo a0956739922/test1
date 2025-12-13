@@ -13,16 +13,19 @@ public class FileModel {
     private long ownerUserId;
     private String name;
     private String logicalPath;
+    private long sizeBytes;
 
-    public FileModel(long id, long ownerUserId, String name, String logicalPath) {
+    public FileModel(long id, long ownerUserId, String name, String logicalPath, long sizeBytes) {
         this.id = id;
         this.ownerUserId = ownerUserId;
         this.name = name;
         this.logicalPath = logicalPath;
+        this.sizeBytes = sizeBytes;
     }
 
     public long getId() { return id; }
     public long getOwnerUserId() { return ownerUserId; }
     public String getName() { return name; }
     public String getLogicalPath() { return logicalPath; }
+    public long getSizeBytes() { return sizeBytes; }
 }
