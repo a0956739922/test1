@@ -16,17 +16,12 @@ import java.util.Properties;
  */
 public class FileSftp {
 
-    private final String[] servers = {
-            "soft40051-files-container1", "soft40051-files-container2", "soft40051-files-container3", "soft40051-files-container4"
-    };
-
     private final String USERNAME = "ntu-user";
     private final String PASSWORD = "ntu-user";
     private final int REMOTE_PORT = 22;
     private static final String BASE = "/home/ntu-user/data";
     private final int SESSION_TIMEOUT = 10000;
     private final int CHANNEL_TIMEOUT = 5000;
-    private int index = 0;
 
     private ChannelSftp connect(String host) throws Exception {
         JSch jsch = new JSch();

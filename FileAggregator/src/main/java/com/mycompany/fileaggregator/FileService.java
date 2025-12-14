@@ -23,7 +23,29 @@ public class FileService {
     private final FileDB db = new FileDB();
     private final FileCrypto crypto = new FileCrypto();
     private final FileSftp sftp = new FileSftp();
-    private static final int CHUNK_SIZE = 512 * 1024;
+    private static final String[] VOLUMES = {
+            "fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4"
+    };
+    
+    private static String containerForVolume(String volume) {
+        return switch (volume) {
+            case "fs-vol-1" -> "soft40051-files-container1";
+            case "fs-vol-2" -> "soft40051-files-container2";
+            case "fs-vol-3" -> "soft40051-files-container3";
+            case "fs-vol-4" -> "soft40051-files-container4";
+            default -> throw new IllegalArgumentException("Unknown volume: " + volume);
+        };
+    }
+    
+    public long create(long ownerId, String fileName, String logicalPath, String content, String serverName) throws Exception {
+        Path tmp = Files.createTempFile("create-", ".tmp");
+        try {
+            Files.writeString(tmp, content);
+            return upload(ownerId, tmp.toString(), fileName, logicalPath, serverName);
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
+    }
 
     public long upload(long ownerId, String localFilePath, String fileName, String logicalPath, String serverName) throws Exception {
         File original = new File(localFilePath);
@@ -41,19 +63,20 @@ public class FileService {
                 .add("chunks", Json.createArrayBuilder().build())
                 .build();
         long fileId = db.insertFile(ownerId, initMeta);
-        List<File> chunks = crypto.splitChunks(zipPath, CHUNK_SIZE);
+        List<File> chunks = crypto.splitChunks(zipPath);
         JsonArrayBuilder chunkArr = Json.createArrayBuilder();
         for (int i = 0; i < chunks.size(); i++) {
             File chunk = chunks.get(i);
-            String server = serverName;
+            String volume = VOLUMES[i];
+            String container = containerForVolume(volume);
             String remoteDir = "/home/ntu-user/data/" + fileId;
             String remotePath = remoteDir + "/" + i + ".part";
-            sftp.mkdirIfNotExists(remoteDir, server);
+            sftp.mkdirIfNotExists(remoteDir, container);
             String crc32 = crypto.calcFileCRC32(chunk.getAbsolutePath());
-            sftp.upload(chunk.getAbsolutePath(), remotePath, server);
+            sftp.upload(chunk.getAbsolutePath(), remotePath, container);
             chunkArr.add(Json.createObjectBuilder()
                     .add("index", i)
-                    .add("server", server)
+                    .add("volume", volume)
                     .add("remote_path", remotePath)
                     .add("crc32", crc32)
                     .add("size_bytes", chunk.length()));
@@ -73,19 +96,9 @@ public class FileService {
         return fileId;
     }
 
-    public long create(long ownerId, String fileName, String logicalPath, String content, String serverName) throws Exception {
-        Path tmp = Files.createTempFile("create-", ".tmp");
-        try {
-            Files.writeString(tmp, content);
-            return upload(ownerId, tmp.toString(), fileName, logicalPath, serverName);
-        } finally {
-            Files.deleteIfExists(tmp);
-        }
-    }
-
     public String download(long fileId, String outputDir) throws Exception {
         JsonObject meta = db.getMetadata(fileId);
-        if (meta == null) throw new Exception("File metadata not found for id=" + fileId);
+        if (meta == null) throw new Exception("File metadata not found: " + fileId);
         String key = meta.getString("encryption_key");
         String fileName = meta.getString("file_name");
         String chunkDirPath = outputDir + File.separator + "chunks_" + fileId;
@@ -94,12 +107,13 @@ public class FileService {
         JsonArray chunksMeta = meta.getJsonArray("chunks");
         for (int i = 0; i < chunksMeta.size(); i++) {
             JsonObject c = chunksMeta.getJsonObject(i);
-            String server = c.getString("server");
+            String volume = c.getString("volume");
+            String container = containerForVolume(volume);
             String remotePath = c.getString("remote_path");
-            int index = c.getInt("index");
-            File localChunk = new File(chunkDirPath + File.separator + index + ".part");
-            sftp.download(remotePath, localChunk.getAbsolutePath(), server);
+            File localChunk = new File(chunkDirPath + File.separator + i + ".part");
+            sftp.download(remotePath, localChunk.getAbsolutePath(), container);
         }
+
         String zipOut = outputDir + File.separator + fileName + ".zip";
         crypto.mergeChunks(chunkDirPath, zipOut);
         crypto.decryptZip(zipOut, outputDir, key);
@@ -117,7 +131,9 @@ public class FileService {
         JsonArray oldChunks = oldMeta.getJsonArray("chunks");
         for (int i = 0; i < oldChunks.size(); i++) {
             JsonObject c = oldChunks.getJsonObject(i);
-            sftp.delete(c.getString("remote_path"), c.getString("server"));
+            String volume = c.getString("volume");
+            String container = containerForVolume(volume);
+            sftp.delete(c.getString("remote_path"), container);
         }
         File newFile = new File(newLocalFilePath);
         long sizeBytes = newFile.length();
@@ -126,18 +142,18 @@ public class FileService {
         String key = crypto.generateFileKey();
         String zipPath = newLocalFilePath + ".zip";
         crypto.encryptZip(newLocalFilePath, zipPath, key);
-        List<File> chunks = crypto.splitChunks(zipPath, CHUNK_SIZE);
+        List<File> chunks = crypto.splitChunks(zipPath);
         JsonArrayBuilder chunkArr = Json.createArrayBuilder();
         for (int i = 0; i < chunks.size(); i++) {
             File chunk = chunks.get(i);
-            String server = serverName;
+            String volume = VOLUMES[i % VOLUMES.length];
+            String container = containerForVolume(volume);
             String remotePath = "/home/ntu-user/data/" + fileId + "/" + i + ".part";
             String crc32 = crypto.calcFileCRC32(chunk.getAbsolutePath());
-            sftp.upload(chunk.getAbsolutePath(), remotePath, server);
-
+            sftp.upload(chunk.getAbsolutePath(), remotePath, container);
             chunkArr.add(Json.createObjectBuilder()
                     .add("index", i)
-                    .add("server", server)
+                    .add("volume", volume)
                     .add("remote_path", remotePath)
                     .add("crc32", crc32)
                     .add("size_bytes", chunk.length()));
@@ -179,9 +195,9 @@ public class FileService {
             JsonArray chunks = meta.getJsonArray("chunks");
             for (int i = 0; i < chunks.size(); i++) {
                 JsonObject c = chunks.getJsonObject(i);
-                String server = c.getString("server");
-                String remotePath = c.getString("remote_path");
-                sftp.delete(remotePath, server);
+                String volume = c.getString("volume");
+                String container = containerForVolume(volume);
+                sftp.delete(c.getString("remote_path"), container);
             }
         }
         db.markFileDeleted(fileId);

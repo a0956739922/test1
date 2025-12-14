@@ -26,6 +26,7 @@ import java.util.zip.CRC32;
 public class FileCrypto {
 
     private String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*";
+    private static final int FIXED_CHUNKS = 4;
 
     public String generateFileKey() {
         SecureRandom random = new SecureRandom();
@@ -71,7 +72,11 @@ public class FileCrypto {
         return list;
     }
 
-    public List<File> splitChunks(String zipPath, int chunkSize) throws Exception {
+    public List<File> splitChunks(String zipPath) throws Exception {
+        File source = new File(zipPath);
+        long size = source.length();
+        int chunkSize = (int) Math.ceil((double) size / FIXED_CHUNKS);
+        if (chunkSize <= 0) chunkSize = 1;
         List<File> chunks = new ArrayList<>();
         byte[] buffer = new byte[chunkSize];
         int index = 0;
