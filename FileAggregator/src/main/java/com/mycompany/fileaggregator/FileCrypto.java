@@ -41,10 +41,8 @@ public class FileCrypto {
         params.setEncryptFiles(true);
         params.setCompressionLevel(CompressionLevel.MAXIMUM);
         params.setEncryptionMethod(EncryptionMethod.AES);
-
         ZipFile zipFile = new ZipFile(outputZipPath, encryptionKey.toCharArray());
         zipFile.addFile(new File(inputFilePath), params);
-
         return new File(outputZipPath);
     }
 
