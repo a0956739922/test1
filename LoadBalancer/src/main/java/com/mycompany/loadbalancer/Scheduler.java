@@ -15,15 +15,25 @@ public class Scheduler {
 
     private int rrIndex = 0;
 
-    public Algorithm chooseAlgo(long size) {
-
-        if (size < 300 * 1024) {
-            return Algorithm.ROUND_ROBIN;
-        } else if (size < 1024 * 1024) {
+    public Algorithm chooseAlgo(Queue<Request> queue) {
+        int n = queue.size();
+        if (n <= 1) {
             return Algorithm.FCFS;
-        } else {
+        }
+        long min = Long.MAX_VALUE;
+        long max = 0;
+        for (Request r : queue) {
+            long s = r.getSize();
+            min = Math.min(min, s);
+            max = Math.max(max, s);
+        }
+        if (max > min * 4) {
             return Algorithm.SJF;
         }
+        if (n >= 5 && max < 300 * 1024) {
+            return Algorithm.ROUND_ROBIN;
+        }
+        return Algorithm.FCFS;
     }
 
     public Request pickFCFS(Queue<Request> queue) {
@@ -33,7 +43,9 @@ public class Scheduler {
     public Request pickSJF(Queue<Request> queue) {
         Request min = null;
         for (Request r : queue) {
-            if (min == null || r.getSize() < min.getSize()) min = r;
+            if (min == null || r.getSize() < min.getSize()) {
+                min = r;
+            }
         }
         return min;
     }
@@ -49,7 +61,6 @@ public class Scheduler {
         }
         return null;
     }
-
     public int nextServer(int total) {
         int server = rrIndex % total;
         rrIndex++;

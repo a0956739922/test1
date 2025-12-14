@@ -20,39 +20,41 @@ public class MqttHost {
     
     private static final String BROKER_URL   = "tcp://localhost:1883";
     private static final String REQUEST_TOPIC = "/lb/host";
+    private static final String SCALE_TOPIC   = "/lb/scale";
     private static final String AGG_TOPIC     = "/host/requests";
     private static final String CLIENT_ID     = "HostManagerClient";
+    private static int nextContainerIndex = 5;
 
     public static void main(String[] args) {
         try {
             MqttClient client = new MqttClient(BROKER_URL, CLIENT_ID);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            System.out.println("[Host] Connecting to MQTT broker...");
             client.connect(options);
-            System.out.println("[Host] Connected!");
+            System.out.println("[Host] Connected to MQTT broker");
             client.subscribe(REQUEST_TOPIC, (topic, message) -> {
                 String raw = new String(message.getPayload());
-                System.out.println("[Host] Received request:");
+                System.out.println("[Host] Received file request");
                 System.out.println(raw);
-                JsonObject root = Json.createReader(new StringReader(raw)).readObject();
-                JsonArray servers = root.getJsonArray("server");
-                String running = executeDockerCommand("docker", "ps");
-                for (JsonValue v : servers) {
-                    String serverName = v.toString().replace("\"", "");
-                    if (!running.contains(serverName)) {
-                        System.out.println("[Host] Starting container: " + serverName);
-                        executeDockerCommand("docker", "start", serverName);
-                    } else {
-                        System.out.println("[Host] Already running: " + serverName);
-                    }
-                }
                 MqttMessage forward = new MqttMessage(raw.getBytes());
                 forward.setQos(1);
                 client.publish(AGG_TOPIC, forward);
                 System.out.println("[Host] Forwarded request to Aggregator");
             });
-            System.out.println("[Host] Listening on topic: " + REQUEST_TOPIC);
+            client.subscribe(SCALE_TOPIC, (topic, message) -> {
+                JsonObject msg =Json.createReader(new StringReader(new String(message.getPayload()))).readObject();
+                int groupSize = msg.getInt("group_size");
+                System.out.println("[Host] SCALE UP requested, groupSize=" + groupSize);
+                for (int i = 0; i < groupSize; i++) {
+                    String name = "soft40051-files-container" + nextContainerIndex;
+                    System.out.println("[Host] Starting container: " + name);
+                    executeDockerCommand("docker", "start", name);
+                    nextContainerIndex++;
+                }
+            });
+            System.out.println("[Host] Listening on:");
+            System.out.println(" - " + REQUEST_TOPIC);
+            System.out.println(" - " + SCALE_TOPIC);
         } catch (Exception e) {
             e.printStackTrace();
         }

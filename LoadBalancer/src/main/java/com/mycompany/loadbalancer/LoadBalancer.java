@@ -15,49 +15,83 @@ import javax.json.JsonObject;
  */
 public class LoadBalancer {
 
+    private static final double WAITING_THRESHOLD = 0.8;
+    private static final int GROUP_SIZE = 4;
+    private static final int MAX_CONTAINERS = 12;
     private final TrafficEmulator emulator;
     private final Scheduler scheduler = new Scheduler();
+    private int currentContainers = GROUP_SIZE;
+    private boolean scaling = false;
 
     public LoadBalancer() {
-        emulator = new TrafficEmulator(4, scheduler);
-    }
-
-    public void submitRequest(Request req) {
-        emulator.add(req);
-        System.out.println("New Request: " + req);
+        emulator = new TrafficEmulator(12, scheduler);
     }
 
     public TrafficEmulator getEmulator() {
         return emulator;
     }
+
     public Request acceptRaw(String rawJson) {
         JsonObject json = Json.createReader(new StringReader(rawJson)).readObject();
         String action = json.getString("action");
         long size = json.getJsonNumber("sizeBytes").longValue();
-        String id = UUID.randomUUID().toString();
-        Request.Type type;
+        Request.Type type = mapAction(action);
+        Request req = new Request(UUID.randomUUID().toString(), type, size);
+        emulator.add(req);
+        System.out.println("[LB] New Request " + req);
+        checkScale();
+        return req;
+    }
+
+    private void checkScale() {
+        int waiting = emulator.getWaitingSize();
+        int capacity = emulator.getServerCount();
+        if (capacity == 0) return;
+        double ratio = (double) waiting / capacity;
+        if (ratio >= WAITING_THRESHOLD && !scaling) {
+            if (currentContainers + GROUP_SIZE > MAX_CONTAINERS) {
+                System.out.println(
+                    "[LB] MAX capacity reached (" + currentContainers +
+                    "), queueing only. waiting=" + waiting
+                );
+                return;
+            }
+            scaling = true;
+            onScaleTriggered(waiting, capacity);
+        }
+    }
+
+    protected void onScaleTriggered(int waiting, int capacity) {
+        System.out.println(
+            "[LB] SCALE UP (group) waiting=" + waiting +
+            " capacity=" + capacity +
+            " currentContainers=" + currentContainers
+        );
+    }
+
+    public void onScaleCompleted() {
+        currentContainers += GROUP_SIZE;
+        scaling = false;
+        System.out.println(
+            "[LB] SCALE completed. currentContainers=" + currentContainers
+        );
+    }
+    
+    private Request.Type mapAction(String action) {
         switch (action) {
             case "upload":
             case "create":
             case "update":
-                type = Request.Type.UPLOAD;
-                break;
+                return Request.Type.UPLOAD;
             case "download":
-                type = Request.Type.DOWNLOAD;
-                break;
+                return Request.Type.DOWNLOAD;
             case "delete":
-                type = Request.Type.DELETE;
-                break;
+                return Request.Type.DELETE;
             case "share":
             case "renameMove":
-                type = Request.Type.META;
-                break;
+                return Request.Type.META;
             default:
                 throw new IllegalArgumentException("Unknown action: " + action);
         }
-        Request req = new Request(id, type, size);
-        emulator.add(req);
-        System.out.println("[LB] New Request " + req);
-        return req;
     }
 }

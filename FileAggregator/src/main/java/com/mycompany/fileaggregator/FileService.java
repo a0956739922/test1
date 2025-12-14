@@ -37,17 +37,17 @@ public class FileService {
         };
     }
     
-    public long create(long ownerId, String fileName, String logicalPath, String content, String serverName) throws Exception {
+    public long create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
         Path tmp = Files.createTempFile("create-", ".tmp");
         try {
             Files.writeString(tmp, content);
-            return upload(ownerId, tmp.toString(), fileName, logicalPath, serverName);
+            return upload(ownerId, tmp.toString(), fileName, logicalPath);
         } finally {
             Files.deleteIfExists(tmp);
         }
     }
 
-    public long upload(long ownerId, String localFilePath, String fileName, String logicalPath, String serverName) throws Exception {
+    public long upload(long ownerId, String localFilePath, String fileName, String logicalPath) throws Exception {
         File original = new File(localFilePath);
         long sizeBytes = original.length();
         String key = crypto.generateFileKey();
@@ -125,7 +125,7 @@ public class FileService {
         return outputDir + File.separator + fileName;
     }
 
-    public void update(long fileId, String newLocalFilePath, String newLogicalPath, String serverName) throws Exception {
+    public void update(long fileId, String newLocalFilePath, String newLogicalPath) throws Exception {
         JsonObject oldMeta = db.getMetadata(fileId);
         if (oldMeta == null) throw new Exception("metadata missing");
         JsonArray oldChunks = oldMeta.getJsonArray("chunks");

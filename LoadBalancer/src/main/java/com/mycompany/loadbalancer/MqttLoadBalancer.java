@@ -21,18 +21,32 @@ public class MqttLoadBalancer {
     private static final String UI_REQ   = "/request";
     private static final String LB_HOST  = "/lb/host";
     private static final String LB_META  = "/lb/meta";
+    private static final String LB_SCALE = "/lb/scale";
     private static final String CLIENT_ID = "LoadBalancerClient";
     private static final Map<String, String> RAW = new ConcurrentHashMap<>();
-    
     private static LoadBalancer lb;
 
     public static void main(String[] args) {
         try {
-            lb = new LoadBalancer();
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
+            lb = new LoadBalancer() {
+                @Override
+                protected void onScaleTriggered(int waiting, int capacity) {
+                    try {
+                        JsonObject msg = Json.createObjectBuilder()
+                                .add("action", "scale_up")
+                                .add("group_size", 4)
+                                .build();
+                        client.publish(LB_SCALE,new MqttMessage(msg.toString().getBytes()));
+                        System.out.println("[LB SCALE] " + msg);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
             System.out.println("[LB] Listening on " + UI_REQ);
             client.subscribe(UI_REQ, (topic, msg) -> onRequest(msg));
             while (true) {
@@ -63,17 +77,13 @@ public class MqttLoadBalancer {
                 Request r = readyQueue.poll();
                 String raw = RAW.remove(r.getId());
                 if (r.getType() == Request.Type.META) {
-                    client.publish(LB_META, new MqttMessage(raw.getBytes()));
-                    System.out.println("[LB AGG META] " + raw);
+                    client.publish(LB_META,new MqttMessage(raw.getBytes()));
+                    System.out.println("[LB META] " + raw);
                 } else {
-                    int idx = r.getAssignedServer();
-                    String serverName = "soft40051-files-container" + (idx + 1);
-                    JsonArrayBuilder servers = Json.createArrayBuilder().add(serverName);
                     JsonObject out = Json.createObjectBuilder()
-                            .add("server", servers.build())
-                            .add("request", Json.createReader(new StringReader(raw)).readObject())
+                            .add("request",Json.createReader(new StringReader(raw)).readObject())
                             .build();
-                    client.publish(LB_HOST, new MqttMessage(out.toString().getBytes()));
+                    client.publish(LB_HOST,new MqttMessage(out.toString().getBytes()));
                     System.out.println("[LB HOST] " + out);
                 }
             }

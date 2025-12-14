@@ -45,17 +45,13 @@ public class TrafficEmulator {
                 readyQueue.offer(r);
             }
         }
+
         while (!waitingQueue.isEmpty()) {
             Request head = waitingQueue.peek();
-            if (now < head.getArrivalTime()) {
-                break;
-            }
-            Scheduler.Algorithm algo = scheduler.chooseAlgo(head.getSize());
+            if (now < head.getArrivalTime()) break;
+            Scheduler.Algorithm algo = scheduler.chooseAlgo(waitingQueue);
             Request selected;
             switch (algo) {
-                case FCFS:
-                    selected = scheduler.pickFCFS(waitingQueue);
-                    break;
                 case SJF:
                     selected = scheduler.pickSJF(waitingQueue);
                     break;
@@ -66,9 +62,7 @@ public class TrafficEmulator {
                     selected = scheduler.pickFCFS(waitingQueue);
             }
             int server = scheduler.nextServer(resources.length);
-            if (resources[server] != 0) {
-                break;
-            }
+            if (resources[server] != 0) break;
             waitingQueue.remove(selected);
             long serviceDelay = 1000L + random.nextInt(4000);
             selected.setAssignedServer(server);
@@ -76,6 +70,14 @@ public class TrafficEmulator {
             processingQueue.offer(selected);
             resources[server] = now + serviceDelay;
         }
+    }
+
+    public int getWaitingSize() {
+        return waitingQueue.size();
+    }
+
+    public int getServerCount() {
+        return resources.length;
     }
 
     public Queue<Request> getReadyQueue() {

@@ -19,7 +19,6 @@ public class MqttAggregator {
     private static final String HOST_REQ   = "/host/requests";
     private static final String META_REQ   = "/lb/meta";
     private static final String CLIENT_ID  = "AggregatorClient";
-
     private static final FileAggregator aggregator = new FileAggregator();
 
     public static void main(String[] args) {
@@ -33,27 +32,19 @@ public class MqttAggregator {
             System.out.println("[AGG] Listening on:");
             System.out.println("   " + HOST_REQ);
             System.out.println("   " + META_REQ);
-            client.subscribe(HOST_REQ, (topic, msg) -> handleMessage(msg, true));
-            client.subscribe(META_REQ, (topic, msg) -> handleMessage(msg, false));
+            client.subscribe(HOST_REQ, (topic, msg) -> handleMessage(msg));
+            client.subscribe(META_REQ, (topic, msg) -> handleMessage(msg));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void handleMessage(MqttMessage msg, boolean fromHost) {
+    private static void handleMessage(MqttMessage msg) {
         try {
             String raw = new String(msg.getPayload());
             JsonObject root = Json.createReader(new StringReader(raw)).readObject();
-            String serverName = null;
-            String requestRaw;
-            if (fromHost) {
-                JsonArray servers = root.getJsonArray("server");
-                serverName = servers.getString(0);
-                requestRaw = root.getJsonObject("request").toString();
-            } else {
-                requestRaw = raw;
-            }
-            aggregator.acceptRaw(requestRaw, serverName);
+            JsonObject request = root.getJsonObject("request");
+            aggregator.acceptRaw(request.toString());
             System.out.println("[AGG] Request processed successfully");
         } catch (Exception e) {
             e.printStackTrace();
