@@ -7,6 +7,8 @@ package com.mycompany.mqtthost;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -32,11 +34,10 @@ public class MqttHost {
             options.setCleanSession(true);
             client.connect(options);
             System.out.println("[Host] Connected to MQTT broker");
-            client.subscribe(REQUEST_TOPIC, (topic, message) -> {
-                String raw = new String(message.getPayload());
+             client.subscribe(REQUEST_TOPIC, (topic, message) -> {
                 System.out.println("[Host] Received file request");
-                System.out.println(raw);
-                MqttMessage forward = new MqttMessage(raw.getBytes());
+                ensureBaselineContainers();
+                MqttMessage forward = new MqttMessage(message.getPayload());
                 forward.setQos(1);
                 client.publish(AGG_TOPIC, forward);
                 System.out.println("[Host] Forwarded request to Aggregator");
@@ -57,6 +58,36 @@ public class MqttHost {
             System.out.println(" - " + SCALE_TOPIC);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    private static Set<String> getRunningContainers() {
+        Set<String> result = new HashSet<>();
+        try {
+            ProcessBuilder pb =new ProcessBuilder("docker", "ps", "--format", "{{.Names}}");
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result.add(line.trim());
+            }
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    
+    private static void ensureBaselineContainers() {
+        Set<String> running = getRunningContainers();
+        for (int i = 1; i <= 4; i++) {
+            String name = "soft40051-files-container" + i;
+            if (!running.contains(name)) {
+                System.out.println("[Host] Baseline missing, starting: " + name);
+                executeDockerCommand("docker", "start", name);
+            } else {
+                System.out.println("[Host] Baseline OK: " + name);
+            }
         }
     }
 
