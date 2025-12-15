@@ -78,12 +78,12 @@ public class FileService {
         }
         String remotePath = json.getString("remoteFilePath");
         JSch jsch = new JSch();
+        jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
         Session session = jsch.getSession("ntu-user", "file-aggregator", 22);
-        session.setPassword("ntu-user");
-        Properties config = new Properties();
+        java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
-        config.put("PreferredAuthentications", "password");
         session.setConfig(config);
+        session.setPassword("ntu-user");
         session.connect(10000);
         ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
         sftp.connect(5000);

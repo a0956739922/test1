@@ -50,6 +50,7 @@ public class FileCrypto {
     public void decryptZip(String zipPath, String extractToPath, String encryptionKey) throws Exception {
         ZipFile zipFile = new ZipFile(zipPath, encryptionKey.toCharArray());
         zipFile.extractAll(extractToPath);
+        new ProcessBuilder("chown", "-R", "ntu-user:ntu-user", extractToPath).start().waitFor();
     }
 
     public String calcCRC32(byte[] data) {

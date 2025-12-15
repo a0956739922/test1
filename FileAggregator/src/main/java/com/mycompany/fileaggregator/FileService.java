@@ -13,7 +13,6 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-
 /**
  *
  * @author ntu-user
@@ -97,7 +96,7 @@ public class FileService {
     }
 
     public String download(long fileId) throws Exception {
-        String baseDir = "/tmp/data/" + fileId;
+        String baseDir = "/home/ntu-user/tmp/";
         JsonObject meta = db.getMetadata(fileId);
         if (meta == null) {
             throw new Exception("File metadata not found: " + fileId);
@@ -122,10 +121,13 @@ public class FileService {
         crypto.mergeChunks(chunkDirPath, zipOut);
         crypto.decryptZip(zipOut, baseDir, key);
         File dir = new File(baseDir);
-        File[] files = dir.listFiles(File::isFile);
-        File tmpFile = files[0];
-        File finalFile = new File(baseDir + "/" + fileName);
-        tmpFile.renameTo(finalFile);
+        File[] files = dir.listFiles();
+        File oriFileName = new File(baseDir, fileName);
+        for (File file : files) {
+            if (file.getName().endsWith(".tmp")) {
+                file.renameTo(oriFileName);
+            }
+        }
         new File(zipOut).delete();
         Files.walk(Path.of(chunkDirPath))
                 .sorted(Comparator.reverseOrder())
