@@ -6,9 +6,11 @@ package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileModel;
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 /**
  *
@@ -157,27 +160,31 @@ public class FileManagementController {
 
     @FXML
     private void downloadFile() {
-        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+    FileModel selected = fileTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            dialogue(
-                    "No File Selected",
-                    "Please select a file to download."
-            );
+            dialogue("No File Selected", "Please select a file to download.");
             return;
         }
         if (!dialogue("Download", "Proceed to download?")) {
             return;
         }
-        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        FileChooser chooser = new FileChooser();
         chooser.setTitle("Save File As");
         chooser.setInitialFileName(selected.getName());
         Stage stage = (Stage) downloadBtn.getScene().getWindow();
-        java.io.File file = chooser.showSaveDialog(stage);
-        if (file == null) {
-            return;
-        }
+        File file = chooser.showSaveDialog(stage);
+        if (file == null) return;
         try {
-            fileService.download(selected.getId(), file.getParent(), selected.getSizeBytes());
+            fileService.download(selected.getId());
+            while (MqttSubUI.lastResultJson == null) {
+                Thread.sleep(100);
+            }
+            fileService.downloadSftp(
+                    MqttSubUI.lastResultJson,
+                    file.getName(),
+                    file.getParent()
+            );
+            MqttSubUI.lastResultJson = null;
         } catch (Exception e) {
             e.printStackTrace();
         }

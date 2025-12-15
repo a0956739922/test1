@@ -35,6 +35,12 @@ public class FileAggregator {
             }
             case "download": {
                 long fileId = json.getJsonNumber("fileId").longValue();
+                String remotePath = fileService.download(fileId);
+                return Json.createObjectBuilder()
+                        .add("action", action)
+                        .add("ready", true)
+                        .add("remoteFilePath", remotePath)
+                        .build();
             }
             case "delete": {
                 long fileId = json.getJsonNumber("fileId").longValue();

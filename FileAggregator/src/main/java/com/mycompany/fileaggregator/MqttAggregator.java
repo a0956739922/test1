@@ -6,7 +6,6 @@ package com.mycompany.fileaggregator;
 
 import java.io.StringReader;
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.*;
 /**
@@ -15,15 +14,17 @@ import org.eclipse.paho.client.mqttv3.*;
  */
 public class MqttAggregator {
 
-    private static final String BROKER     = "tcp://mqtt-broker:1883";
-    private static final String HOST_REQ   = "/host/requests";
-    private static final String META_REQ   = "/lb/meta";
-    private static final String CLIENT_ID  = "AggregatorClient";
+    private static final String BROKER = "tcp://mqtt-broker:1883";
+    private static final String HOST_REQ = "/host/requests";
+    private static final String LB_META = "/lb/meta";
+    private static final String AGG_RES = "/agg/response";
+    private static final String CLIENT_ID = "AggregatorClient";
     private static final FileAggregator aggregator = new FileAggregator();
+    private static MqttClient client;
 
     public static void main(String[] args) {
         try {
-            MqttClient client = new MqttClient(BROKER, CLIENT_ID);
+            client = new MqttClient(BROKER, CLIENT_ID);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             System.out.println("[AGG] Connecting to MQTT broker...");
@@ -31,9 +32,9 @@ public class MqttAggregator {
             System.out.println("[AGG] Connected.");
             System.out.println("[AGG] Listening on:");
             System.out.println("   " + HOST_REQ);
-            System.out.println("   " + META_REQ);
+            System.out.println("   " + LB_META);
             client.subscribe(HOST_REQ, (topic, msg) -> handleMessage(msg));
-            client.subscribe(META_REQ, (topic, msg) -> handleMessage(msg));
+            client.subscribe(LB_META, (topic, msg) -> handleMessage(msg));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,7 +45,11 @@ public class MqttAggregator {
             String raw = new String(msg.getPayload());
             JsonObject root = Json.createReader(new StringReader(raw)).readObject();
             JsonObject request = root.getJsonObject("request");
-            aggregator.acceptRaw(request.toString());
+            JsonObject result = aggregator.acceptRaw(request.toString());
+            MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
+            resMsg.setQos(1);
+            client.publish(AGG_RES, resMsg);
+            System.out.println("[AGG] Result published to " + AGG_RES);
             System.out.println("[AGG] Request processed successfully");
         } catch (Exception e) {
             e.printStackTrace();

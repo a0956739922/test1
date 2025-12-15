@@ -96,33 +96,42 @@ public class FileService {
         return fileId;
     }
 
-    public String download(long fileId, String outputDir) throws Exception {
+    public String download(long fileId) throws Exception {
+        String baseDir = "/tmp/data/" + fileId;
         JsonObject meta = db.getMetadata(fileId);
-        if (meta == null) throw new Exception("File metadata not found: " + fileId);
-        String key = meta.getString("encryption_key");
+        if (meta == null) {
+            throw new Exception("File metadata not found: " + fileId);
+        }
         String fileName = meta.getString("file_name");
-        String chunkDirPath = outputDir + File.separator + "chunks_" + fileId;
+        String key = meta.getString("encryption_key");
+        String chunkDirPath = baseDir + "/chunks";
         File chunkDir = new File(chunkDirPath);
-        if (!chunkDir.exists()) chunkDir.mkdirs();
+        if (!chunkDir.exists()) {
+            chunkDir.mkdirs();
+        }
         JsonArray chunksMeta = meta.getJsonArray("chunks");
         for (int i = 0; i < chunksMeta.size(); i++) {
             JsonObject c = chunksMeta.getJsonObject(i);
             String volume = c.getString("volume");
             String container = containerForVolume(volume);
             String remotePath = c.getString("remote_path");
-            File localChunk = new File(chunkDirPath + File.separator + i + ".part");
+            File localChunk = new File(chunkDirPath + "/" + i + ".part");
             sftp.download(remotePath, localChunk.getAbsolutePath(), container);
         }
-
-        String zipOut = outputDir + File.separator + fileName + ".zip";
+        String zipOut = baseDir + "/data.zip";
         crypto.mergeChunks(chunkDirPath, zipOut);
-        crypto.decryptZip(zipOut, outputDir, key);
+        crypto.decryptZip(zipOut, baseDir, key);
+        File dir = new File(baseDir);
+        File[] files = dir.listFiles(File::isFile);
+        File tmpFile = files[0];
+        File finalFile = new File(baseDir + "/" + fileName);
+        tmpFile.renameTo(finalFile);
         new File(zipOut).delete();
         Files.walk(Path.of(chunkDirPath))
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
-        return outputDir + File.separator + fileName;
+        return baseDir + "/" + fileName;
     }
 
     public void update(long fileId, String newLocalFilePath, String newLogicalPath) throws Exception {

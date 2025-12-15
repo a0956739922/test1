@@ -16,6 +16,8 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         try {
+            MqttSubUI sub = new MqttSubUI();
+            sub.start();
             SQLiteDB sqlite = new SQLiteDB();
             User cached = sqlite.loadSession();
             boolean mysqlOnline = true;

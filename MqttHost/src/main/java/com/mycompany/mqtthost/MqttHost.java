@@ -10,9 +10,7 @@ import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Set;
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonValue;
 import org.eclipse.paho.client.mqttv3.*;
 /**
  *
@@ -20,21 +18,21 @@ import org.eclipse.paho.client.mqttv3.*;
  */
 public class MqttHost {
     
-    private static final String BROKER_URL   = "tcp://localhost:1883";
-    private static final String REQUEST_TOPIC = "/lb/host";
-    private static final String SCALE_TOPIC   = "/lb/scale";
-    private static final String AGG_TOPIC     = "/host/requests";
-    private static final String CLIENT_ID     = "HostManagerClient";
+    private static final String BROKER = "tcp://localhost:1883";
+    private static final String LB_HOST = "/lb/host";
+    private static final String LB_SCALE = "/lb/scale";
+    private static final String AGG_TOPIC = "/host/requests";
+    private static final String CLIENT_ID = "HostManagerClient";
     private static int nextContainerIndex = 5;
 
     public static void main(String[] args) {
         try {
-            MqttClient client = new MqttClient(BROKER_URL, CLIENT_ID);
+            MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
             System.out.println("[Host] Connected to MQTT broker");
-             client.subscribe(REQUEST_TOPIC, (topic, message) -> {
+             client.subscribe(LB_HOST, (topic, message) -> {
                 System.out.println("[Host] Received file request");
                 ensureBaselineContainers();
                 MqttMessage forward = new MqttMessage(message.getPayload());
@@ -42,7 +40,7 @@ public class MqttHost {
                 client.publish(AGG_TOPIC, forward);
                 System.out.println("[Host] Forwarded request to Aggregator");
             });
-            client.subscribe(SCALE_TOPIC, (topic, message) -> {
+            client.subscribe(LB_SCALE, (topic, message) -> {
                 JsonObject msg =Json.createReader(new StringReader(new String(message.getPayload()))).readObject();
                 int groupSize = msg.getInt("group_size");
                 System.out.println("[Host] SCALE UP requested, groupSize=" + groupSize);
@@ -54,8 +52,8 @@ public class MqttHost {
                 }
             });
             System.out.println("[Host] Listening on:");
-            System.out.println(" - " + REQUEST_TOPIC);
-            System.out.println(" - " + SCALE_TOPIC);
+            System.out.println(" - " + LB_HOST);
+            System.out.println(" - " + LB_SCALE);
         } catch (Exception e) {
             e.printStackTrace();
         }

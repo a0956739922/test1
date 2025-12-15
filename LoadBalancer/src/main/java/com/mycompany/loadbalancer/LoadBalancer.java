@@ -28,15 +28,27 @@ public class LoadBalancer {
     }
 
     public TrafficEmulator getEmulator() {
-        return emulator;
+            return emulator;
     }
 
     public Request acceptRaw(String rawJson) {
         JsonObject json = Json.createReader(new StringReader(rawJson)).readObject();
         String action = json.getString("action");
-        long size = json.getJsonNumber("sizeBytes").longValue();
         Request.Type type = mapAction(action);
-        Request req = new Request(UUID.randomUUID().toString(), type, size);
+        long size = 0;
+        if (type == Request.Type.UPLOAD) {
+            if (!json.containsKey("sizeBytes")) {
+                throw new IllegalArgumentException(
+                    "Missing sizeBytes for action: " + action
+                );
+            }
+            size = json.getJsonNumber("sizeBytes").longValue();
+        }
+        Request req = new Request(
+                UUID.randomUUID().toString(),
+                type,
+                size
+        );
         emulator.add(req);
         System.out.println("[LB] New Request " + req);
         checkScale();

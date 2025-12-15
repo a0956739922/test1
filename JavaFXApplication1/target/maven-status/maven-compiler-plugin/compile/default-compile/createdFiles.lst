@@ -9,8 +9,10 @@ com/mycompany/javafxapplication1/controller/AdminChangePasswordController.class
 com/mycompany/javafxapplication1/controller/AdvancedUserManagementController.class
 com/mycompany/javafxapplication1/FileService.class
 com/mycompany/javafxapplication1/SQLiteDB.class
+com/mycompany/javafxapplication1/MqttSubUI.class
 com/mycompany/javafxapplication1/controller/PrimaryController.class
 com/mycompany/javafxapplication1/FileModel.class
+com/mycompany/javafxapplication1/MqttPubUI.class
 com/mycompany/javafxapplication1/controller/AdvancedController.class
 com/mycompany/javafxapplication1/controller/UpdateFileController.class
 com/mycompany/javafxapplication1/App.class
