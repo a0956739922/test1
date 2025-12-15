@@ -8,7 +8,6 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import java.io.StringReader;
-import java.util.Properties;
 import javax.json.Json;
 import javax.json.JsonObject;
 /**
@@ -17,6 +16,12 @@ import javax.json.JsonObject;
  */
 
 public class FileService {
+    
+    private final String USERNAME = "ntu-user";
+    private final String PASSWORD = "ntu-user";
+    private final int REMOTE_PORT = 22;
+    private final int SESSION_TIMEOUT = 10000;
+    private final int CHANNEL_TIMEOUT = 5000;
 
     public void create(long ownerId, String fileName, String logicalPath, String content, long sizeBytes) throws Exception {
         JsonObject json = Json.createObjectBuilder()
@@ -79,11 +84,11 @@ public class FileService {
         String remotePath = json.getString("remoteFilePath");
         JSch jsch = new JSch();
         jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
-        Session session = jsch.getSession("ntu-user", "file-aggregator", 22);
+        Session session = jsch.getSession(USERNAME, "file-aggregator", REMOTE_PORT);
         java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
         session.setConfig(config);
-        session.setPassword("ntu-user");
+        session.setPassword(PASSWORD);
         session.connect(10000);
         ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
         sftp.connect(5000);

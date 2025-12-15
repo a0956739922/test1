@@ -96,7 +96,7 @@ public class FileService {
     }
 
     public String download(long fileId) throws Exception {
-        String baseDir = "/home/ntu-user/tmp/";
+        String baseDir = "/home/ntu-user/tmp";
         JsonObject meta = db.getMetadata(fileId);
         if (meta == null) {
             throw new Exception("File metadata not found: " + fileId);

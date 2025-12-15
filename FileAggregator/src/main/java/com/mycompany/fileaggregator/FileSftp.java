@@ -8,8 +8,6 @@ import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import java.util.Properties;
-
 /**
  *
  * @author ntu-user
@@ -27,7 +25,7 @@ public class FileSftp {
         JSch jsch = new JSch();
         jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
         Session session = jsch.getSession(USERNAME, host, REMOTE_PORT);
-        Properties config = new Properties();
+        java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
         session.setConfig(config);
         session.setPassword(PASSWORD);
