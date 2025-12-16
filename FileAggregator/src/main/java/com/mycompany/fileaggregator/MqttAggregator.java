@@ -15,8 +15,7 @@ import org.eclipse.paho.client.mqttv3.*;
 public class MqttAggregator {
 
     private static final String BROKER = "tcp://mqtt-broker:1883";
-    private static final String HOST_REQ = "/host/requests";
-    private static final String LB_META = "/lb/meta";
+    private static final String LB_REQ = "/lb/request";
     private static final String AGG_RES = "/agg/response";
     private static final String CLIENT_ID = "AggregatorClient";
     private static final FileAggregator aggregator = new FileAggregator();
@@ -31,10 +30,8 @@ public class MqttAggregator {
             client.connect(options);
             System.out.println("[AGG] Connected.");
             System.out.println("[AGG] Listening on:");
-            System.out.println("   " + HOST_REQ);
-            System.out.println("   " + LB_META);
-            client.subscribe(HOST_REQ, (topic, msg) -> handleMessage(msg));
-            client.subscribe(LB_META, (topic, msg) -> handleMessage(msg));
+            System.out.println("   " + LB_REQ);
+            client.subscribe(LB_REQ, (topic, msg) -> handleMessage(msg));
         } catch (Exception e) {
             e.printStackTrace();
         }

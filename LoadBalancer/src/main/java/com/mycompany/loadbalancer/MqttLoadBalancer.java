@@ -16,10 +16,9 @@ import javax.json.JsonObject;
  */
 public class MqttLoadBalancer {
 
-    private static final String BROKER   = "tcp://mqtt-broker:1883";
-    private static final String UI_REQ   = "/request";
-    private static final String LB_HOST  = "/lb/host";
-    private static final String LB_META  = "/lb/meta";
+    private static final String BROKER = "tcp://mqtt-broker:1883";
+    private static final String UI_REQ = "/request";
+    private static final String LB_REQ = "/lb/request";
     private static final String LB_SCALE = "/lb/scale";
     private static final String CLIENT_ID = "LoadBalancerClient";
 
@@ -76,13 +75,8 @@ public class MqttLoadBalancer {
             while (!readyQueue.isEmpty()) {
                 Request r = readyQueue.poll();
                 String raw = RAW.remove(r.getId());
-                if (r.getType() == Request.Type.META) {
-                    client.publish(LB_META, new MqttMessage(raw.getBytes()));
-                    System.out.println("[LB META] " + raw);
-                } else {
-                    client.publish(LB_HOST,new MqttMessage(raw.getBytes()));
-                    System.out.println("[LB HOST] " + raw);
-                }
+                client.publish(LB_REQ, new MqttMessage(raw.getBytes()));
+                System.out.println("[LB -> AGG] " + raw);
             }
         } catch (Exception e) {
             e.printStackTrace();
