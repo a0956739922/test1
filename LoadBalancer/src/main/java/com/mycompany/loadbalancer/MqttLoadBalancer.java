@@ -9,7 +9,6 @@ import java.io.StringReader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 /**
  *
@@ -23,6 +22,7 @@ public class MqttLoadBalancer {
     private static final String LB_META  = "/lb/meta";
     private static final String LB_SCALE = "/lb/scale";
     private static final String CLIENT_ID = "LoadBalancerClient";
+
     private static final Map<String, String> RAW = new ConcurrentHashMap<>();
     private static LoadBalancer lb;
 
@@ -40,7 +40,7 @@ public class MqttLoadBalancer {
                                 .add("action", "scale_up")
                                 .add("group_size", 4)
                                 .build();
-                        client.publish(LB_SCALE,new MqttMessage(msg.toString().getBytes()));
+                        client.publish(LB_SCALE, new MqttMessage(msg.toString().getBytes()));
                         System.out.println("[LB SCALE] " + msg);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -77,14 +77,11 @@ public class MqttLoadBalancer {
                 Request r = readyQueue.poll();
                 String raw = RAW.remove(r.getId());
                 if (r.getType() == Request.Type.META) {
-                    client.publish(LB_META,new MqttMessage(raw.getBytes()));
+                    client.publish(LB_META, new MqttMessage(raw.getBytes()));
                     System.out.println("[LB META] " + raw);
                 } else {
-                    JsonObject out = Json.createObjectBuilder()
-                            .add("request",Json.createReader(new StringReader(raw)).readObject())
-                            .build();
-                    client.publish(LB_HOST,new MqttMessage(out.toString().getBytes()));
-                    System.out.println("[LB HOST] " + out);
+                    client.publish(LB_HOST,new MqttMessage(raw.getBytes()));
+                    System.out.println("[LB HOST] " + raw);
                 }
             }
         } catch (Exception e) {

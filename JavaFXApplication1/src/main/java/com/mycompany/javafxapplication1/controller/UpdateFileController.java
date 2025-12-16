@@ -33,7 +33,7 @@ public class UpdateFileController {
         pathField.setText(file.getLogicalPath());
         //Not Finished, needs a new function to show contents.
         //String content = fileService.getFileContent(file.getId());
-        //contentArea.setText(content);// 不主動載入 content（避免 chunk）
+        //contentArea.setText(content);
     }
 
     @FXML
@@ -42,38 +42,20 @@ public class UpdateFileController {
             String newName = nameField.getText().trim();
             String newPath = pathField.getText().trim();
             String content = contentArea.getText();
-
             boolean nameChanged = !newName.equals(originalFile.getName());
             boolean pathChanged = !newPath.equals(originalFile.getLogicalPath());
             boolean contentChanged = !content.isEmpty();
-
             if (!nameChanged && !pathChanged && !contentChanged) {
                 closeWindow();
                 return;
             }
-
             long sizeBytes = content.getBytes().length;
-
-            // ⭐ 目前只會真的走這條
             if (!contentChanged) {
-                fileService.renameMove(
-                        originalFile.getId(),
-                        newName,
-                        newPath,
-                        sizeBytes
-                );
+                fileService.renameMove(originalFile.getId(), newName, newPath);
             } else {
-                // 保留 future path（之後才會真的啟用）
-                fileService.update(
-                        originalFile.getId(),
-                        null,               // newLocalFilePath（暫不處理）
-                        newPath,
-                        sizeBytes
-                );
+                fileService.update(originalFile.getId(), newPath);
             }
-
             closeWindow();
-
         } catch (Exception e) {
             e.printStackTrace();
             dialogue("Error", "Failed to update file.");

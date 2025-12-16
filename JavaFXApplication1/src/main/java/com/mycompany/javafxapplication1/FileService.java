@@ -23,45 +23,58 @@ public class FileService {
     private final int SESSION_TIMEOUT = 10000;
     private final int CHANNEL_TIMEOUT = 5000;
 
-    public void create(long ownerId, String fileName, String logicalPath, String content, long sizeBytes) throws Exception {
+    public void create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
         JsonObject json = Json.createObjectBuilder()
                 .add("action", "create")
                 .add("ownerId", ownerId)
                 .add("fileName", fileName)
                 .add("logicalPath", logicalPath)
                 .add("content", content)
-                .add("sizeBytes", sizeBytes)
                 .build();
         new MqttPubUI().send(json);
     }
 
-    public void upload(long ownerId, String localPath, String logicalPath, long sizeBytes) throws Exception {
+    public void upload(long ownerId, String localPath, String logicalPath) throws Exception {
         JsonObject json = Json.createObjectBuilder()
                 .add("action", "upload")
                 .add("ownerId", ownerId)
                 .add("localFilePath", localPath)
                 .add("logicalPath", logicalPath)
-                .add("sizeBytes", sizeBytes)
+                .build();
+        new MqttPubUI().send(json);
+    }
+    
+    public void preUpdate(long fileId) throws Exception {
+        JsonObject json = Json.createObjectBuilder()
+                .add("action", "preUpdate")
+                .add("fileId", fileId)
                 .build();
         new MqttPubUI().send(json);
     }
 
-    public void update(long fileId, String newLocal, String newLogical, long sizeBytes) throws Exception {
+    public void update(long fileId, String newLogical) throws Exception {
         JsonObject json = Json.createObjectBuilder()
                 .add("action", "update")
                 .add("fileId", fileId)
-                .add("newLocalFilePath", newLocal)
                 .add("newLogicalPath", newLogical)
-                .add("sizeBytes", sizeBytes)
+                .build();
+        new MqttPubUI().send(json);
+    }
+    
+    public void renameMove(long fileId, String newName, String newLogical) throws Exception {
+        JsonObject json = Json.createObjectBuilder()
+                .add("action", "renameMove")
+                .add("fileId", fileId)
+                .add("newName", newName)
+                .add("newLogicalPath", newLogical)
                 .build();
         new MqttPubUI().send(json);
     }
 
-    public void delete(long fileId, long sizeBytes) throws Exception {
+    public void delete(long fileId) throws Exception {
         JsonObject json = Json.createObjectBuilder()
                 .add("action", "delete")
                 .add("fileId", fileId)
-                .add("sizeBytes", sizeBytes)
                 .build();
         new MqttPubUI().send(json);
     }
@@ -100,26 +113,14 @@ public class FileService {
         System.out.println("[SFTP] Download completed");
     }
 
-    public void share(long fileId, long ownerId, long targetId, String permission, long sizeBytes) throws Exception {
+    public void share(long fileId, long targetId, String permission) throws Exception {
         JsonObject json = Json.createObjectBuilder()
                 .add("action", "share")
                 .add("fileId", fileId)
-                .add("ownerId", ownerId)
                 .add("targetId", targetId)
                 .add("permission", permission)
-                .add("sizeBytes", sizeBytes)
                 .build();
         new MqttPubUI().send(json);
     }
 
-    public void renameMove(long fileId, String newName, String newLogical, long sizeBytes) throws Exception {
-        JsonObject json = Json.createObjectBuilder()
-                .add("action", "renameMove")
-                .add("fileId", fileId)
-                .add("newName", newName)
-                .add("newLogicalPath", newLogical)
-                .add("sizeBytes", sizeBytes)
-                .build();
-        new MqttPubUI().send(json);
-    }
 }

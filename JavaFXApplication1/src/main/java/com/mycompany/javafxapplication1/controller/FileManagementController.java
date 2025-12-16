@@ -113,29 +113,16 @@ public class FileManagementController {
 
     @FXML
     private void updateFile() {
-
         FileModel selected = fileTable.getSelectionModel().getSelectedItem();
-
         if (selected == null) {
-            dialogue(
-                    "No File Selected",
-                    "Please select a file to update."
-            );
+            dialogue("No File Selected", "Please select a file to update.");
             return;
         }
-
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml")
-            );
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml"));
             Parent root = loader.load();
-
             UpdateFileController controller = loader.getController();
-            controller.initialise(
-                    sessionUser,
-                    fileService,
-                    selected
-            );
+            controller.initialise(sessionUser, fileService, selected);
             Stage stage = new Stage();
             stage.setTitle("Update File");
             stage.setScene(new Scene(root));
@@ -161,8 +148,7 @@ public class FileManagementController {
     @FXML
     private void downloadFile() {
     FileModel selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            dialogue("No File Selected", "Please select a file to download.");
+        if (selected == null) {dialogue("No File Selected", "Please select a file to download.");
             return;
         }
         if (!dialogue("Download", "Proceed to download?")) {

@@ -43,8 +43,7 @@ public class MqttAggregator {
     private static void handleMessage(MqttMessage msg) {
         try {
             String raw = new String(msg.getPayload());
-            JsonObject root = Json.createReader(new StringReader(raw)).readObject();
-            JsonObject request = root.getJsonObject("request");
+            JsonObject request = Json.createReader(new StringReader(raw)).readObject();
             JsonObject result = aggregator.acceptRaw(request.toString());
             MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
             resMsg.setQos(1);

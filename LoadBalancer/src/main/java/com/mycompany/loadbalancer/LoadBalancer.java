@@ -35,20 +35,7 @@ public class LoadBalancer {
         JsonObject json = Json.createReader(new StringReader(rawJson)).readObject();
         String action = json.getString("action");
         Request.Type type = mapAction(action);
-        long size = 0;
-        if (type == Request.Type.UPLOAD) {
-            if (!json.containsKey("sizeBytes")) {
-                throw new IllegalArgumentException(
-                    "Missing sizeBytes for action: " + action
-                );
-            }
-            size = json.getJsonNumber("sizeBytes").longValue();
-        }
-        Request req = new Request(
-                UUID.randomUUID().toString(),
-                type,
-                size
-        );
+        Request req = new Request(UUID.randomUUID().toString(), type, 0);
         emulator.add(req);
         System.out.println("[LB] New Request " + req);
         checkScale();
@@ -101,6 +88,7 @@ public class LoadBalancer {
                 return Request.Type.DELETE;
             case "share":
             case "renameMove":
+            case "preUpdate":
                 return Request.Type.META;
             default:
                 throw new IllegalArgumentException("Unknown action: " + action);
