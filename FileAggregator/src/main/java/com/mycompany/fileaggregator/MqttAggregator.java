@@ -18,38 +18,52 @@ public class MqttAggregator {
     private static final String LB_REQ = "/lb/request";
     private static final String AGG_RES = "/agg/response";
     private static final String CLIENT_ID = "AggregatorClient";
+
     private static final FileAggregator aggregator = new FileAggregator();
-    private static MqttClient client;
 
     public static void main(String[] args) {
         try {
-            client = new MqttClient(BROKER, CLIENT_ID);
+            MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            System.out.println("[AGG] Connecting to MQTT broker...");
             client.connect(options);
-            System.out.println("[AGG] Connected.");
-            System.out.println("[AGG] Listening on:");
-            System.out.println("   " + LB_REQ);
-            client.subscribe(LB_REQ, (topic, msg) -> handleMessage(msg));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+            System.out.println("[AGG] Connected to broker");
+            client.subscribe(LB_REQ, 1);
+            System.out.println("[AGG] Subscribed to " + LB_REQ);
 
-    private static void handleMessage(MqttMessage msg) {
-        try {
-            String raw = new String(msg.getPayload());
-            JsonObject request = Json.createReader(new StringReader(raw)).readObject();
-            JsonObject result = aggregator.acceptRaw(request.toString());
-            MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
-            resMsg.setQos(1);
-            client.publish(AGG_RES, resMsg);
-            System.out.println("[AGG] Result published to " + AGG_RES);
-            System.out.println("[AGG] Request processed successfully");
+            client.setCallback(new MqttCallback() {
+
+                @Override
+                public void connectionLost(Throwable cause) {
+                    System.out.println("[AGG] Connection lost: " + cause.getMessage());
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage msg) throws Exception {
+                    if (LB_REQ.equals(topic)) {
+                        String raw = new String(msg.getPayload());
+                        JsonObject request = Json.createReader(new StringReader(raw)).readObject();
+                        JsonObject result = aggregator.acceptRaw(request.toString());
+                        MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
+                        resMsg.setQos(1);
+                        client.publish(AGG_RES, resMsg);
+                        System.out.println("[AGG] Result published to " + AGG_RES);
+                        System.out.println("[AGG] Request processed successfully");
+                    }
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+
+                }
+            });
+
+            while (true) {
+                Thread.sleep(1000);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("[AGG] Error handling request: " + e.getMessage());
         }
     }
 }

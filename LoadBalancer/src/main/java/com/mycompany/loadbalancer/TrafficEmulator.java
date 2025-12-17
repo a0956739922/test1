@@ -4,7 +4,6 @@
  */
 package com.mycompany.loadbalancer;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -18,13 +17,16 @@ public class TrafficEmulator {
     private final Queue<Request> waitingQueue = new LinkedList<>();
     private final Queue<Request> processingQueue = new LinkedList<>();
     private final Queue<Request> readyQueue = new LinkedList<>();
-    private final long[] resources;
+
     private final Scheduler scheduler;
     private final Random random = new Random();
 
-    public TrafficEmulator(int serverCount, Scheduler scheduler) {
+    private int activeProcessing = 0;
+    private final int maxProcessing;
+
+    public TrafficEmulator(int maxProcessing, Scheduler scheduler) {
         this.scheduler = scheduler;
-        this.resources = new long[serverCount];
+        this.maxProcessing = maxProcessing;
     }
 
     public void add(Request r) {
@@ -35,22 +37,20 @@ public class TrafficEmulator {
 
     public void step() {
         long now = System.currentTimeMillis();
-        Iterator<Request> pit = processingQueue.iterator();
-        while (pit.hasNext()) {
-            Request r = pit.next();
-            int s = r.getAssignedServer();
-            if (now >= resources[s]) {
-                pit.remove();
-                resources[s] = 0;
-                readyQueue.offer(r);
-            }
-        }
 
         while (!waitingQueue.isEmpty()) {
+            if (activeProcessing >= maxProcessing) {
+                return;
+            }
+
             Request head = waitingQueue.peek();
-            if (now < head.getArrivalTime()) break;
+            if (now < head.getArrivalTime()) {
+                return;
+            }
+
             Scheduler.Algorithm algo = scheduler.chooseAlgo(waitingQueue);
             Request selected;
+
             switch (algo) {
                 case SJF:
                     selected = scheduler.pickSJF(waitingQueue);
@@ -61,23 +61,65 @@ public class TrafficEmulator {
                 default:
                     selected = scheduler.pickFCFS(waitingQueue);
             }
-            int server = scheduler.nextServer(resources.length);
-            if (resources[server] != 0) break;
+
+            if (selected == null) {
+                return;
+            }
+
             waitingQueue.remove(selected);
-            long serviceDelay = 1000L + random.nextInt(4000);
-            selected.setAssignedServer(server);
             selected.setStartTime(now);
             processingQueue.offer(selected);
-            resources[server] = now + serviceDelay;
+            activeProcessing++;
+
+            // TODO: forward raw request to file aggregator after scale-up is completed
         }
+    }
+
+    public void markCompleted(Request r) {
+        if (!processingQueue.remove(r)) {
+            return;
+        }
+
+        activeProcessing--;
+        readyQueue.offer(r);
+
+        // TODO: notify UI if completion status is required
+    }
+
+    public void markFailed(Request r) {
+        if (!processingQueue.remove(r)) {
+            return;
+        }
+
+        activeProcessing--;
+        r.setArrivalTime(System.currentTimeMillis());
+        waitingQueue.offer(r);
+
+        // TODO: apply retry backoff policy
     }
 
     public int getWaitingSize() {
         return waitingQueue.size();
     }
 
-    public int getServerCount() {
-        return resources.length;
+    public int getProcessingSize() {
+        return activeProcessing;
+    }
+
+    public int getReadySize() {
+        return readyQueue.size();
+    }
+
+    public int getMaxProcessing() {
+        return maxProcessing;
+    }
+
+    public Queue<Request> getWaitingQueue() {
+        return waitingQueue;
+    }
+
+    public Queue<Request> getProcessingQueue() {
+        return processingQueue;
     }
 
     public Queue<Request> getReadyQueue() {

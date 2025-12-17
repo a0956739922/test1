@@ -12,14 +12,11 @@ import java.util.Queue;
 public class Scheduler {
 
     public enum Algorithm { FCFS, SJF, ROUND_ROBIN }
-
     private int rrIndex = 0;
 
     public Algorithm chooseAlgo(Queue<Request> queue) {
         int n = queue.size();
-        if (n <= 1) {
-            return Algorithm.FCFS;
-        }
+        if (n <= 1) return Algorithm.FCFS;
         long min = Long.MAX_VALUE;
         long max = 0;
         for (Request r : queue) {
@@ -27,12 +24,8 @@ public class Scheduler {
             min = Math.min(min, s);
             max = Math.max(max, s);
         }
-        if (max > min * 4) {
-            return Algorithm.SJF;
-        }
-        if (n >= 5 && max < 300 * 1024) {
-            return Algorithm.ROUND_ROBIN;
-        }
+        if (max > min * 4) return Algorithm.SJF;
+        if (n >= 5) return Algorithm.ROUND_ROBIN;
         return Algorithm.FCFS;
     }
 
@@ -61,6 +54,7 @@ public class Scheduler {
         }
         return null;
     }
+
     public int nextServer(int total) {
         int server = rrIndex % total;
         rrIndex++;

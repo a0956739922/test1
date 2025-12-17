@@ -4,12 +4,9 @@
  */
 package com.mycompany.loadbalancer;
 
-import org.eclipse.paho.client.mqttv3.*;
-import java.io.StringReader;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.json.Json;
 import javax.json.JsonObject;
+import org.eclipse.paho.client.mqttv3.*;
 /**
  *
  * @author ntu-user
@@ -17,13 +14,15 @@ import javax.json.JsonObject;
 public class MqttLoadBalancer {
 
     private static final String BROKER = "tcp://mqtt-broker:1883";
+    private static final String CLIENT_ID = "LoadBalancerClient";
     private static final String UI_REQ = "/request";
     private static final String LB_REQ = "/lb/request";
+    private static final String HOST_STATUS = "/host/status";
     private static final String LB_SCALE = "/lb/scale";
-    private static final String CLIENT_ID = "LoadBalancerClient";
 
-    private static final Map<String, String> RAW = new ConcurrentHashMap<>();
-    private static LoadBalancer lb;
+    private static final int GROUP_SIZE = 4;
+
+    private static final LoadBalancer lb = new LoadBalancer();
 
     public static void main(String[] args) {
         try {
@@ -31,53 +30,51 @@ public class MqttLoadBalancer {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
-            lb = new LoadBalancer() {
+            System.out.println("[LB] Connected to broker");
+            client.subscribe(UI_REQ, 1);
+            client.subscribe(HOST_STATUS, 1);
+            System.out.println("[LB] Subscribed to:");
+            System.out.println("   " + UI_REQ);
+            System.out.println("   " + HOST_STATUS);
+            client.setCallback(new MqttCallback() {
                 @Override
-                protected void onScaleTriggered(int waiting, int capacity) {
-                    try {
-                        JsonObject msg = Json.createObjectBuilder()
-                                .add("action", "scale_up")
-                                .add("group_size", 4)
-                                .build();
-                        client.publish(LB_SCALE, new MqttMessage(msg.toString().getBytes()));
-                        System.out.println("[LB SCALE] " + msg);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                public void connectionLost(Throwable cause) {
+                    System.out.println("[LB] Connection lost: " + cause.getMessage());
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage msg) throws Exception {
+                    if (UI_REQ.equals(topic)) {
+                        lb.acceptRequest(msg.getPayload().length);
+                        if (lb.evaluateScale() == LoadBalancer.ScaleDecision.SCALE_UP) {
+                            JsonObject out = Json.createObjectBuilder().add("group_size", GROUP_SIZE).build();
+                            MqttMessage scaleMsg = new MqttMessage(out.toString().getBytes());
+                            scaleMsg.setQos(1);
+                            client.publish(LB_SCALE, scaleMsg);
+                            System.out.println(
+                                "[LB] SCALE UP requested (group_size=" + GROUP_SIZE + ")"
+                            );
+                        }
+                    }
+                    else if (HOST_STATUS.equals(topic)) {
+                        JsonObject status = Json.createReader(new java.io.StringReader(new String(msg.getPayload()))).readObject();
+                        if ("scale_up_done".equals(status.getString("status", ""))) {
+                            lb.onScaleUpCompleted();
+                            System.out.println("[LB] Scale-up completed");
+                        }
                     }
                 }
-            };
-            System.out.println("[LB] Listening on " + UI_REQ);
-            client.subscribe(UI_REQ, (topic, msg) -> onRequest(msg));
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                    
+                }
+            });
+
             while (true) {
-                lb.getEmulator().step();
-                forwardReady(client);
                 Thread.sleep(1000);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    private static void onRequest(MqttMessage msg) {
-        try {
-            String raw = new String(msg.getPayload());
-            Request req = lb.acceptRaw(raw);
-            RAW.put(req.getId(), raw);
-            System.out.println("[LB] Queued " + req);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void forwardReady(MqttClient client) {
-        try {
-            var readyQueue = lb.getEmulator().getReadyQueue();
-            while (!readyQueue.isEmpty()) {
-                Request r = readyQueue.poll();
-                String raw = RAW.remove(r.getId());
-                client.publish(LB_REQ, new MqttMessage(raw.getBytes()));
-                System.out.println("[LB -> AGG] " + raw);
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
