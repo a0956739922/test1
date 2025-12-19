@@ -4,12 +4,14 @@
  */
 package com.mycompany.loadbalancer;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+
 /**
  *
  * @author ntu-user
  */
-import java.util.*;
-
 class Scheduler {
 
     enum Algo { FCFS, SJF, RR }
@@ -26,20 +28,12 @@ class Scheduler {
         }
     }
 
-    /**
-     * 從 readyQueue 中選出「最多 slots 個」request
-     */
     List<Request> select(Queue<Request> readyQueue, int slots) {
         List<Request> selected = new ArrayList<>();
-
         if (readyQueue.isEmpty()) return selected;
-
         chooseAlgo(readyQueue.size());
-        System.out.println("[Scheduler] Algo = " + currentAlgo);
-
         for (int i = 0; i < slots && !readyQueue.isEmpty(); i++) {
             Request r;
-
             switch (currentAlgo) {
                 case SJF:
                     r = selectSJF(readyQueue);
@@ -49,10 +43,8 @@ class Scheduler {
                 default:
                     r = readyQueue.poll();
             }
-
             selected.add(r);
         }
-
         return selected;
     }
 

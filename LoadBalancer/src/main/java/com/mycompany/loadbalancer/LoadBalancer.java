@@ -4,12 +4,15 @@
  */
 package com.mycompany.loadbalancer;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Random;
 /**
  *
  * @author ntu-user
  */
-import java.util.*;
-
 public class LoadBalancer {
 
     private final Queue<Request> waitingQueue = new LinkedList<>();
@@ -64,27 +67,21 @@ public class LoadBalancer {
 
     private void moveWaitingToProcessing() {
         int capacity = groups * REQ_PER_GROUP;
-
         while (processingQueue.size() < capacity && !waitingQueue.isEmpty()) {
             Request r = waitingQueue.poll();
             r.delayStartTime = System.currentTimeMillis();
             processingQueue.offer(r);
-
-            System.out.println("[LB] waiting → processing: " + r.id);
         }
     }
 
     private void moveProcessingToReady() {
         long now = System.currentTimeMillis();
         Iterator<Request> it = processingQueue.iterator();
-
         while (it.hasNext()) {
             Request r = it.next();
             if (now >= r.delayStartTime + r.delay) {
                 it.remove();
                 readyQueue.offer(r);
-
-                System.out.println("[LB] processing → ready: " + r.id);
             }
         }
     }
@@ -92,10 +89,7 @@ public class LoadBalancer {
     private void dispatchReady() {
         int capacity = groups * REQ_PER_GROUP;
         int dispatchSlots = capacity - processingQueue.size();
-
-        List<Request> toDispatch =
-                scheduler.select(readyQueue, dispatchSlots);
-
+        List<Request> toDispatch = scheduler.select(readyQueue, dispatchSlots);
         for (Request r : toDispatch) {
             if (dispatchHandler != null) {
                 dispatchHandler.dispatch(r);
@@ -105,13 +99,9 @@ public class LoadBalancer {
 
     private void checkScaleUp() {
         int capacity = groups * REQ_PER_GROUP;
-        double waitingRatio =
-                capacity == 0 ? 0 : (double) waitingQueue.size() / capacity;
-
+        double waitingRatio = capacity == 0 ? 0 : (double) waitingQueue.size() / capacity;
         if (waitingRatio >= 0.8 && groups < MAX_GROUPS) {
             groups++;
-            System.out.println("[SCALE UP] New group added. Total groups = " + groups);
-
             if (scaleUpHandler != null) {
                 scaleUpHandler.onScaleUp(groups);
             }
