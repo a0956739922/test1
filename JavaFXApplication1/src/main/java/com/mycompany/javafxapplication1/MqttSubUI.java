@@ -4,8 +4,12 @@
  */
 package com.mycompany.javafxapplication1;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import java.io.StringReader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.json.Json;
+import javax.json.JsonObject;
+import org.eclipse.paho.client.mqttv3.*;
 /**
  *
  * @author ntu-user
@@ -15,20 +19,64 @@ public class MqttSubUI {
     private static final String BROKER = "tcp://mqtt-broker:1883";
     private static final String AGG_RES = "/agg/response";
     private static final String CLIENT_ID = "UIClientSub";
-    public static volatile String lastResultJson;
+
+    public static final Map<String, String> RESULTS = new ConcurrentHashMap<>();
+
     private MqttClient client;
 
-    public void start() throws Exception {
-        client = new MqttClient(BROKER, CLIENT_ID);
-        MqttConnectOptions options = new MqttConnectOptions();
-        options.setCleanSession(true);
-        client.connect(options);
-        client.subscribe(AGG_RES, (topic, msg) -> {
-            String result = new String(msg.getPayload());
-            System.out.println("Received from " + topic);
-            lastResultJson = result;
-            System.out.println(result);
-        });
-        System.out.println("[UI] Subscribed (long-lived) to " + AGG_RES);
+    public void start() {
+        try {
+            client = new MqttClient(BROKER, CLIENT_ID);
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+            client.connect(options);
+
+            System.out.println("[UI] Connected to broker");
+            client.subscribe(AGG_RES, 1);
+            System.out.println("[UI] Subscribed to " + AGG_RES);
+
+            client.setCallback(new MqttCallback() {
+
+                @Override
+                public void connectionLost(Throwable cause) {
+                    System.out.println("[UI] Connection lost: " + cause.getMessage());
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage msg) {
+                    System.out.println("[UI] messageArrived topic=" + topic);
+                    try {
+                        String payload = new String(msg.getPayload());
+                        System.out.println("[UI] payload=" + payload);
+                        JsonObject res = Json.createReader(new StringReader(payload)).readObject();
+                        String reqId = res.getString("req_id", "");
+                        RESULTS.put(reqId, payload);
+                        System.out.println("[UI] result stored for req_id=" + reqId);
+                    } catch (Exception e) {
+                        System.out.println("[UI] EXCEPTION inside messageArrived");
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stop() {
+        try {
+            if (client != null && client.isConnected()) {
+                client.disconnect();
+                client.close();
+                System.out.println("[UI] MQTT disconnected");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

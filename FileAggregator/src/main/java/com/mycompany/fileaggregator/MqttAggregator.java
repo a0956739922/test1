@@ -44,7 +44,9 @@ public class MqttAggregator {
                     try {
                         System.out.println("[AGG] payload=" + new String(msg.getPayload()));
                         JsonObject request = Json.createReader(new StringReader(new String(msg.getPayload()))).readObject();
-                        JsonObject result = aggregator.acceptRaw(request.toString());
+                        String reqId = request.getString("req_id", "");
+                        JsonObject innerResult = aggregator.acceptRaw(request.toString());
+                        JsonObject result = Json.createObjectBuilder(innerResult).add("req_id", reqId).build();
                         MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
                         resMsg.setQos(1);
                         client.publish(AGG_RES, resMsg);

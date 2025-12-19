@@ -16,5 +16,6 @@ com/mycompany/javafxapplication1/MqttPubUI.class
 com/mycompany/javafxapplication1/controller/AdvancedController.class
 com/mycompany/javafxapplication1/controller/UpdateFileController.class
 com/mycompany/javafxapplication1/App.class
+com/mycompany/javafxapplication1/MqttSubUI$1.class
 com/mycompany/javafxapplication1/User.class
 com/mycompany/javafxapplication1/controller/FileManagementController.class

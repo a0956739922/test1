@@ -79,12 +79,15 @@ public class FileService {
         new MqttPubUI().send(json);
     }
 
-    public void download(long fileId) throws Exception {
+    public String download(long fileId) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
+                .add("req_id", reqId)
                 .add("action", "download")
                 .add("fileId", fileId)
                 .build();
         new MqttPubUI().send(json);
+        return reqId;
     }
 
     public void downloadSftp(String resultJson,String filename,String downloadPath) throws Exception {

@@ -94,6 +94,7 @@ public class LoadBalancer {
             if (dispatchHandler != null) {
                 dispatchHandler.dispatch(r);
             }
+        readyQueue.remove(r);
         }
     }
 

@@ -147,8 +147,9 @@ public class FileManagementController {
 
     @FXML
     private void downloadFile() {
-    FileModel selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {dialogue("No File Selected", "Please select a file to download.");
+        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            dialogue("No File Selected", "Please select a file to download.");
             return;
         }
         if (!dialogue("Download", "Proceed to download?")) {
@@ -161,16 +162,26 @@ public class FileManagementController {
         File file = chooser.showSaveDialog(stage);
         if (file == null) return;
         try {
-            fileService.download(selected.getId());
-            while (MqttSubUI.lastResultJson == null) {
-                Thread.sleep(100);
-            }
-            fileService.downloadSftp(
-                    MqttSubUI.lastResultJson,
-                    file.getName(),
-                    file.getParent()
-            );
-            MqttSubUI.lastResultJson = null;
+            String reqId = fileService.download(selected.getId());
+            new Thread(() -> {
+                try {
+                    String resultJson = null;
+                    while (resultJson == null) {
+                        resultJson = MqttSubUI.RESULTS.remove(reqId);
+                        Thread.sleep(100);
+                    }
+                    String finalResult = resultJson;
+                    javafx.application.Platform.runLater(() -> {
+                        try {
+                            fileService.downloadSftp(finalResult, file.getName(), file.getParent());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         } catch (Exception e) {
             e.printStackTrace();
         }

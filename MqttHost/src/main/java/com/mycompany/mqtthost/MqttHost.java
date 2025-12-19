@@ -41,28 +41,18 @@ public class MqttHost {
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             client.connect();
             client.subscribe(LB_SCALE, 1);
-
             client.setCallback(new MqttCallback() {
-
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
                     if (!LB_SCALE.equals(topic)) return;
-
-                    JsonObject msg = Json.createReader(
-                            new StringReader(new String(message.getPayload()))
-                    ).readObject();
-
+                    JsonObject msg = Json.createReader(new StringReader(new String(message.getPayload()))).readObject();
                     int targetGroups = msg.getInt("groups");
-
                     if (activeGroups >= targetGroups) return;
-
                     int groupsToAdd = targetGroups - activeGroups;
                     List<String> started = new ArrayList<>();
-
                     for (int g = 0; g < groupsToAdd; g++) {
                         for (int i = 0; i < GROUP_SIZE; i++) {
                             if (nextContainerIndex > MAX_CONTAINERS) break;
-
                             String volume = null;
                             for (String v : VOLUMES) {
                                 if (!volumeOwner.containsKey(v)) {
@@ -70,14 +60,11 @@ public class MqttHost {
                                     break;
                                 }
                             }
-
                             String name = "soft40051-files-container" + nextContainerIndex;
                             dockerRun(name, volume);
-
                             if (volume != null) {
                                 volumeOwner.put(volume, name);
                             }
-
                             started.add(name);
                             nextContainerIndex++;
                         }
@@ -85,16 +72,11 @@ public class MqttHost {
                     }
 
                     waitUntilRunning(started);
-
                     JsonObject status = Json.createObjectBuilder()
                             .add("status", "scale_up_done")
                             .add("active_groups", activeGroups)
                             .build();
-
-                    client.publish(
-                            HOST_STATUS,
-                            new MqttMessage(status.toString().getBytes())
-                    );
+                    client.publish(HOST_STATUS,new MqttMessage(status.toString().getBytes()));
                 }
 
                 @Override

@@ -18,14 +18,12 @@ public class MqttPubUI {
     private static final String UI_REQ    = "/request";
 
     public void send(JsonObject json) throws Exception {
-        String reqId = java.util.UUID.randomUUID().toString();
-        JsonObject withReqId = Json.createObjectBuilder(json).add("req_id", reqId).build();
         MqttClient client = new MqttClient(BROKER, CLIENT_ID);
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
         System.out.println("[UI] Connecting to MQTT broker...");
         client.connect(options);
-        MqttMessage message =new MqttMessage(withReqId.toString().getBytes());
+        MqttMessage message = new MqttMessage(json.toString().getBytes());
         message.setQos(1);
         client.publish(UI_REQ, message);
         System.out.println("[UI] Published action: " + json.getString("action"));

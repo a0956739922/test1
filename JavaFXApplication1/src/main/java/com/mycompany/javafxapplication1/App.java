@@ -13,11 +13,13 @@ import java.io.IOException;
  */
 public class App extends Application {
     
+    private MqttSubUI mqttSubUI;
+    
     @Override
     public void start(Stage stage) throws IOException {
         try {
-            MqttSubUI sub = new MqttSubUI();
-            sub.start();
+            mqttSubUI = new MqttSubUI();
+            mqttSubUI.start();
             SQLiteDB sqlite = new SQLiteDB();
             User cached = sqlite.loadSession();
             boolean mysqlOnline = true;
@@ -57,6 +59,14 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+    
+    @Override
+    public void stop() {
+        System.out.println("[APP] stop() called");
+        if (mqttSubUI != null) {
+            mqttSubUI.stop();
+        }
     }
 
 }
