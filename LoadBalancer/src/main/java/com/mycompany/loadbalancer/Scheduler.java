@@ -4,60 +4,66 @@
  */
 package com.mycompany.loadbalancer;
 
-import java.util.Queue;
 /**
  *
  * @author ntu-user
  */
-public class Scheduler {
+import java.util.*;
 
-    public enum Algorithm { FCFS, SJF, ROUND_ROBIN }
-    private int rrIndex = 0;
+class Scheduler {
 
-    public Algorithm chooseAlgo(Queue<Request> queue) {
-        int n = queue.size();
-        if (n <= 1) return Algorithm.FCFS;
-        long min = Long.MAX_VALUE;
-        long max = 0;
-        for (Request r : queue) {
-            long s = r.getSize();
-            min = Math.min(min, s);
-            max = Math.max(max, s);
+    enum Algo { FCFS, SJF, RR }
+
+    private Algo currentAlgo = Algo.FCFS;
+
+    void chooseAlgo(int readySize) {
+        if (readySize <= 2) {
+            currentAlgo = Algo.FCFS;
+        } else if (readySize <= 5) {
+            currentAlgo = Algo.SJF;
+        } else {
+            currentAlgo = Algo.RR;
         }
-        if (max > min * 4) return Algorithm.SJF;
-        if (n >= 5) return Algorithm.ROUND_ROBIN;
-        return Algorithm.FCFS;
     }
 
-    public Request pickFCFS(Queue<Request> queue) {
-        return queue.peek();
+    /**
+     * 從 readyQueue 中選出「最多 slots 個」request
+     */
+    List<Request> select(Queue<Request> readyQueue, int slots) {
+        List<Request> selected = new ArrayList<>();
+
+        if (readyQueue.isEmpty()) return selected;
+
+        chooseAlgo(readyQueue.size());
+        System.out.println("[Scheduler] Algo = " + currentAlgo);
+
+        for (int i = 0; i < slots && !readyQueue.isEmpty(); i++) {
+            Request r;
+
+            switch (currentAlgo) {
+                case SJF:
+                    r = selectSJF(readyQueue);
+                    break;
+                case RR:
+                case FCFS:
+                default:
+                    r = readyQueue.poll();
+            }
+
+            selected.add(r);
+        }
+
+        return selected;
     }
 
-    public Request pickSJF(Queue<Request> queue) {
-        Request min = null;
+    private Request selectSJF(Queue<Request> queue) {
+        Request shortest = null;
         for (Request r : queue) {
-            if (min == null || r.getSize() < min.getSize()) {
-                min = r;
+            if (shortest == null || r.delay < shortest.delay) {
+                shortest = r;
             }
         }
-        return min;
-    }
-
-    public Request pickRR(Queue<Request> queue) {
-        if (queue.isEmpty()) return null;
-        int index = rrIndex % queue.size();
-        rrIndex++;
-        int i = 0;
-        for (Request r : queue) {
-            if (i == index) return r;
-            i++;
-        }
-        return null;
-    }
-
-    public int nextServer(int total) {
-        int server = rrIndex % total;
-        rrIndex++;
-        return server;
+        queue.remove(shortest);
+        return shortest;
     }
 }

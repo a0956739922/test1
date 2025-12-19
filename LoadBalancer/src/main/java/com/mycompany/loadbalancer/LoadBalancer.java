@@ -8,58 +8,125 @@ package com.mycompany.loadbalancer;
  *
  * @author ntu-user
  */
+import java.util.*;
+
 public class LoadBalancer {
 
-    private static final int MAX_GROUPS = 3;
-    private static final int THRESHOLD_COUNT = 4;
+    private final Queue<Request> waitingQueue = new LinkedList<>();
+    private final Queue<Request> processingQueue = new LinkedList<>();
+    private final Queue<Request> readyQueue = new LinkedList<>();
 
+    private final Random random = new Random();
     private final Scheduler scheduler = new Scheduler();
-    private final TrafficEmulator emulator = new TrafficEmulator(4, scheduler);
 
-    private int activeGroups = 1;
-    private boolean scaleInProgress = false;
+    private int groups = 0;
+    private static final int MAX_GROUPS = 3;
+    private static final int REQ_PER_GROUP = 5;
 
-    public enum ScaleDecision {
-        NONE,
-        SCALE_UP
+    public interface DispatchHandler {
+        void dispatch(Request r);
     }
 
-    public void acceptRequest(long size) {
-        emulator.add(new Request(size));
-        emulator.step();
+    public interface ScaleUpHandler {
+        void onScaleUp(int newGroupCount);
     }
 
-    public ScaleDecision evaluateScale() {
-        if (activeGroups >= MAX_GROUPS) {
-            return ScaleDecision.NONE;
+    private DispatchHandler dispatchHandler;
+    private ScaleUpHandler scaleUpHandler;
+
+    public void setDispatchHandler(DispatchHandler handler) {
+        this.dispatchHandler = handler;
+    }
+
+    public void setScaleUpHandler(ScaleUpHandler handler) {
+        this.scaleUpHandler = handler;
+    }
+
+    public void receiveRequest(String reqId) {
+        long delay = 1000 + random.nextInt(4000);
+        Request r = new Request(reqId, delay);
+        waitingQueue.offer(r);
+
+        if (groups == 0) {
+            groups = 1;
+            if (scaleUpHandler != null) {
+                scaleUpHandler.onScaleUp(groups);
+            }
         }
-        if (activeGroups == 1 && emulator.getWaitingSize() == 1 && emulator.getProcessingSize() == 0) {
-            scaleInProgress = true;
-            return ScaleDecision.SCALE_UP;
+    }
+
+    public void tick() {
+        moveWaitingToProcessing();
+        moveProcessingToReady();
+        dispatchReady();
+        checkScaleUp();
+    }
+
+    private void moveWaitingToProcessing() {
+        int capacity = groups * REQ_PER_GROUP;
+
+        while (processingQueue.size() < capacity && !waitingQueue.isEmpty()) {
+            Request r = waitingQueue.poll();
+            r.delayStartTime = System.currentTimeMillis();
+            processingQueue.offer(r);
+
+            System.out.println("[LB] waiting → processing: " + r.id);
         }
-        if (emulator.getWaitingSize() > THRESHOLD_COUNT) {
-            scaleInProgress = true;
-            return ScaleDecision.SCALE_UP;
+    }
+
+    private void moveProcessingToReady() {
+        long now = System.currentTimeMillis();
+        Iterator<Request> it = processingQueue.iterator();
+
+        while (it.hasNext()) {
+            Request r = it.next();
+            if (now >= r.delayStartTime + r.delay) {
+                it.remove();
+                readyQueue.offer(r);
+
+                System.out.println("[LB] processing → ready: " + r.id);
+            }
         }
-        return ScaleDecision.NONE;
     }
 
-    public void onScaleUpCompleted() {
-        if (activeGroups < MAX_GROUPS) {
-            activeGroups++;
+    private void dispatchReady() {
+        int capacity = groups * REQ_PER_GROUP;
+        int dispatchSlots = capacity - processingQueue.size();
+
+        List<Request> toDispatch =
+                scheduler.select(readyQueue, dispatchSlots);
+
+        for (Request r : toDispatch) {
+            if (dispatchHandler != null) {
+                dispatchHandler.dispatch(r);
+            }
         }
-        scaleInProgress = false;
     }
 
-    public int getWaiting() {
-        return emulator.getWaitingSize();
+    private void checkScaleUp() {
+        int capacity = groups * REQ_PER_GROUP;
+        double waitingRatio =
+                capacity == 0 ? 0 : (double) waitingQueue.size() / capacity;
+
+        if (waitingRatio >= 0.8 && groups < MAX_GROUPS) {
+            groups++;
+            System.out.println("[SCALE UP] New group added. Total groups = " + groups);
+
+            if (scaleUpHandler != null) {
+                scaleUpHandler.onScaleUp(groups);
+            }
+        }
     }
 
-    public int getProcessing() {
-        return emulator.getProcessingSize();
+    public int getWaitingCount() {
+        return waitingQueue.size();
     }
 
-    public int getReady() {
-        return emulator.getReadySize();
+    public int getProcessingCount() {
+        return processingQueue.size();
+    }
+
+    public int getReadyCount() {
+        return readyQueue.size();
     }
 }

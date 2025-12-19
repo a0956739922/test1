@@ -4,33 +4,32 @@
  */
 package com.mycompany.javafxapplication1;
 
+import javax.json.Json;
 import javax.json.JsonObject;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.*;
 /**
  *
  * @author ntu-user
  */
 public class MqttPubUI {
 
-    private static final String BROKER = "tcp://mqtt-broker:1883";
-    private static final String UI_REQ = "/request";
+    private static final String BROKER    = "tcp://mqtt-broker:1883";
     private static final String CLIENT_ID = "UIClientPub";
+    private static final String UI_REQ    = "/request";
 
     public void send(JsonObject json) throws Exception {
-        MqttClient client = new MqttClient(BROKER, CLIENT_ID, new MemoryPersistence());
+        String reqId = java.util.UUID.randomUUID().toString();
+        JsonObject withReqId = Json.createObjectBuilder(json).add("req_id", reqId).build();
+        MqttClient client = new MqttClient(BROKER, CLIENT_ID);
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
         System.out.println("[UI] Connecting to MQTT broker...");
         client.connect(options);
-        MqttMessage message = new MqttMessage(json.toString().getBytes());
+        MqttMessage message =new MqttMessage(withReqId.toString().getBytes());
         message.setQos(1);
         client.publish(UI_REQ, message);
         System.out.println("[UI] Published action: " + json.getString("action"));
         client.disconnect();
-        client.close();
         System.out.println("[UI] Disconnected.");
     }
 }

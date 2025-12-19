@@ -8,33 +8,15 @@ package com.mycompany.loadbalancer;
  *
  * @author ntu-user
  */
-public class Request {
+class Request {
+    final String id;
+    final long arrivalTime;
+    final long delay;
+    long delayStartTime;
 
-    private final long size;
-    private long arrivalTime;
-    private long startTime;
-
-    public Request(long size) {
-        this.size = size;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public long getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public void setArrivalTime(long arrivalTime) {
-        this.arrivalTime = arrivalTime;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(long startTime) {
-        this.startTime = startTime;
+    Request(String id, long delay) {
+        this.id = id;
+        this.delay = delay;
+        this.arrivalTime = System.currentTimeMillis();
     }
 }

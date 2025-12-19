@@ -39,16 +39,19 @@ public class MqttAggregator {
                 }
 
                 @Override
-                public void messageArrived(String topic, MqttMessage msg) throws Exception {
-                    if (LB_REQ.equals(topic)) {
-                        String raw = new String(msg.getPayload());
-                        JsonObject request = Json.createReader(new StringReader(raw)).readObject();
+                public void messageArrived(String topic, MqttMessage msg) {
+                    System.out.println("[AGG] messageArrived topic=" + topic);
+                    try {
+                        System.out.println("[AGG] payload=" + new String(msg.getPayload()));
+                        JsonObject request = Json.createReader(new StringReader(new String(msg.getPayload()))).readObject();
                         JsonObject result = aggregator.acceptRaw(request.toString());
                         MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
                         resMsg.setQos(1);
                         client.publish(AGG_RES, resMsg);
-                        System.out.println("[AGG] Result published to " + AGG_RES);
-                        System.out.println("[AGG] Request processed successfully");
+                        System.out.println("[AGG] published response");
+                    } catch (Exception e) {
+                        System.out.println("[AGG] EXCEPTION inside messageArrived");
+                        e.printStackTrace();
                     }
                 }
 
