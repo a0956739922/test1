@@ -36,10 +36,9 @@ public class CreateFileController {
     @FXML
     private void createFile() {
         try {
-            String name = nameField.getText().trim();
-            String path = pathField.getText().trim();
+            String name = nameField.getText();
+            String path = pathField.getText();
             String content = contentArea.getText();
-            long sizeBytes = content.getBytes().length;
             if (name.isEmpty() || path.isEmpty()) {
                 dialogue("Missing Fields", "Name and Path cannot be empty.");
                 return;

@@ -136,9 +136,21 @@ public class FileManagementController {
 
     @FXML
     private void deleteFile() {
-//        String selected = fileListView.getSelectionModel().getSelectedItem();
-//        if (selected == null) return;
-        if (!dialogue("Delete", "Proceed to delete?")) return;
+        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            dialogue("No File Selected", "Please select a file to delete.");
+            return;
+        }
+        if (!dialogue("Delete", "Proceed to delete" + selected.getName() + "?")) {
+            return;
+        }
+        try {
+            fileService.delete(selected.getId());
+            dialogue("Deleted", "File deleted successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            dialogue("Error", "Failed to delete file.");
+        }
     }
 
     @FXML

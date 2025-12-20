@@ -72,7 +72,9 @@ public class FileService {
     }
 
     public void delete(long fileId) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
+                .add("req_id", reqId)
                 .add("action", "delete")
                 .add("fileId", fileId)
                 .build();
