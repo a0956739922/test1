@@ -28,10 +28,26 @@ public class FileAggregator {
                 long fileId = fileService.create(ownerId, fileName, logicalPath, content);
                 return Json.createObjectBuilder().add("action", action).add("fileId", fileId).build();
             }
+            case "loadContent": {
+                long fileId = json.getJsonNumber("fileId").longValue();
+                String content = fileService.loadContent(fileId);
+                return Json.createObjectBuilder()
+                        .add("action", "loadContent")
+                        .add("fileId", fileId)
+                        .add("content", content)
+                        .build();
+            }
             case "update": {
                 long fileId = json.getJsonNumber("fileId").longValue();
-                fileService.update(fileId,json.getString("newLocalFilePath"),json.getString("newLogicalPath"));
-                return Json.createObjectBuilder().add("action", action).add("fileId", fileId).build();
+                String newName = json.containsKey("newName") ? json.getString("newName") : null;
+                String newLogicalPath = json.containsKey("newLogicalPath") ? json.getString("newLogicalPath") : null;
+                String content = json.containsKey("content") ? json.getString("content") : null;
+                fileService.update(fileId, newName, newLogicalPath, content);
+                return Json.createObjectBuilder()
+                        .add("action", "update")
+                        .add("fileId", fileId)
+                        .add("status", "ok")
+                        .build();
             }
             case "download": {
                 long fileId = json.getJsonNumber("fileId").longValue();
@@ -60,15 +76,6 @@ public class FileAggregator {
                         .add("fileId", fileId)
                         .add("shared", true)
                         .build();
-            }
-            case "renameMove": {
-                long fileId = json.getJsonNumber("fileId").longValue();
-                fileService.renameMove(
-                        json.getJsonNumber("fileId").longValue(),
-                        json.getString("newName"),
-                        json.getString("newLogicalPath")
-                );
-                return Json.createObjectBuilder().add("action", action).add("fileId", fileId).build();
             }
             default:
                 throw new IllegalArgumentException("Unknown action: " + action);

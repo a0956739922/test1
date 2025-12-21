@@ -10,6 +10,7 @@ import com.jcraft.jsch.Session;
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 /**
  *
  * @author ntu-user
@@ -24,7 +25,9 @@ public class FileService {
     private final int CHANNEL_TIMEOUT = 5000;
 
     public void create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
+                .add("req_id", reqId)
                 .add("action", "create")
                 .add("ownerId", ownerId)
                 .add("fileName", fileName)
@@ -35,7 +38,9 @@ public class FileService {
     }
 
     public void upload(long ownerId, String localPath, String logicalPath) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
+                .add("req_id", reqId)
                 .add("action", "upload")
                 .add("ownerId", ownerId)
                 .add("localFilePath", localPath)
@@ -44,31 +49,29 @@ public class FileService {
         new MqttPubUI().send(json);
     }
     
-    public void preUpdate(long fileId) throws Exception {
+    public String loadContent(long fileId) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
-                .add("action", "preUpdate")
+                .add("req_id", reqId)
+                .add("action", "loadContent")
                 .add("fileId", fileId)
                 .build();
         new MqttPubUI().send(json);
+        return reqId;
     }
 
-    public void update(long fileId, String newLogical) throws Exception {
-        JsonObject json = Json.createObjectBuilder()
+    public void update(long fileId, String newName, String newLogical, String content) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
+        JsonObjectBuilder json = Json.createObjectBuilder()
+                .add("req_id", reqId)
                 .add("action", "update")
                 .add("fileId", fileId)
-                .add("newLogicalPath", newLogical)
-                .build();
-        new MqttPubUI().send(json);
-    }
-    
-    public void renameMove(long fileId, String newName, String newLogical) throws Exception {
-        JsonObject json = Json.createObjectBuilder()
-                .add("action", "renameMove")
-                .add("fileId", fileId)
                 .add("newName", newName)
-                .add("newLogicalPath", newLogical)
-                .build();
-        new MqttPubUI().send(json);
+                .add("newLogicalPath", newLogical);
+        if (content != null) {
+            json.add("content", content);
+        }
+        new MqttPubUI().send(json.build());
     }
 
     public void delete(long fileId) throws Exception {
@@ -119,7 +122,9 @@ public class FileService {
     }
 
     public void share(long fileId, long targetId, String permission) throws Exception {
+        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
+                .add("req_id", reqId)
                 .add("action", "share")
                 .add("fileId", fileId)
                 .add("targetId", targetId)

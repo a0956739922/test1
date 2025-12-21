@@ -23,9 +23,44 @@ public class FileModel {
         this.sizeBytes = sizeBytes;
     }
 
-    public long getId() { return id; }
-    public long getOwnerUserId() { return ownerUserId; }
-    public String getName() { return name; }
-    public String getLogicalPath() { return logicalPath; }
-    public long getSizeBytes() { return sizeBytes; }
+    public long getId() {
+        return id;
+    }
+    
+    public long getOwnerUserId() {
+        return ownerUserId;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getLogicalPath() {
+        return logicalPath; 
+    }
+    
+    public long getSizeBytes() {
+        return sizeBytes; 
+    }
+    
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setOwnerUserId(long ownerUserId) {
+        this.ownerUserId = ownerUserId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setLogicalPath(String logicalPath) {
+        this.logicalPath = logicalPath;
+    }
+
+    public void setSizeBytes(long sizeBytes) {
+        this.sizeBytes = sizeBytes;
+    }
+
 }

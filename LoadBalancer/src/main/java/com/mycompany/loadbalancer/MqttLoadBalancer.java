@@ -25,6 +25,8 @@ public class MqttLoadBalancer {
 
     private static final LoadBalancer lb = new LoadBalancer();
     private static final Map<String, String> RAW = new ConcurrentHashMap<>();
+    private static int activeGroups = 0;
+    private static String pendingLoadContent = null;
 
     public static void main(String[] args) {
         try {
@@ -58,16 +60,30 @@ public class MqttLoadBalancer {
                 public void messageArrived(String topic, MqttMessage msg) throws Exception {
                     String payload = new String(msg.getPayload());
                     if (UI_REQ.equals(topic)) {
-                        JsonObject in = Json.createReader(
-                                new java.io.StringReader(payload)).readObject();
-                        String reqId = in.getString("req_id");
+                        JsonObject in = Json.createReader(new java.io.StringReader(payload)).readObject();
+                        String action = in.getString("action", ""), reqId = in.getString("req_id");
+                        if ("loadContent".equals(action)) {
+                            if (activeGroups == 0) {
+                                pendingLoadContent = payload;
+                                if (lb.getWaitingCount() + lb.getProcessingCount() == 0)
+                                    lb.receiveRequest("__warmup__");
+                                lb.tick();
+                                return;
+                            }
+                            client.publish(LB_REQ, new MqttMessage(payload.getBytes()));
+                            return;
+                        }
                         RAW.put(reqId, payload);
                         lb.receiveRequest(reqId);
                         lb.tick();
                     }
-
                     if (HOST_STATUS.equals(topic)) {
-                        System.out.println("[LB] Host status: " + payload);
+                        JsonObject st = Json.createReader(new java.io.StringReader(payload)).readObject();
+                        activeGroups = st.getInt("active_groups", activeGroups);
+                        if (activeGroups > 0 && pendingLoadContent != null) {
+                            client.publish(LB_REQ, new MqttMessage(pendingLoadContent.getBytes()));
+                            pendingLoadContent = null;
+                        }
                         lb.tick();
                     }
                 }
