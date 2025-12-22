@@ -105,7 +105,8 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("Create File");
             stage.setScene(new Scene(root));
-            stage.show();
+            stage.showAndWait();
+            loadFiles();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,12 +142,13 @@ public class FileManagementController {
             dialogue("No File Selected", "Please select a file to delete.");
             return;
         }
-        if (!dialogue("Delete", "Proceed to delete" + selected.getName() + "?")) {
+        if (!dialogue("Delete", "Proceed to delete " + selected.getName() + "?")) {
             return;
         }
         try {
             fileService.delete(selected.getId());
             dialogue("Deleted", "File deleted successfully.");
+            loadFiles();
         } catch (Exception e) {
             e.printStackTrace();
             dialogue("Error", "Failed to delete file.");
@@ -155,6 +157,20 @@ public class FileManagementController {
 
     @FXML
     private void uploadFile() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/uploadFile.fxml"));
+            Parent root = loader.load();
+            UploadFileController controller = loader.getController();
+            controller.initialise(sessionUser, fileService);
+            Stage stage = new Stage();
+            stage.setTitle("Upload File");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+            loadFiles();
+        } catch (Exception e) {
+            e.printStackTrace();
+            dialogue("Error", "Failed to open upload window.");
+        }
     }
 
     @FXML

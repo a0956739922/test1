@@ -46,7 +46,8 @@ public class FileAggregator {
         }
     }
 
-    public long upload(long ownerId, String localFilePath, String fileName, String logicalPath) throws Exception {
+    public long upload(long ownerId, String reqId, String fileName, String logicalPath) throws Exception {
+        String localFilePath = "/home/ntu-user/tmp/upload/" + reqId;
         File original = new File(localFilePath);
         long sizeBytes = original.length();
         String key = crypto.generateFileKey();

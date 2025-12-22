@@ -47,6 +47,7 @@ public class LoadBalancer {
     }
 
     public void receiveRequest(String reqId) {
+        ensureAtLeastOneGroup();
         long delay = 1000 + random.nextInt(4000);
         Request r = new Request(reqId, delay);
         waitingQueue.offer(r);

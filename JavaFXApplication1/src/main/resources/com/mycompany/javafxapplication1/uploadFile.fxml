@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.mycompany.javafxapplication1.controller.UploadFileController"
+      style="-fx-padding: 20;"
+      spacing="12">
+
+    <Label text="Upload File"
+           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+    <Label text="File Name:"/>
+    <TextField fx:id="nameField"/>
+
+    <Label text="Local File:"/>
+    <HBox spacing="8">
+        <TextField fx:id="localPathField" editable="false" HBox.hgrow="ALWAYS"/>
+        <Button text="Browse" onAction="#browseFile"/>
+    </HBox>
+
+    <Label text="Logical Path:"/>
+    <TextField fx:id="logicalPathField"/>
+
+    <HBox spacing="10">
+        <Button text="Upload" onAction="#uploadFile"/>
+        <Button text="Cancel" onAction="#closeWindow"/>
+    </HBox>
+
+</VBox>

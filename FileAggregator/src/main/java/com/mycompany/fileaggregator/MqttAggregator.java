@@ -61,7 +61,7 @@ public class MqttAggregator {
                             case "upload": {
                                 long fileId = aggregator.upload(
                                         req.getJsonNumber("ownerId").longValue(),
-                                        req.getString("localFilePath"),
+                                        req.getString("req_id"),
                                         req.getString("fileName"),
                                         req.getString("logicalPath")
                                 );
@@ -74,8 +74,7 @@ public class MqttAggregator {
                                 break;
                             }
                             case "loadContent": {
-                                String content = aggregator.loadContent(req.getJsonNumber("fileId").longValue()
-                                );
+                                String content = aggregator.loadContent(req.getJsonNumber("fileId").longValue());
                                 result.add("content", content);
                                 break;
                             }
