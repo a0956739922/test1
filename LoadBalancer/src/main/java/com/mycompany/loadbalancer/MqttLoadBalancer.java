@@ -25,13 +25,26 @@ public class MqttLoadBalancer {
 
     private static final LoadBalancer lb = new LoadBalancer();
     private static final Map<String, String> RAW = new ConcurrentHashMap<>();
+
     private static int activeGroups = 0;
     private static String pendingLoadContent = null;
 
     public static void main(String[] args) {
         try {
+            System.out.println("=== FINAL VERSION ===");
+
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             client.connect();
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        lb.tick();
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+            }).start();
             lb.setDispatchHandler(r -> {
                 try {
                     String raw = RAW.remove(r.id);
@@ -46,28 +59,35 @@ public class MqttLoadBalancer {
 
             lb.setScaleUpHandler(groups -> {
                 try {
-                    JsonObject out = Json.createObjectBuilder().add("groups", groups).build();
+                    JsonObject out = Json.createObjectBuilder()
+                            .add("groups", groups)
+                            .build();
                     client.publish(LB_SCALE, new MqttMessage(out.toString().getBytes()));
                     System.out.println("[LB] Published scale up, groups=" + groups);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             });
+
             client.subscribe(UI_REQ);
             client.subscribe(HOST_STATUS);
+
             client.setCallback(new MqttCallback() {
+
                 @Override
                 public void messageArrived(String topic, MqttMessage msg) throws Exception {
                     String payload = new String(msg.getPayload());
+                    System.out.println("[LB][IN] topic=" + topic + " payload=" + payload);
+
                     if (UI_REQ.equals(topic)) {
                         JsonObject in = Json.createReader(new java.io.StringReader(payload)).readObject();
-                        String action = in.getString("action", ""), reqId = in.getString("req_id");
+                        String action = in.getString("action", "");
+                        String reqId = in.getString("req_id", "");
+
                         if ("loadContent".equals(action)) {
                             if (activeGroups == 0) {
+                                lb.ensureAtLeastOneGroup();
                                 pendingLoadContent = payload;
-                                if (lb.getWaitingCount() + lb.getProcessingCount() == 0)
-                                    lb.receiveRequest("__warmup__");
-                                lb.tick();
                                 return;
                             }
                             client.publish(LB_REQ, new MqttMessage(payload.getBytes()));
@@ -75,16 +95,18 @@ public class MqttLoadBalancer {
                         }
                         RAW.put(reqId, payload);
                         lb.receiveRequest(reqId);
-                        lb.tick();
+                        return;
                     }
                     if (HOST_STATUS.equals(topic)) {
                         JsonObject st = Json.createReader(new java.io.StringReader(payload)).readObject();
                         activeGroups = st.getInt("active_groups", activeGroups);
                         if (activeGroups > 0 && pendingLoadContent != null) {
-                            client.publish(LB_REQ, new MqttMessage(pendingLoadContent.getBytes()));
+                            client.publish(
+                                    LB_REQ,
+                                    new MqttMessage(pendingLoadContent.getBytes())
+                            );
                             pendingLoadContent = null;
                         }
-                        lb.tick();
                     }
                 }
 

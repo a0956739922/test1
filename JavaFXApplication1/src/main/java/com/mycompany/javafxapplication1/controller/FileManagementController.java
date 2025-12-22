@@ -126,14 +126,6 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("Update File");
             stage.setScene(new Scene(root));
-            stage.setOnCloseRequest(event -> {
-                if (controller.isDirty()) {
-                    boolean confirm = dialogue("Unsaved Changes","You have unsaved changes. Leave without saving?");
-                    if (!confirm) {
-                        event.consume();
-                    }
-                }
-            });
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {

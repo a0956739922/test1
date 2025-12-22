@@ -34,16 +34,23 @@ public class UpdateFileController {
         this.originalFile = file;
         nameField.setText(file.getName());
         pathField.setText(file.getLogicalPath());
-        setLoading(true);
+        nameField.setDisable(true);
+        pathField.setDisable(true);
+        contentArea.setDisable(true);
         loadContentAsync(file.getId());
     }
     
-    private void setLoading(boolean loading) {
-        nameField.setDisable(loading);
-        pathField.setDisable(loading);
-        contentArea.setDisable(loading);
+    @FXML
+    public void initialize() {
+        javafx.application.Platform.runLater(() -> {
+            Stage stage = (Stage) nameField.getScene().getWindow();
+            stage.setOnCloseRequest(event -> {
+                closeWindow();
+                event.consume();
+            });
+        });
     }
-
+    
     @FXML
     private void updateFile() {
         try {
@@ -88,7 +95,9 @@ public class UpdateFileController {
                         String content = res.getString("content", "");
                         originalContent = content;
                         contentArea.setText(content);
-                        setLoading(false);
+                        nameField.setDisable(false);
+                        pathField.setDisable(false);
+                        contentArea.setDisable(false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

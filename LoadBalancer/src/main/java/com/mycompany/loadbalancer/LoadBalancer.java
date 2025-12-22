@@ -23,6 +23,7 @@ public class LoadBalancer {
     private final Scheduler scheduler = new Scheduler();
 
     private int groups = 0;
+
     private static final int MAX_GROUPS = 3;
     private static final int REQ_PER_GROUP = 5;
 
@@ -49,13 +50,6 @@ public class LoadBalancer {
         long delay = 1000 + random.nextInt(4000);
         Request r = new Request(reqId, delay);
         waitingQueue.offer(r);
-
-        if (groups == 0) {
-            groups = 1;
-            if (scaleUpHandler != null) {
-                scaleUpHandler.onScaleUp(groups);
-            }
-        }
     }
 
     public void tick() {
@@ -63,6 +57,15 @@ public class LoadBalancer {
         moveProcessingToReady();
         dispatchReady();
         checkScaleUp();
+    }
+
+    public void ensureAtLeastOneGroup() {
+        if (groups == 0) {
+            groups = 1;
+            if (scaleUpHandler != null) {
+                scaleUpHandler.onScaleUp(groups);
+            }
+        }
     }
 
     private void moveWaitingToProcessing() {
@@ -94,7 +97,7 @@ public class LoadBalancer {
             if (dispatchHandler != null) {
                 dispatchHandler.dispatch(r);
             }
-        readyQueue.remove(r);
+            readyQueue.remove(r);
         }
     }
 

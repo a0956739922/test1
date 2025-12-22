@@ -30,13 +30,10 @@ public class MqttSubUI {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
-
             System.out.println("[UI] Connected to broker");
             client.subscribe(AGG_RES, 1);
             System.out.println("[UI] Subscribed to " + AGG_RES);
-
             client.setCallback(new MqttCallback() {
-
                 @Override
                 public void connectionLost(Throwable cause) {
                     System.out.println("[UI] Connection lost: " + cause.getMessage());
