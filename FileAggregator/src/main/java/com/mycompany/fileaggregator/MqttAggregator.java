@@ -7,6 +7,7 @@ package com.mycompany.fileaggregator;
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import org.eclipse.paho.client.mqttv3.*;
 /**
  *
@@ -40,19 +41,82 @@ public class MqttAggregator {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage msg) {
-                    System.out.println("[AGG] messageArrived topic=" + topic);
                     try {
-                        System.out.println("[AGG] payload=" + new String(msg.getPayload()));
-                        JsonObject request = Json.createReader(new StringReader(new String(msg.getPayload()))).readObject();
-                        String reqId = request.getString("req_id", "");
-                        JsonObject innerResult = aggregator.acceptRaw(request.toString());
-                        JsonObject result = Json.createObjectBuilder(innerResult).add("req_id", reqId).build();
-                        MqttMessage resMsg = new MqttMessage(result.toString().getBytes());
+                        String payload = new String(msg.getPayload());
+                        JsonObject req = Json.createReader(new StringReader(payload)).readObject();
+                        String reqId = req.getString("req_id");
+                        String action = req.getString("action");
+                        JsonObjectBuilder result = Json.createObjectBuilder();
+                        switch (action) {
+                            case "create": {
+                                long fileId = aggregator.create(
+                                        req.getJsonNumber("ownerId").longValue(),
+                                        req.getString("fileName"),
+                                        req.getString("logicalPath"),
+                                        req.getString("content")
+                                );
+                                result.add("fileId", fileId);
+                                break;
+                            }
+                            case "upload": {
+                                long fileId = aggregator.upload(
+                                        req.getJsonNumber("ownerId").longValue(),
+                                        req.getString("localFilePath"),
+                                        req.getString("fileName"),
+                                        req.getString("logicalPath")
+                                );
+                                result.add("fileId", fileId);
+                                break;
+                            }
+                            case "download": {
+                                String path = aggregator.download(req.getJsonNumber("fileId").longValue());
+                                result.add("remoteFilePath", path);
+                                break;
+                            }
+                            case "loadContent": {
+                                String content = aggregator.loadContent(req.getJsonNumber("fileId").longValue()
+                                );
+                                result.add("content", content);
+                                break;
+                            }
+                            case "update": {
+                                aggregator.update(
+                                        req.getJsonNumber("fileId").longValue(),
+                                        req.containsKey("newName") ? req.getString("newName") : null,
+                                        req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
+                                        req.containsKey("content") ? req.getString("content") : null
+                                );
+                                result.add("ok", true);
+                                break;
+                            }
+                            case "delete": {
+                                aggregator.delete(req.getJsonNumber("fileId").longValue());
+                                result.add("ok", true);
+                                break;
+                            }
+                            case "share": {
+                                aggregator.share(
+                                        req.getJsonNumber("fileId").longValue(),
+                                        req.getJsonNumber("ownerId").longValue(),
+                                        req.getJsonNumber("targetId").longValue(),
+                                        req.getString("permission")
+                                );
+                                result.add("ok", true);
+                                break;
+                            }
+                            default:
+                                throw new IllegalArgumentException("Unknown action: " + action);
+                        }
+                        JsonObject response = Json.createObjectBuilder()
+                                .add("req_id", reqId)
+                                .add("status", "ok")
+                                .addAll(result)
+                                .build();
+                        MqttMessage resMsg = new MqttMessage(response.toString().getBytes());
                         resMsg.setQos(1);
                         client.publish(AGG_RES, resMsg);
-                        System.out.println("[AGG] published response");
+                        System.out.println("[AGG] published response for req_id=" + reqId);
                     } catch (Exception e) {
-                        System.out.println("[AGG] EXCEPTION inside messageArrived");
                         e.printStackTrace();
                     }
                 }

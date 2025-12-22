@@ -37,12 +37,13 @@ public class FileService {
         new MqttPubUI().send(json);
     }
 
-    public void upload(long ownerId, String localPath, String logicalPath) throws Exception {
+    public void upload(long ownerId, String fileName, String localPath, String logicalPath) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "upload")
                 .add("ownerId", ownerId)
+                .add("fileName", fileName)
                 .add("localFilePath", localPath)
                 .add("logicalPath", logicalPath)
                 .build();
@@ -97,10 +98,9 @@ public class FileService {
 
     public void downloadSftp(String resultJson,String filename,String downloadPath) throws Exception {
         JsonObject json = Json.createReader(new StringReader(resultJson)).readObject();
-        String action = json.getString("action", "");
-        boolean ready = json.getBoolean("ready", false);
-        if (!"download".equals(action) || !ready) {
-            return;
+        String status = json.getString("status", "error");
+        if (!"ok".equals(status)) {
+            throw new Exception("Download failed: " + json);
         }
         String remotePath = json.getString("remoteFilePath");
         JSch jsch = new JSch();
