@@ -37,31 +37,26 @@ public class FileAggregator {
     }
     
     public long create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
-        Path dir = Path.of("/home/ntu-user/tmp/upload");
-        Files.createDirectories(dir);
-        Path filePath = Files.createTempFile(dir, "create-", ".tmp");
-        Files.writeString(filePath, content);
-        return upload(ownerId, filePath, fileName, logicalPath);
-    }
-
-    private long upload(long ownerId, Path localFile, String fileName, String logicalPath) throws Exception {
-        File original = localFile.toFile();
-        long sizeBytes = original.length();
+        Path tmpDir = Path.of("/home/ntu-user/tmp/upload");
+        Files.createDirectories(tmpDir);
+        Path localFile = Files.createTempFile(tmpDir, "create-", ".tmp");
+        Files.writeString(localFile, content);
+        long sizeBytes = Files.size(localFile);
         String key = crypto.generateFileKey();
-        String zipPath = original.getAbsolutePath() + ".zip";
-        crypto.encryptZip(original.getAbsolutePath(), zipPath, key);
-        JsonObject initMeta = Json.createObjectBuilder()
-                .add("file_id", -1)
-                .add("file_name", fileName)
-                .add("logical_path", logicalPath)
-                .add("size_bytes", sizeBytes)
-                .add("encryption_key", key)
-                .add("total_chunks", 0)
-                .add("chunks", Json.createArrayBuilder().build())
-                .build();
-        long fileId = db.insertFile(ownerId, initMeta);
-        List<File> chunks = crypto.splitChunks(zipPath);
+        Path zipFile = Path.of(localFile.toString() + ".zip");
+        crypto.encryptZip(localFile.toString(), zipFile.toString(), key);
+        List<File> chunks = crypto.splitChunks(zipFile.toString());
         JsonArrayBuilder chunkArr = Json.createArrayBuilder();
+        long fileId = db.insertFile(ownerId,
+                Json.createObjectBuilder()
+                        .add("file_name", fileName)
+                        .add("logical_path", logicalPath)
+                        .add("size_bytes", sizeBytes)
+                        .add("encryption_key", key)
+                        .add("total_chunks", chunks.size())
+                        .add("chunks", Json.createArrayBuilder().build())
+                        .build()
+        );
         for (int i = 0; i < chunks.size(); i++) {
             File chunk = chunks.get(i);
             String volume = VOLUMES[i];
@@ -69,27 +64,27 @@ public class FileAggregator {
             String remoteDir = "/home/ntu-user/data/" + fileId;
             String remotePath = remoteDir + "/" + i + ".part";
             sftp.mkdirIfNotExists(remoteDir, container);
-            String crc32 = crypto.calcFileCRC32(chunk.getAbsolutePath());
             sftp.upload(chunk.getAbsolutePath(), remotePath, container);
             chunkArr.add(Json.createObjectBuilder()
                     .add("index", i)
                     .add("volume", volume)
                     .add("remote_path", remotePath)
-                    .add("crc32", crc32)
+                    .add("crc32", crypto.calcFileCRC32(chunk.getAbsolutePath()))
                     .add("size_bytes", chunk.length()));
         }
-        JsonObject finalMeta = Json.createObjectBuilder()
-                .add("file_id", fileId)
-                .add("file_name", fileName)
-                .add("logical_path", logicalPath)
-                .add("size_bytes", sizeBytes)
-                .add("encryption_key", key)
-                .add("total_chunks", chunks.size())
-                .add("chunks", chunkArr.build())
-                .build();
-        db.updateMetadata(fileId, finalMeta);
+        db.updateMetadata(fileId,
+                Json.createObjectBuilder()
+                        .add("file_id", fileId)
+                        .add("file_name", fileName)
+                        .add("logical_path", logicalPath)
+                        .add("size_bytes", sizeBytes)
+                        .add("encryption_key", key)
+                        .add("total_chunks", chunks.size())
+                        .add("chunks", chunkArr.build())
+                        .build()
+        );
         for (File f : chunks) f.delete();
-        Files.deleteIfExists(Path.of(zipPath));
+        Files.deleteIfExists(zipFile);
         Files.deleteIfExists(localFile);
         return fileId;
     }

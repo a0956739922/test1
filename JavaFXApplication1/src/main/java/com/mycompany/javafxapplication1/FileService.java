@@ -7,7 +7,6 @@ package com.mycompany.javafxapplication1;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import java.io.File;
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -22,13 +21,15 @@ public class FileService {
     private final String USERNAME = "ntu-user";
     private final String PASSWORD = "ntu-user";
     private final int REMOTE_PORT = 22;
+    private MySQLDB remote = new MySQLDB();
     
-    public String create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
+    public String create(Integer userId, String username, String fileName, String logicalPath, String content) throws Exception {
+        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName + ", logicalPath=" + logicalPath);
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "create")
-                .add("ownerId", ownerId)
+                .add("ownerId", userId)
                 .add("fileName", fileName)
                 .add("logicalPath", logicalPath)
                 .add("content", content)

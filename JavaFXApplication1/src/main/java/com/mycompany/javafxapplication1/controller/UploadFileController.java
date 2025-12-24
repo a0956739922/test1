@@ -65,7 +65,7 @@ public class UploadFileController {
                 return;
             }
             String content = Files.readString(selectedFile.toPath());
-            fileService.create(sessionUser.getUserId(), fileName, logicalPath, content);
+            fileService.create(sessionUser.getUserId(), sessionUser.getUsername(), fileName, logicalPath, content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

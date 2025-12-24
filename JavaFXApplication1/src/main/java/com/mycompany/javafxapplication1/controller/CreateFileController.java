@@ -37,14 +37,14 @@ public class CreateFileController {
     @FXML
     private void createFile() {
         try {
-            String name = nameField.getText();
-            String path = pathField.getText();
+            String fileName = nameField.getText();
+            String logicalPath = pathField.getText();
             String content = contentArea.getText();
-            if (name.isEmpty() || path.isEmpty()) {
+            if (fileName.isEmpty() || logicalPath.isEmpty()) {
                 dialogue("Missing Fields", "Name and Path cannot be empty.");
                 return;
             }
-            fileService.create(sessionUser.getUserId(), name, path, content);
+            fileService.create(sessionUser.getUserId(), sessionUser.getUsername(), fileName, logicalPath, content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

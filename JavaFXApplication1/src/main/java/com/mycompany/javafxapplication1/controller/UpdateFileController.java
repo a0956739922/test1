@@ -69,6 +69,8 @@ public class UpdateFileController {
             }
             if (!dialogue("Save Changes", "Do you want to save the changes?")) return;
             fileService.update(originalFile.getId(), newName, newPath, contentChanged ? content : null);
+            originalContent = content;
+            originalFile.setLogicalPath(newPath);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

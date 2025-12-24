@@ -27,8 +27,10 @@ public class MqttAggregator {
         client.connect();
         client.subscribe(LB_REQ, 1);
         client.setCallback(new MqttCallback() {
-            public void connectionLost(Throwable cause) {}
-            public void deliveryComplete(IMqttDeliveryToken token) {}
+            public void connectionLost(Throwable cause) {
+            }
+            public void deliveryComplete(IMqttDeliveryToken token) {
+            }
 
             public void messageArrived(String topic, MqttMessage msg) {
                 try {

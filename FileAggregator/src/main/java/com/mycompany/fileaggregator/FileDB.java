@@ -12,11 +12,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
-
 /**
  *
  * @author ntu-user
@@ -174,10 +174,23 @@ public class FileDB {
         String sql = "SELECT 1 FROM file_shares WHERE file_id = ? AND target_user_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, fileId);
             stmt.setLong(2, targetId);
             return stmt.executeQuery().next();
         }
     }
+    
+    public void log(Integer userId, String username, String action, String detail) throws Exception {
+        try (Connection conn = getConnection()) {
+            String sql = "INSERT INTO logs (user_id, username, action, detail) VALUES (?, ?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            if (userId == null) stmt.setNull(1, Types.INTEGER);
+            else stmt.setInt(1, userId);
+            stmt.setString(2, username);  
+            stmt.setString(3, action);
+            stmt.setString(4, detail);
+            stmt.executeUpdate();
+        }
+    }
+    
 }
