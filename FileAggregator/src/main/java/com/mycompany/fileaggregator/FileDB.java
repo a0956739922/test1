@@ -169,4 +169,15 @@ public class FileDB {
             stmt.executeUpdate();
         }
     }
+    
+    public boolean shareExists(long fileId, long targetId) throws Exception {
+        String sql = "SELECT 1 FROM file_shares WHERE file_id = ? AND target_user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, fileId);
+            stmt.setLong(2, targetId);
+            return stmt.executeQuery().next();
+        }
+    }
 }

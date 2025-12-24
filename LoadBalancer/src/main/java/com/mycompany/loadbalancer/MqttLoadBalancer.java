@@ -78,12 +78,10 @@ public class MqttLoadBalancer {
                 public void messageArrived(String topic, MqttMessage msg) throws Exception {
                     String payload = new String(msg.getPayload());
                     System.out.println("[LB][IN] topic=" + topic + " payload=" + payload);
-
                     if (UI_REQ.equals(topic)) {
                         JsonObject in = Json.createReader(new java.io.StringReader(payload)).readObject();
                         String action = in.getString("action", "");
                         String reqId = in.getString("req_id", "");
-
                         if ("loadContent".equals(action)) {
                             if (activeGroups == 0) {
                                 lb.ensureAtLeastOneGroup();

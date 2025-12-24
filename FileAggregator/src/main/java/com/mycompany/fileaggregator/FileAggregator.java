@@ -37,22 +37,19 @@ public class FileAggregator {
     }
     
     public long create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
-        Path tmp = Files.createTempFile("create-", ".tmp");
-        try {
-            Files.writeString(tmp, content);
-            return upload(ownerId, tmp.toString(), fileName, logicalPath);
-        } finally {
-            Files.deleteIfExists(tmp);
-        }
+        Path dir = Path.of("/home/ntu-user/tmp/upload");
+        Files.createDirectories(dir);
+        Path filePath = Files.createTempFile(dir, "create-", ".tmp");
+        Files.writeString(filePath, content);
+        return upload(ownerId, filePath, fileName, logicalPath);
     }
 
-    public long upload(long ownerId, String reqId, String fileName, String logicalPath) throws Exception {
-        String localFilePath = "/home/ntu-user/tmp/upload/" + reqId;
-        File original = new File(localFilePath);
+    private long upload(long ownerId, Path localFile, String fileName, String logicalPath) throws Exception {
+        File original = localFile.toFile();
         long sizeBytes = original.length();
         String key = crypto.generateFileKey();
-        String zipPath = localFilePath + ".zip";
-        crypto.encryptZip(localFilePath, zipPath, key);
+        String zipPath = original.getAbsolutePath() + ".zip";
+        crypto.encryptZip(original.getAbsolutePath(), zipPath, key);
         JsonObject initMeta = Json.createObjectBuilder()
                 .add("file_id", -1)
                 .add("file_name", fileName)
@@ -91,8 +88,9 @@ public class FileAggregator {
                 .add("chunks", chunkArr.build())
                 .build();
         db.updateMetadata(fileId, finalMeta);
-        for (File chunk : chunks) chunk.delete();
-        new File(zipPath).delete();
+        for (File f : chunks) f.delete();
+        Files.deleteIfExists(Path.of(zipPath));
+        Files.deleteIfExists(localFile);
         return fileId;
     }
 
@@ -223,6 +221,7 @@ public class FileAggregator {
 
 
     public void delete(long fileId) throws Exception {
+        db.deleteShares(fileId);
         JsonObject meta = db.getMetadata(fileId);
         if (meta != null) {
             JsonArray chunks = meta.getJsonArray("chunks");
@@ -237,6 +236,11 @@ public class FileAggregator {
     }
 
     public void share(long fileId, long ownerId, long targetId, String permission) throws Exception {
-        db.insertShare(fileId, ownerId, targetId, permission);
+        if (db.shareExists(fileId, targetId)) {
+            db.updateShare(fileId, targetId, permission);
+        } else {
+            db.insertShare(fileId, ownerId, targetId, permission);
+        }
     }
+
 }

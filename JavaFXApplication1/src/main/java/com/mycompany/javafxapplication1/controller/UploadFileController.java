@@ -5,8 +5,10 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Optional;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -29,6 +31,7 @@ public class UploadFileController {
 
     private User sessionUser;
     private FileService fileService;
+    private File selectedFile;
 
     public void initialise(User user, FileService service) {
         this.sessionUser = user;
@@ -40,32 +43,29 @@ public class UploadFileController {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select File to Upload");
         Stage stage = (Stage) nameField.getScene().getWindow();
-        File file = chooser.showOpenDialog(stage);
-        if (file == null) return;
-        localPathField.setText(file.getAbsolutePath());
+        selectedFile = chooser.showOpenDialog(stage);
+        if (selectedFile == null) return;
+        localPathField.setText(selectedFile.getAbsolutePath());
         if (nameField.getText().isEmpty()) {
-            nameField.setText(file.getName());
+            nameField.setText(selectedFile.getName());
         }
     }
 
     @FXML
     private void uploadFile() {
         try {
+            if (selectedFile == null) {
+                dialogue("Missing File", "Please select a file.");
+                return;
+            }
             String fileName = nameField.getText();
-            String localPath = localPathField.getText();
             String logicalPath = logicalPathField.getText();
-            if (fileName.isEmpty() || localPath.isEmpty() || logicalPath.isEmpty()) {
+            if (fileName.isEmpty() || logicalPath.isEmpty()) {
                 dialogue("Missing Fields", "All fields are required.");
                 return;
             }
-            String reqId = java.util.UUID.randomUUID().toString();
-            fileService.uploadSftp(localPath, reqId);
-            fileService.upload(
-                    sessionUser.getUserId(),
-                    reqId,
-                    fileName,
-                    logicalPath
-            );
+            String content = Files.readString(selectedFile.toPath());
+            fileService.create(sessionUser.getUserId(), fileName, logicalPath, content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -24,6 +23,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
@@ -80,6 +80,18 @@ public class FileManagementController {
         this.sessionUser = user;
         this.fileService = new FileService();
         loadFiles();
+        fileTable.getSelectionModel()
+             .selectedItemProperty()
+             .addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
+        fileTable.setRowFactory(tv -> {
+            TableRow<FileModel> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && !row.isEmpty()) {
+                    openViewer(row.getItem());
+                }
+            });
+            return row;
+        });
     }
     
     private void loadFiles() {
@@ -242,6 +254,56 @@ public class FileManagementController {
             stage.showAndWait();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    private void updateButtonState(FileModel selected) {
+        if (selected == null) {
+            updateBtn.setDisable(true);
+            deleteBtn.setDisable(true);
+            shareBtn.setDisable(true);
+            downloadBtn.setDisable(true);
+            return;
+        }
+        String permission = selected.getPermission();
+        downloadBtn.setDisable(false);
+        switch (permission) {
+            case "owner" -> {
+                updateBtn.setDisable(false);
+                deleteBtn.setDisable(false);
+                shareBtn.setDisable(false);
+            }
+            case "write" -> {
+                updateBtn.setDisable(false);
+                deleteBtn.setDisable(true);
+                shareBtn.setDisable(true);
+            }
+            case "read" -> {
+                updateBtn.setDisable(true);
+                deleteBtn.setDisable(true);
+                shareBtn.setDisable(true);
+            }
+            default -> {
+                updateBtn.setDisable(true);
+                deleteBtn.setDisable(true);
+                shareBtn.setDisable(true);
+            }
+        }
+    }
+    
+    private void openViewer(FileModel selected) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/viewFile.fxml"));
+            Parent root = loader.load();
+            ViewFileController controller = loader.getController();
+            controller.initialise(fileService, selected.getId());
+            Stage stage = new Stage();
+            stage.setTitle("View File: " + selected.getName());
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            dialogue("Error", "Failed to load file content.");
         }
     }
 

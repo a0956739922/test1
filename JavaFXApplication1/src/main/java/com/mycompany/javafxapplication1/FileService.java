@@ -23,7 +23,7 @@ public class FileService {
     private final String PASSWORD = "ntu-user";
     private final int REMOTE_PORT = 22;
     
-    public void create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
+    public String create(long ownerId, String fileName, String logicalPath, String content) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -32,43 +32,6 @@ public class FileService {
                 .add("fileName", fileName)
                 .add("logicalPath", logicalPath)
                 .add("content", content)
-                .build();
-        new MqttPubUI().send(json);
-    }
-
-    public void uploadSftp(String localFilePath, String reqId) throws Exception {
-        String tmpDir = "/home/ntu-user/tmp";
-        String uploadDir = "/home/ntu-user/tmp/upload";
-        String serverPath = uploadDir + "/" + reqId;
-        JSch jsch = new JSch();
-        jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
-        Session session = jsch.getSession(USERNAME, "file-aggregator", REMOTE_PORT);
-        java.util.Properties config = new java.util.Properties();
-        config.put("StrictHostKeyChecking", "no");
-        session.setConfig(config);
-        session.setPassword(PASSWORD);
-        session.connect(10000);
-        ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
-        sftp.connect(5000);
-        try {
-            sftp.mkdir(tmpDir);
-        } catch (Exception ignored) {}
-        try {
-            sftp.mkdir(uploadDir);
-        } catch (Exception ignored) {}
-        System.out.println("[SFTP] put " + localFilePath + " -> " + serverPath);
-        sftp.put(localFilePath, serverPath);
-        sftp.disconnect();
-        session.disconnect();
-    }
-    
-    public String upload(long ownerId, String reqId, String fileName, String logicalPath) throws Exception {
-        JsonObject json = Json.createObjectBuilder()
-                .add("req_id", reqId)
-                .add("action", "upload")
-                .add("ownerId", ownerId)
-                .add("fileName", fileName)
-                .add("logicalPath", logicalPath)
                 .build();
         new MqttPubUI().send(json);
         return reqId;
@@ -85,7 +48,7 @@ public class FileService {
         return reqId;
     }
 
-    public void update(long fileId, String newName, String newLogical, String content) throws Exception {
+    public String update(long fileId, String newName, String newLogical, String content) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObjectBuilder json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -97,9 +60,10 @@ public class FileService {
             json.add("content", content);
         }
         new MqttPubUI().send(json.build());
+        return reqId;
     }
 
-    public void delete(long fileId) throws Exception {
+    public String delete(long fileId) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -107,6 +71,7 @@ public class FileService {
                 .add("fileId", fileId)
                 .build();
         new MqttPubUI().send(json);
+        return reqId;
     }
 
     public String download(long fileId) throws Exception {

@@ -34,12 +34,12 @@ public class ShareFileController {
 
     @FXML
     private void shareRead() {
-        share("READ");
+        share("read");
     }
 
     @FXML
     private void shareWrite() {
-        share("WRITE");
+        share("write");
     }
 
     private void share(String permission) {

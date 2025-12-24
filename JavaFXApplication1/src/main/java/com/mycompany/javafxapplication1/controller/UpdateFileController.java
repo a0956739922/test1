@@ -7,7 +7,10 @@ import com.mycompany.javafxapplication1.User;
 import java.io.StringReader;
 import java.util.Optional;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -61,18 +64,12 @@ public class UpdateFileController {
             boolean pathChanged = !newPath.equals(originalFile.getLogicalPath());
             boolean contentChanged = !content.equals(originalContent);
             if (!nameChanged && !pathChanged && !contentChanged) {
-                Stage stage = (Stage) nameField.getScene().getWindow();
-                stage.close();
+                closeWindow();
                 return;
             }
-            boolean confirm = dialogue("Save Changes", "Do you want to save the changes?");
-            if (!confirm) return;
+            if (!dialogue("Save Changes", "Do you want to save the changes?")) return;
             fileService.update(originalFile.getId(), newName, newPath, contentChanged ? content : null);
-            originalFile.setName(newName);
-            originalFile.setLogicalPath(newPath);
-            originalContent = content;
-            Stage stage = (Stage) nameField.getScene().getWindow();
-            stage.close();
+            closeWindow();
         } catch (Exception e) {
             e.printStackTrace();
             dialogue("Error", "Failed to update file.");

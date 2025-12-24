@@ -15,8 +15,8 @@
     <TextField fx:id="usernameField"/>
 
     <HBox spacing="10">
-        <Button text="Read" onAction="#shareRead"/>
-        <Button text="Write" onAction="#shareWrite"/>
+        <Button text="read" onAction="#shareRead"/>
+        <Button text="write" onAction="#shareWrite"/>
         <Button text="Cancel" onAction="#closeWindow"/>
     </HBox>
 
