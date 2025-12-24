@@ -145,16 +145,18 @@ public class FileService {
         System.out.println("[SFTP] Download completed");
     }
 
-    public void share(long fileId, long targetId, String permission) throws Exception {
+    public String share(long ownerId, long fileId, long targetId, String permission) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "share")
+                .add("ownerId", ownerId)
                 .add("fileId", fileId)
                 .add("targetId", targetId)
                 .add("permission", permission)
                 .build();
         new MqttPubUI().send(json);
+        return reqId;
     }
 
 }
