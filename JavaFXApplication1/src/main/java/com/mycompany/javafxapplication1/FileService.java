@@ -145,12 +145,13 @@ public class FileService {
         System.out.println("[SFTP] Download completed");
     }
 
-    public void share(long fileId, long targetId, String permission) throws Exception {
+    public void share(long fileId, long ownerId, long targetId, String permission) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "share")
                 .add("fileId", fileId)
+                .add("ownerId", ownerId)
                 .add("targetId", targetId)
                 .add("permission", permission)
                 .build();
