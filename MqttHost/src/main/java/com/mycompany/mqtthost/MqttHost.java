@@ -28,8 +28,7 @@ public class MqttHost {
     private static final int GROUP_SIZE = 4;
     private static final int MAX_CONTAINERS = 12;
 
-    private static final List<String> VOLUMES =
-            List.of("fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4");
+    private static final List<String> VOLUMES = List.of("fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4");
 
     private static final Map<String, String> volumeOwner = new ConcurrentHashMap<>();
 
@@ -70,7 +69,6 @@ public class MqttHost {
                         }
                         activeGroups++;
                     }
-
                     waitUntilRunning(started);
                     JsonObject status = Json.createObjectBuilder()
                             .add("status", "scale_up_done")
@@ -78,42 +76,51 @@ public class MqttHost {
                             .build();
                     client.publish(HOST_STATUS,new MqttMessage(status.toString().getBytes()));
                 }
+                
+                @Override
+                public void connectionLost(Throwable cause) {
+                }
 
                 @Override
-                public void connectionLost(Throwable cause) {}
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {}
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                }
             });
-
             while (true) Thread.sleep(1000);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private static void dockerRun(String name, String volume) {
-        List<String> cmd = new ArrayList<>(List.of(
-                "docker", "run", "-d", "--rm",
-                "--name", name,
-                "--network", "soft40051_network"
-        ));
-
-        if (volume != null) {
-            cmd.add("-v");
-            cmd.add(volume + ":/home/ntu-user/data");
+        try {
+            ProcessBuilder pb;
+            if (volume == null) {
+                pb = new ProcessBuilder(
+                        "docker", "run", "-d", "--rm",
+                        "--name", name,
+                        "--network", "soft40051_network",
+                        "pedrombmachado/simple-ssh-container:base"
+                );
+            } else {
+                pb = new ProcessBuilder(
+                        "docker", "run", "-d", "--rm",
+                        "--name", name,
+                        "--network", "soft40051_network",
+                        "-v", volume + ":/home/ntu-user/data",
+                        "pedrombmachado/simple-ssh-container:base"
+                );
+            }
+            exec(pb);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        cmd.add("pedrombmachado/simple-ssh-container:base");
-        exec(cmd);
     }
 
     private static void waitUntilRunning(List<String> containers) throws InterruptedException {
         while (true) {
             boolean ready = true;
             for (String c : containers) {
-                if (!dockerPsContains(c)) {
+                if (!dockerPs(c)) {
                     ready = false;
                     break;
                 }
@@ -123,22 +130,25 @@ public class MqttHost {
         }
     }
 
-    private static boolean dockerPsContains(String name) {
-        String out = exec(List.of(
+    private static boolean dockerPs(String name) {
+        ProcessBuilder pb = new ProcessBuilder(
                 "docker", "ps",
                 "--filter", "name=" + name,
                 "--format", "{{.Names}}"
-        ));
+        );
+        String out = exec(pb);
         return out.contains(name);
     }
 
-    private static String exec(List<String> command) {
+    private static String exec(ProcessBuilder pb) {
         StringBuilder sb = new StringBuilder();
         try {
-            Process p = new ProcessBuilder(command).start();
+            Process p = pb.start();
             BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-            while ((line = r.readLine()) != null) sb.append(line);
+            while ((line = r.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
             p.waitFor();
         } catch (Exception e) {
             sb.append(e.getMessage());

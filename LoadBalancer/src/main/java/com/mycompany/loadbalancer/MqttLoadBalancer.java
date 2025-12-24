@@ -31,8 +31,6 @@ public class MqttLoadBalancer {
 
     public static void main(String[] args) {
         try {
-            System.out.println("=== FINAL VERSION ===");
-
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             client.connect();
             new Thread(() -> {
@@ -56,7 +54,6 @@ public class MqttLoadBalancer {
                     e.printStackTrace();
                 }
             });
-
             lb.setScaleUpHandler(groups -> {
                 try {
                     JsonObject out = Json.createObjectBuilder()
@@ -68,16 +65,15 @@ public class MqttLoadBalancer {
                     e.printStackTrace();
                 }
             });
-
             client.subscribe(UI_REQ);
+            System.out.println("[LB] Subscribe to topic:" + UI_REQ);
             client.subscribe(HOST_STATUS);
-
+            System.out.println("[LB] Subscribe to topic:" + HOST_STATUS);
             client.setCallback(new MqttCallback() {
-
                 @Override
                 public void messageArrived(String topic, MqttMessage msg) throws Exception {
                     String payload = new String(msg.getPayload());
-                    System.out.println("[LB][IN] topic=" + topic + " payload=" + payload);
+                    System.out.println("[LB] payload=" + payload);
                     if (UI_REQ.equals(topic)) {
                         JsonObject in = Json.createReader(new java.io.StringReader(payload)).readObject();
                         String action = in.getString("action", "");
@@ -108,10 +104,12 @@ public class MqttLoadBalancer {
                     }
                 }
 
-                @Override public void connectionLost(Throwable cause) {}
-                @Override public void deliveryComplete(IMqttDeliveryToken token) {}
+                @Override public void connectionLost(Throwable cause) {
+                }
+                
+                @Override public void deliveryComplete(IMqttDeliveryToken token) {
+                }
             });
-
         } catch (Exception e) {
             e.printStackTrace();
         }
