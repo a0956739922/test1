@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.mycompany.javafxapplication1.controller.ShareFileController"
+      style="-fx-padding: 20;"
+      spacing="12">
+
+    <Label text="Share File"
+           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+    <Label text="Share with (username):"/>
+    <TextField fx:id="usernameField"/>
+
+    <HBox spacing="10">
+        <Button text="Read" onAction="#shareRead"/>
+        <Button text="Write" onAction="#shareWrite"/>
+        <Button text="Cancel" onAction="#closeWindow"/>
+    </HBox>
+
+</VBox>

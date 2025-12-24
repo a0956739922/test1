@@ -208,20 +208,6 @@ public class MySQLDB {
         return list;
     }
     
-//    public JsonObject getFileMetadataByFileId(long fileId) throws Exception {
-//        String sql = "SELECT metadata FROM files WHERE id = ? AND is_deleted = 0";
-//        try (Connection conn = getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(sql)) {
-//            stmt.setLong(1, fileId);
-//            ResultSet rs = stmt.executeQuery();
-//            if (!rs.next()) {
-//                throw new RuntimeException("File not found: " + fileId);
-//            }
-//            String metadataStr = rs.getString("metadata");
-//            return Json.createReader(new StringReader(metadataStr)).readObject();
-//        }
-//    }
-    
     public List<FileModel> getAllFilesByUser(long userId) throws Exception {
         String sql = "SELECT id, owner_user_id, name, logical_path, size_bytes FROM files WHERE owner_user_id = ? AND is_deleted = 0";
         List<FileModel> files = new ArrayList<>();
@@ -237,6 +223,37 @@ public class MySQLDB {
                     rs.getString("logical_path"),
                     rs.getLong("size_bytes")
                 ));
+            }
+        }
+        return files;
+    }
+    
+    public List<FileModel> getSharedFilesByUser(long userId) throws Exception {
+        String sql = """
+            SELECT f.id, f.owner_user_id, f.name, f.logical_path, f.size_bytes,
+                   fs.permission, u.username AS owner_name
+            FROM file_shares fs
+            JOIN files f ON fs.file_id = f.id
+            JOIN users u ON f.owner_user_id = u.user_id
+            WHERE fs.target_user_id = ?
+              AND f.is_deleted = 0
+        """;
+        List<FileModel> files = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                FileModel fm = new FileModel(
+                        rs.getLong("id"),
+                        rs.getLong("owner_user_id"),
+                        rs.getString("name"),
+                        rs.getString("logical_path"),
+                        rs.getLong("size_bytes")
+                );
+                fm.setOwnerName(rs.getString("owner_name"));
+                fm.setPermission(rs.getString("permission"));
+                files.add(fm);
             }
         }
         return files;

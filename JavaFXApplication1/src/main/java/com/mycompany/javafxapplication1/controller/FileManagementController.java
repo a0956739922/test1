@@ -12,6 +12,7 @@ import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javafx.beans.property.SimpleStringProperty;
@@ -62,6 +63,9 @@ public class FileManagementController {
 
     @FXML
     private Button downloadBtn;
+    
+    @FXML
+    private Button shareBtn;
 
     @FXML
     private Button backBtn;
@@ -81,12 +85,20 @@ public class FileManagementController {
     private void loadFiles() {
         try {
             MySQLDB mysql = new MySQLDB();
-            List<FileModel> files = mysql.getAllFilesByUser(sessionUser.getUserId());
+            List<FileModel> allFiles = new ArrayList<>();
+            List<FileModel> owned = mysql.getAllFilesByUser(sessionUser.getUserId());
+            for (FileModel f : owned) {
+                f.setOwnerName(sessionUser.getUsername());
+                f.setPermission("owner");
+            }
+            List<FileModel> shared = mysql.getSharedFilesByUser(sessionUser.getUserId());
+            allFiles.addAll(owned);
+            allFiles.addAll(shared);
             colFilename.setCellValueFactory(new PropertyValueFactory<>("name"));
             colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
-            colOwner.setCellValueFactory(cellData -> new SimpleStringProperty(sessionUser.getUsername()));
-            colPermission.setCellValueFactory(cellData -> new SimpleStringProperty("owner"));
-            fileTable.getItems().setAll(files);
+            colOwner.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
+            colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
+            fileTable.getItems().setAll(allFiles);
             fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             colPath.setMaxWidth(Integer.MAX_VALUE);
         } catch (Exception e) {
@@ -210,6 +222,24 @@ public class FileManagementController {
                     e.printStackTrace();
                 }
             }).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @FXML
+    private void shareFile() {
+        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {dialogue("No File Selected", "Please select a file to share.");return;}
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
+            Parent root = loader.load();
+            ShareFileController controller = loader.getController();
+            controller.initialise(sessionUser, fileService, selected.getId());
+            Stage stage = new Stage();
+            stage.setTitle("Share File");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
         } catch (Exception e) {
             e.printStackTrace();
         }

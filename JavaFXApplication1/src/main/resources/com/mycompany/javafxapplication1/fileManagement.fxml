@@ -43,6 +43,12 @@
                     prefWidth="160"
                     onAction="#downloadFile"
                     style="-fx-background-color: white;" />
+            
+            <Button fx:id="shareBtn"
+                    text="Share"
+                    prefWidth="160"
+                    onAction="#shareFile"
+                    style="-fx-background-color: white;" />
 
             <Pane VBox.vgrow="ALWAYS" />
 
