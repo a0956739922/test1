@@ -213,7 +213,7 @@ public class MySQLDB {
         List<FileModel> files = new ArrayList<>();
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, userId);
+            stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 files.add(new FileModel(
@@ -241,7 +241,7 @@ public class MySQLDB {
         List<FileModel> files = new ArrayList<>();
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, userId);
+            stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 FileModel fm = new FileModel(
