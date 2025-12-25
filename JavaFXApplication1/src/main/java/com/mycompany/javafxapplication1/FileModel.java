@@ -9,15 +9,15 @@ package com.mycompany.javafxapplication1;
  * @author ntu-user
  */
 public class FileModel {
-    private long id;
-    private long ownerUserId;
+    private int id;
+    private int ownerUserId;
     private String name;
     private String logicalPath;
-    private long sizeBytes;
+    private int sizeBytes;
     private String ownerName;
     private String permission;
 
-    public FileModel(long id, long ownerUserId, String name, String logicalPath, long sizeBytes) {
+    public FileModel(int id, int ownerUserId, String name, String logicalPath, int sizeBytes) {
         this.id = id;
         this.ownerUserId = ownerUserId;
         this.name = name;
@@ -25,11 +25,11 @@ public class FileModel {
         this.sizeBytes = sizeBytes;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
     
-    public long getOwnerUserId() {
+    public int getOwnerUserId() {
         return ownerUserId;
     }
     
@@ -41,7 +41,7 @@ public class FileModel {
         return logicalPath; 
     }
     
-    public long getSizeBytes() {
+    public int getSizeBytes() {
         return sizeBytes; 
     }
     
@@ -53,11 +53,11 @@ public class FileModel {
         return permission;
     }
     
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public void setOwnerUserId(long ownerUserId) {
+    public void setOwnerUserId(int ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 
@@ -69,7 +69,7 @@ public class FileModel {
         this.logicalPath = logicalPath;
     }
 
-    public void setSizeBytes(long sizeBytes) {
+    public void setSizeBytes(int sizeBytes) {
         this.sizeBytes = sizeBytes;
     }
     

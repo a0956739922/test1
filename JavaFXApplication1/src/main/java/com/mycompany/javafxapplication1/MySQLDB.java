@@ -208,7 +208,7 @@ public class MySQLDB {
         return list;
     }
     
-    public List<FileModel> getAllFilesByUser(long userId) throws Exception {
+    public List<FileModel> getAllFilesByUser(int userId) throws Exception {
         String sql = "SELECT id, owner_user_id, name, logical_path, size_bytes FROM files WHERE owner_user_id = ? AND is_deleted = 0";
         List<FileModel> files = new ArrayList<>();
         try (Connection conn = getConnection();
@@ -217,18 +217,18 @@ public class MySQLDB {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 files.add(new FileModel(
-                    rs.getLong("id"),
-                    rs.getLong("owner_user_id"),
+                    rs.getInt("id"),
+                    rs.getInt("owner_user_id"),
                     rs.getString("name"),
                     rs.getString("logical_path"),
-                    rs.getLong("size_bytes")
+                    rs.getInt("size_bytes")
                 ));
             }
         }
         return files;
     }
     
-    public List<FileModel> getSharedFilesByUser(long userId) throws Exception {
+    public List<FileModel> getSharedFilesByUser(int userId) throws Exception {
         String sql = """
             SELECT f.id, f.owner_user_id, f.name, f.logical_path, f.size_bytes,
                    fs.permission, u.username AS owner_name
@@ -245,11 +245,11 @@ public class MySQLDB {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 FileModel fm = new FileModel(
-                        rs.getLong("id"),
-                        rs.getLong("owner_user_id"),
+                        rs.getInt("id"),
+                        rs.getInt("owner_user_id"),
                         rs.getString("name"),
                         rs.getString("logical_path"),
-                        rs.getLong("size_bytes")
+                        rs.getInt("size_bytes")
                 );
                 fm.setOwnerName(rs.getString("owner_name"));
                 fm.setPermission(rs.getString("permission"));

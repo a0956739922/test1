@@ -78,7 +78,7 @@ public class UpdateFileController {
         }
     }
     
-    private void loadContentAsync(long fileId) {
+    private void loadContentAsync(int fileId) {
         new Thread(() -> {
             try {
                 String reqId = fileService.loadContent(fileId);

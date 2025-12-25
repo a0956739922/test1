@@ -38,7 +38,7 @@ public class FileService {
         return reqId;
     }
     
-    public String loadContent(long fileId) throws Exception {
+    public String loadContent(int fileId) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -49,7 +49,7 @@ public class FileService {
         return reqId;
     }
 
-    public String update(long fileId, String newName, String newLogical, String content) throws Exception {
+    public String update(int fileId, String newName, String newLogical, String content) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObjectBuilder json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -64,7 +64,7 @@ public class FileService {
         return reqId;
     }
 
-    public String delete(long fileId) throws Exception {
+    public String delete(int fileId) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -75,7 +75,7 @@ public class FileService {
         return reqId;
     }
 
-    public String download(long fileId) throws Exception {
+    public String download(int fileId) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
@@ -111,7 +111,7 @@ public class FileService {
         System.out.println("[SFTP] Download completed");
     }
 
-    public void share(long fileId, long ownerId, long targetId, String permission) throws Exception {
+    public void share(int fileId, int ownerId, int targetId, String permission) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)

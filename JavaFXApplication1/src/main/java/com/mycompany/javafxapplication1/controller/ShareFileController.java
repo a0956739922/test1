@@ -24,9 +24,9 @@ public class ShareFileController {
 
     private User sessionUser;
     private FileService fileService;
-    private long fileId;
+    private int fileId;
 
-    public void initialise(User user, FileService service, long fileId) {
+    public void initialise(User user, FileService service, int fileId) {
         this.sessionUser = user;
         this.fileService = service;
         this.fileId = fileId;

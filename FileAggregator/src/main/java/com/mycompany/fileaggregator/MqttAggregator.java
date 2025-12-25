@@ -41,33 +41,33 @@ public class MqttAggregator {
                     switch (action) {
                         case "create" -> result.add("fileId",
                                 aggregator.create(
-                                        req.getJsonNumber("ownerId").longValue(),
+                                        req.getJsonNumber("ownerId").intValue(),
                                         req.getString("fileName"),
                                         req.getString("logicalPath"),
                                         req.getString("content")
                                 )
                         );
                         case "download" -> result.add("remoteFilePath",
-                                aggregator.download(req.getJsonNumber("fileId").longValue())
+                                aggregator.download(req.getJsonNumber("fileId").intValue())
                         );
                         case "loadContent" -> result.add("content",
-                                aggregator.loadContent(req.getJsonNumber("fileId").longValue())
+                                aggregator.loadContent(req.getJsonNumber("fileId").intValue())
                         );
                         case "update" -> aggregator.update(
-                                req.getJsonNumber("fileId").longValue(),
+                                req.getJsonNumber("fileId").intValue(),
                                 req.containsKey("newName") ? req.getString("newName") : null,
                                 req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
                                 req.containsKey("content") ? req.getString("content") : null
                         );
 
                         case "delete" -> aggregator.delete(
-                                req.getJsonNumber("fileId").longValue()
+                                req.getJsonNumber("fileId").intValue()
                         );
 
                         case "share" -> aggregator.share(
-                                req.getJsonNumber("fileId").longValue(),
-                                req.getJsonNumber("ownerId").longValue(),
-                                req.getJsonNumber("targetId").longValue(),
+                                req.getJsonNumber("fileId").intValue(),
+                                req.getJsonNumber("ownerId").intValue(),
+                                req.getJsonNumber("targetId").intValue(),
                                 req.getString("permission")
                         );
                     }

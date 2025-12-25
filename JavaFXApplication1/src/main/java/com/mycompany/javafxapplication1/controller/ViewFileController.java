@@ -21,9 +21,9 @@ public class ViewFileController {
     private TextArea contentArea;
 
     private FileService fileService;
-    private long fileId;
+    private int fileId;
 
-    public void initialise(FileService service, long fileId) {
+    public void initialise(FileService service, int fileId) {
         this.fileService = service;
         this.fileId = fileId;
         loadContent();
