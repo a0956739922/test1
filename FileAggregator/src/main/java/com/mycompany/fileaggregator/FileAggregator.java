@@ -148,9 +148,6 @@ public class FileAggregator {
 
     public void update(int ownerId, int fileId, String newName, String newLogicalPath, String content) throws Exception {
         JsonObject oldMeta = db.getMetadata(fileId);
-        if (oldMeta == null) {
-            throw new Exception("metadata missing");
-        }
         String oldName = oldMeta.getString("file_name");
         String oldPath = oldMeta.getString("logical_path");
         boolean nameChanged = newName != null && !newName.equals(oldName);
@@ -158,6 +155,10 @@ public class FileAggregator {
         boolean contentChanged = content != null;
         String finalName = nameChanged ? newName : oldName;
         String finalLogicalPath = pathChanged ? newLogicalPath : oldPath;
+        String detail = "fileId=" + fileId +
+                ", nameChanged=" + nameChanged +
+                ", pathChanged=" + pathChanged +
+                ", contentChanged=" + contentChanged;
         if (contentChanged) {
             JsonArray oldChunks = oldMeta.getJsonArray("chunks");
             for (int i = 0; i < oldChunks.size(); i++) {
@@ -198,17 +199,21 @@ public class FileAggregator {
                     .build();
             db.updateMetadata(fileId, newMeta);
             db.updateFile(fileId, finalName, finalLogicalPath, sizeBytes);
+            detail += ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size();
             for (File chunk : chunks) chunk.delete();
             Files.deleteIfExists(tmp);
             Files.deleteIfExists(Path.of(zipPath));
         } else if (nameChanged || pathChanged) {
-            JsonObject updated = Json.createObjectBuilder(oldMeta).add("file_name", finalName).add("logical_path", finalLogicalPath).build();
+            JsonObject updated = Json.createObjectBuilder(oldMeta)
+                    .add("file_name", finalName)
+                    .add("logical_path", finalLogicalPath)
+                    .build();
             db.updateMetadata(fileId, updated);
             db.updateFile(fileId, finalName, finalLogicalPath, null);
         } else {
             return;
         }
-        db.log(ownerId, null, "FILE_UPDATE_OK", "fileId=" + fileId + ", nameChanged=" + nameChanged + ", pathChanged=" + pathChanged + ", contentChanged=" + contentChanged);
+        db.log(ownerId, null, "FILE_UPDATE_OK", detail);
     }
 
     public void delete(int ownerId, int fileId) throws Exception {
