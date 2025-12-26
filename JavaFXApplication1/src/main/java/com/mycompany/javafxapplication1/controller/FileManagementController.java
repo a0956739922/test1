@@ -170,7 +170,7 @@ public class FileManagementController {
             return;
         }
         try {
-            fileService.delete(selected.getId());
+            fileService.delete(sessionUser.getUserId(), sessionUser.getUsername(), selected.getId());
             dialogue("Deleted", "File deleted successfully.");
             loadFiles();
         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class FileManagementController {
         File file = chooser.showSaveDialog(stage);
         if (file == null) return;
         try {
-            String reqId = fileService.download(selected.getId());
+            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getId());
             new Thread(() -> {
                 try {
                     String resultJson = null;
@@ -225,7 +225,7 @@ public class FileManagementController {
                     String finalResult = resultJson;
                     javafx.application.Platform.runLater(() -> {
                         try {
-                            fileService.downloadSftp(finalResult, file.getName(), file.getParent());
+                            fileService.downloadSftp(sessionUser.getUserId(), sessionUser.getUsername(), finalResult, file.getName(), file.getParent());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

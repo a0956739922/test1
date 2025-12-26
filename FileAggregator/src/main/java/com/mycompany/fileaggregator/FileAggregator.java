@@ -92,23 +92,13 @@ public class FileAggregator {
         for (File f : chunks) f.delete();
         Files.deleteIfExists(zipFile);
         Files.deleteIfExists(localFile);
-        db.log(ownerId, null,
-                "FILE_CREATE_OK",
-                "fileId=" + fileId +
-                ", fileName=" + fileName +
-                ", logicalPath=" + logicalPath +
-                ", sizeBytes=" + sizeBytes +
-                ", chunks=" + chunks.size()
-        );
+        db.log(ownerId, null, "FILE_CREATE_OK", "fileId=" + fileId + ", fileName=" + fileName + ", logicalPath=" + logicalPath + ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size());
         return fileId;
     }
-
-    public String download(int fileId) throws Exception {
+    
+    private String assembleFile(int fileId) throws Exception {
         String baseDir = "/home/ntu-user/tmp/" + fileId;
         JsonObject meta = db.getMetadata(fileId);
-        if (meta == null) {
-            throw new Exception("File metadata not found: " + fileId);
-        }
         String fileName = meta.getString("file_name");
         String key = meta.getString("encryption_key");
         String chunkDirPath = baseDir + "/chunks";
@@ -145,94 +135,85 @@ public class FileAggregator {
         return baseDir + "/" + fileName;
     }
 
-    public String loadContent(int fileId) throws Exception {
-        String filePath = download(fileId);
-        File file = new File(filePath);
-        if (!file.exists()) {
-            throw new Exception("Downloaded file not found: " + filePath);
-        }
-        return Files.readString(file.toPath());
+    public String download(int ownerId, int fileId) throws Exception {
+        String path = assembleFile(fileId);
+        db.log(ownerId, null, "FILE_DOWNLOAD_OK", "fileId=" + fileId);
+        return path;
     }
 
-    public void update(int fileId, String newName, String newLogicalPath, String content) throws Exception {
+    public String loadContent(int fileId) throws Exception {
+        String filePath = assembleFile(fileId);
+        return Files.readString(Path.of(filePath));
+    }
+
+    public void update(int ownerId, int fileId, String newName, String newLogicalPath, String content) throws Exception {
         JsonObject oldMeta = db.getMetadata(fileId);
         if (oldMeta == null) {
             throw new Exception("metadata missing");
         }
         String oldName = oldMeta.getString("file_name");
         String oldPath = oldMeta.getString("logical_path");
-        boolean hasNewContent = content != null;
         boolean nameChanged = newName != null && !newName.equals(oldName);
         boolean pathChanged = newLogicalPath != null && !newLogicalPath.equals(oldPath);
-        if (!hasNewContent) {
-            if (!nameChanged && !pathChanged) {
-                return;
-            }
-
-            JsonObject updated = Json.createObjectBuilder(oldMeta)
-                    .add("file_name", nameChanged ? newName : oldName)
-                    .add("logical_path", pathChanged ? newLogicalPath : oldPath)
-                    .build();
-            db.updateMetadata(fileId, updated);
-            db.updateFile(
-                    fileId,
-                    nameChanged ? newName : oldName,
-                    pathChanged ? newLogicalPath : oldPath,
-                    null
-            );
-            return;
-        }
-        JsonArray oldChunks = oldMeta.getJsonArray("chunks");
-        for (int i = 0; i < oldChunks.size(); i++) {
-            JsonObject c = oldChunks.getJsonObject(i);
-            String container = containerForVolume(c.getString("volume"));
-            sftp.delete(c.getString("remote_path"), container);
-        }
-        Path tmp = Files.createTempFile("update-", ".tmp");
-        Files.writeString(tmp, content);
-        int sizeBytes = content.getBytes(StandardCharsets.UTF_8).length;
-        String key = crypto.generateFileKey();
-        String zipPath = tmp.toString() + ".zip";
-        crypto.encryptZip(tmp.toString(), zipPath, key);
-        List<File> chunks = crypto.splitChunks(zipPath);
-        JsonArrayBuilder chunkArr = Json.createArrayBuilder();
-        for (int i = 0; i < chunks.size(); i++) {
-            File chunk = chunks.get(i);
-            String volume = VOLUMES[i];
-            String container = containerForVolume(volume);
-            String remotePath = "/home/ntu-user/data/" + fileId + "/" + i + ".part";
-            String crc32 = crypto.calcFileCRC32(chunk.getAbsolutePath());
-            sftp.upload(chunk.getAbsolutePath(), remotePath, container);
-            chunkArr.add(
-                    Json.createObjectBuilder()
-                            .add("index", i)
-                            .add("volume", volume)
-                            .add("remote_path", remotePath)
-                            .add("crc32", crc32)
-                            .build()
-            );
-        }
+        boolean contentChanged = content != null;
         String finalName = nameChanged ? newName : oldName;
         String finalLogicalPath = pathChanged ? newLogicalPath : oldPath;
-        JsonObject newMeta = Json.createObjectBuilder()
-                .add("file_id", fileId)
-                .add("file_name", finalName)
-                .add("logical_path", finalLogicalPath)
-                .add("size_bytes", sizeBytes)
-                .add("encryption_key", key)
-                .add("total_chunks", chunks.size())
-                .add("chunks", chunkArr.build())
-                .build();
-        db.updateMetadata(fileId, newMeta);
-        db.updateFile(fileId, finalName, finalLogicalPath, sizeBytes);
-        for (File chunk : chunks) chunk.delete();
-        Files.deleteIfExists(tmp);
-        Files.deleteIfExists(Path.of(zipPath));
+        if (contentChanged) {
+            JsonArray oldChunks = oldMeta.getJsonArray("chunks");
+            for (int i = 0; i < oldChunks.size(); i++) {
+                JsonObject c = oldChunks.getJsonObject(i);
+                sftp.delete(c.getString("remote_path"), containerForVolume(c.getString("volume")));
+            }
+            Path tmp = Files.createTempFile("update-", ".tmp");
+            Files.writeString(tmp, content);
+            int sizeBytes = content.getBytes(StandardCharsets.UTF_8).length;
+            String key = crypto.generateFileKey();
+            String zipPath = tmp.toString() + ".zip";
+            crypto.encryptZip(tmp.toString(), zipPath, key);
+            List<File> chunks = crypto.splitChunks(zipPath);
+            JsonArrayBuilder chunkArr = Json.createArrayBuilder();
+            for (int i = 0; i < chunks.size(); i++) {
+                File chunk = chunks.get(i);
+                String volume = VOLUMES[i];
+                String container = containerForVolume(volume);
+                String remotePath = "/home/ntu-user/data/" + fileId + "/" + i + ".part";
+                sftp.upload(chunk.getAbsolutePath(), remotePath, container);
+                chunkArr.add(
+                        Json.createObjectBuilder()
+                                .add("index", i)
+                                .add("volume", volume)
+                                .add("remote_path", remotePath)
+                                .add("crc32", crypto.calcFileCRC32(chunk.getAbsolutePath()))
+                                .build()
+                );
+            }
+            JsonObject newMeta = Json.createObjectBuilder()
+                    .add("file_id", fileId)
+                    .add("file_name", finalName)
+                    .add("logical_path", finalLogicalPath)
+                    .add("size_bytes", sizeBytes)
+                    .add("encryption_key", key)
+                    .add("total_chunks", chunks.size())
+                    .add("chunks", chunkArr.build())
+                    .build();
+            db.updateMetadata(fileId, newMeta);
+            db.updateFile(fileId, finalName, finalLogicalPath, sizeBytes);
+            for (File chunk : chunks) chunk.delete();
+            Files.deleteIfExists(tmp);
+            Files.deleteIfExists(Path.of(zipPath));
+        } else if (nameChanged || pathChanged) {
+            JsonObject updated = Json.createObjectBuilder(oldMeta).add("file_name", finalName).add("logical_path", finalLogicalPath).build();
+            db.updateMetadata(fileId, updated);
+            db.updateFile(fileId, finalName, finalLogicalPath, null);
+        } else {
+            return;
+        }
+        db.log(ownerId, null, "FILE_UPDATE_OK", "fileId=" + fileId + ", nameChanged=" + nameChanged + ", pathChanged=" + pathChanged + ", contentChanged=" + contentChanged);
     }
 
-    public void delete(int fileId) throws Exception {
-        db.deleteShares(fileId);
+    public void delete(int ownerId, int fileId) throws Exception {
         JsonObject meta = db.getMetadata(fileId);
+        db.deleteShares(fileId);
         if (meta != null) {
             JsonArray chunks = meta.getJsonArray("chunks");
             for (int i = 0; i < chunks.size(); i++) {
@@ -242,13 +223,15 @@ public class FileAggregator {
             }
         }
         db.markFileDeleted(fileId);
+        db.log(ownerId, null, "FILE_DELETE_OK", "fileId=" + fileId);
     }
 
-    public void share(int fileId, int ownerId, int targetId, String permission) throws Exception {
+    public void share(int ownerId, int fileId, int targetId, String permission) throws Exception {
         if (db.shareExists(fileId, targetId)) {
             db.updateShare(fileId, targetId, permission);
         } else {
             db.insertShare(fileId, ownerId, targetId, permission);
         }
+        db.log(ownerId, null, "FILE_SHARE_OK", "fileId=" + fileId + ", targetId=" + targetId + ", permission=" + permission);
     }
 }

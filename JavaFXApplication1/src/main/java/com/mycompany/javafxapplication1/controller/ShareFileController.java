@@ -56,7 +56,7 @@ public class ShareFileController {
             MySQLDB db = new MySQLDB();
             User targetUser = db.getUserByName(targetUsername);
             if (targetUser == null) {dialogue("User Not Found", "The specified user does not exist.");return;}
-            fileService.share(fileId,sessionUser.getUserId(),targetUser.getUserId(),permission);
+            fileService.share(sessionUser.getUserId(), sessionUser.getUsername(), fileId, targetUser.getUserId(), permission);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

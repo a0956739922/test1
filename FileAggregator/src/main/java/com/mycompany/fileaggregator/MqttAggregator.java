@@ -48,28 +48,31 @@ public class MqttAggregator {
                                 )
                         );
                         case "download" -> result.add("remoteFilePath",
-                                aggregator.download(req.getJsonNumber("fileId").intValue())
+                                aggregator.download(req.getJsonNumber("ownerId").intValue(), req.getJsonNumber("fileId").intValue())
                         );
                         case "loadContent" -> result.add("content",
                                 aggregator.loadContent(req.getJsonNumber("fileId").intValue())
                         );
-                        case "update" -> aggregator.update(
-                                req.getJsonNumber("fileId").intValue(),
-                                req.containsKey("newName") ? req.getString("newName") : null,
-                                req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
-                                req.containsKey("content") ? req.getString("content") : null
-                        );
-
-                        case "delete" -> aggregator.delete(
-                                req.getJsonNumber("fileId").intValue()
-                        );
-
-                        case "share" -> aggregator.share(
-                                req.getJsonNumber("fileId").intValue(),
-                                req.getJsonNumber("ownerId").intValue(),
-                                req.getJsonNumber("targetId").intValue(),
-                                req.getString("permission")
-                        );
+                        case "update" -> {
+                            aggregator.update(
+                                    req.getJsonNumber("ownerId").intValue(),
+                                    req.getJsonNumber("fileId").intValue(),
+                                    req.containsKey("newName") ? req.getString("newName") : null,
+                                    req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
+                                    req.containsKey("content") ? req.getString("content") : null
+                            );
+                        }
+                        case "delete" -> {
+                            aggregator.delete(req.getJsonNumber("ownerId").intValue(), req.getJsonNumber("fileId").intValue());
+                        }
+                        case "share" -> {
+                            aggregator.share(
+                                    req.getJsonNumber("ownerId").intValue(),
+                                    req.getJsonNumber("fileId").intValue(),
+                                    req.getJsonNumber("targetId").intValue(),
+                                    req.getString("permission")
+                            );
+                        }
                     }
                     JsonObject res = Json.createObjectBuilder()
                         .add("req_id", reqId)
