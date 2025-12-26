@@ -5,7 +5,6 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
-import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
 import java.nio.file.Files;
@@ -84,6 +83,7 @@ public class UploadFileController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

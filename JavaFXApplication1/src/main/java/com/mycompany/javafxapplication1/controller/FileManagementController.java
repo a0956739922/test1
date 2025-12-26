@@ -128,7 +128,9 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService);
             Stage stage = new Stage();
             stage.setTitle("Create File");
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root, 600, 450);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {
@@ -150,14 +152,15 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService, selected);
             Stage stage = new Stage();
             stage.setTitle("Update File");
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root, 600, 450);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 
     @FXML
     private void deleteFile() {
@@ -188,7 +191,9 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService);
             Stage stage = new Stage();
             stage.setTitle("Upload File");
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root, 600, 450);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {
@@ -242,7 +247,7 @@ public class FileManagementController {
     @FXML
     private void shareFile() {
         FileModel selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {dialogue("No File Selected", "Please select a file to share.");return;}
+        if (selected == null) { dialogue("No File Selected", "Please select a file to share."); return; }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
             Parent root = loader.load();
@@ -250,7 +255,9 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService, selected.getId());
             Stage stage = new Stage();
             stage.setTitle("Share File");
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root, 480, 300);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
             stage.showAndWait();
         } catch (Exception e) {
             e.printStackTrace();
@@ -299,7 +306,9 @@ public class FileManagementController {
             controller.initialise(fileService, selected.getId());
             Stage stage = new Stage();
             stage.setTitle("View File: " + selected.getName());
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root, 800, 600);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -314,25 +323,28 @@ public class FileManagementController {
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
             controller.initialise(sessionUser);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) backBtn.getScene().getWindow();
-            stage.setScene(new Scene(root, 640, 480));
+            stage.setScene(scene);
             stage.setTitle("Welcome, " + sessionUser.getUsername());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    
     @FXML
-    private void logout() {
+    private void logout() {  
         if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
             return;
         }
         try {
             new SQLiteDB().clearSession();
-            Stage stage = (Stage) logoutBtn.getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
-            stage.setScene(new Scene(root, 640, 480));
-            stage.setTitle("Login");
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            Stage stage = (Stage) logoutBtn.getScene().getWindow();
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -344,6 +356,7 @@ public class FileManagementController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

@@ -35,7 +35,8 @@ public class App extends Application {
             }
             FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
             Parent root = loader.load();
-            Scene scene = new Scene(root, 640, 480);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Login");
             stage.show();
@@ -49,7 +50,8 @@ public class App extends Application {
         Parent root = loader.load();
         SecondaryController controller = loader.getController();
         controller.initialise(user);
-        Scene scene = new Scene(root, 640, 480);
+        Scene scene = new Scene(root, 1000, 700);
+        scene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         stage.setScene(scene);
         String title = "Welcome, " + user.getUsername();
         if (offline) title += " (Offline Mode)";

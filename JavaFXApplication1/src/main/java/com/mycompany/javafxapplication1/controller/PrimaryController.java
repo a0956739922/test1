@@ -29,21 +29,14 @@ public class PrimaryController {
         try {
             Stage stage = (Stage) registerBtn.getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/register.fxml"));
-            Scene scene = new Scene(root, 640, 480);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Register a new User");
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    
-    private void dialogue(String headerMsg, String contentMsg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(headerMsg);
-        alert.setContentText(contentMsg);
-        alert.showAndWait();
     }
     
     @FXML
@@ -63,23 +56,28 @@ public class PrimaryController {
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
             controller.initialise(sessionUser);
-            Scene scene = new Scene(root, 640, 480);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Welcome, " + sessionUser.getUsername());
         } catch (IllegalArgumentException e) {
             switch (e.getMessage()) {
-                case "USER_NOT_FOUND":
-                    dialogue("Login Failed", "User does not exist.");
-                    break;
-                case "PASSWORD_WRONG":
-                    dialogue("Login Failed", "Incorrect password.");
-                    break;
-                default:
-                    dialogue("Error", "Unknown validation error.");
+                case "USER_NOT_FOUND" -> dialogue("Login Failed", "User does not exist.");
+                case "PASSWORD_WRONG" -> dialogue("Login Failed", "Incorrect password.");
+                default -> dialogue("Error", "Unknown validation error.");
             }
         } catch (Exception e) {
             dialogue("Login Failed", "Cannot connect to MySQL.");
         }
+    }
+    
+    private void dialogue(String headerMsg, String contentMsg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(headerMsg);
+        alert.setContentText(contentMsg);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+        alert.showAndWait();
     }
 
 }

@@ -1,40 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.controller.RegisterController">
-   <children>
-      <GridPane alignment="CENTER" layoutY="124.0" prefHeight="126.0" prefWidth="600.0">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <Label text="User name" />
-            <Label text="Password" GridPane.rowIndex="1" />
-            <Label text="Re-type password" GridPane.rowIndex="2" />
-            <Button fx:id="registerBtn" mnemonicParsing="false" onAction="#registerBtnHandler" text="Register" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
-            <Button fx:id="backLoginBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#backLoginBtnHandler" text="Return to Login Page" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
-            <TextField fx:id="userTextField" GridPane.columnIndex="1" />
-            <PasswordField fx:id="passPasswordField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <PasswordField fx:id="rePassPasswordField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Button fx:id="selectBtn" mnemonicParsing="false" onAction="#selectBtnHandler" text="Select File Name" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-            <Text fx:id="fileText" strokeType="OUTSIDE" strokeWidth="0.0" text="Select File." GridPane.rowIndex="4" />
-         </children>
-      </GridPane>
-      <Label layoutX="272.0" layoutY="94.0" text="Register New User" />
-   </children>
-</AnchorPane>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.RegisterController">
+
+    <center>
+        <VBox spacing="28"
+              alignment="CENTER"
+              maxWidth="520"
+              style="-fx-padding: 32;">
+
+            <Label text="Register New User" styleClass="title"/>
+
+            <GridPane hgap="20" vgap="20">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="140"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Label text="Username:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="userTextField"
+                           GridPane.rowIndex="0"
+                           GridPane.columnIndex="1"/>
+
+                <Label text="Password:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <PasswordField fx:id="passPasswordField"
+                               GridPane.rowIndex="1"
+                               GridPane.columnIndex="1"/>
+
+                <Label text="Re-type Password:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <PasswordField fx:id="rePassPasswordField"
+                               GridPane.rowIndex="2"
+                               GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <HBox spacing="24" alignment="CENTER">
+                <Button fx:id="registerBtn"
+                        text="Register"
+                        prefWidth="160"
+                        styleClass="primary"
+                        onAction="#registerBtnHandler"/>
+                <Button fx:id="backLoginBtn"
+                        text="Back to Login"
+                        prefWidth="160"
+                        onAction="#backLoginBtnHandler"/>
+            </HBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>

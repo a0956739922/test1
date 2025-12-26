@@ -1,51 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.controller.SecondaryController">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.SecondaryController">
 
     <left>
-        <VBox spacing="20"
-              style="-fx-padding: 20; -fx-background-color: #1A5675; -fx-pref-width: 200;">
-            
-            <Label text="Menu"
-                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
+        <VBox spacing="24"
+              prefWidth="250"
+              style="-fx-padding: 30; -fx-background-color: #1A5675;">
 
-            <Button fx:id="userManageBtn"
-                    text="User Management"
-                    prefWidth="160"
-                    onAction="#openUserManagement"
-                    style="-fx-background-color: white;" />
+            <Label text="Menu" styleClass="section"/>
 
-            <Button fx:id="fileManageBtn"
-                    text="File Management"
-                    prefWidth="160"
-                    onAction="#openFileManagement"
-                    style="-fx-background-color: white;" />
+            <Button fx:id="userManageBtn" text="User Management" prefWidth="210" onAction="#openUserManagement"/>
+            <Button fx:id="fileManageBtn" text="File Management" prefWidth="210" onAction="#openFileManagement"/>
+            <Button fx:id="advancedPanelBtn" text="Advanced Panel" prefWidth="210" onAction="#openAdvancedPanel"/>
 
-            <Button fx:id="advancedPanelBtn"
-                    text="Advanced Panel"
-                    prefWidth="160"
-                    onAction="#openAdvancedPanel"
-                    style="-fx-background-color: white;" />
+            <Pane VBox.vgrow="ALWAYS"/>
 
-            <Pane VBox.vgrow="ALWAYS" />
-
-            <Button fx:id="logoutBtn"
-                    text="Logout"
-                    prefWidth="160"
-                    onAction="#logout"
-                    style="-fx-background-color: #FF6666; -fx-text-fill: white;" />
-
+            <Button fx:id="logoutBtn" text="Logout" prefWidth="210"
+                    styleClass="danger" onAction="#logout"/>
         </VBox>
     </left>
 
     <center>
         <StackPane style="-fx-background-color: #E8F1F5;">
-            <Label text="Dashboard Area (Empty for now)"
-                   style="-fx-font-size: 18px; -fx-text-fill: #333;" />
+            <Label text="Dashboard Area (Empty for now)"/>
         </StackPane>
     </center>
 

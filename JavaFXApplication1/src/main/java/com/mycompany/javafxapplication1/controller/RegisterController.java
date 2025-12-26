@@ -66,22 +66,6 @@ public class RegisterController {
         
     }
 
-    private void dialogue(String headerMsg, String contentMsg) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Message");
-        alert.setHeaderText(headerMsg);
-        alert.setContentText(contentMsg);
-        alert.showAndWait();
-    }
-    
-    private void error(String headerMsg, String contentMsg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(headerMsg);
-        alert.setContentText(contentMsg);
-        alert.showAndWait();
-    }
-
     @FXML
     private void registerBtnHandler(ActionEvent event) throws IOException, Exception {
         String username = userTextField.getText();
@@ -98,32 +82,19 @@ public class RegisterController {
             Stage primaryStage = (Stage) registerBtn.getScene().getWindow();
             Stage secondaryStage = new Stage();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
-            Scene scene = new Scene(root, 640, 480);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             secondaryStage.setScene(scene);
             secondaryStage.setTitle("Login");
             secondaryStage.show();
             primaryStage.close();
         } catch (IllegalArgumentException e) {
             switch (e.getMessage()) {
-
-                case "USERNAME_EMPTY":
-                    error("Invalid Username", "Username cannot be empty.");
-                    break;
-
-                case "USERNAME_SPACE":
-                    error("Invalid Username", "Username cannot contain spaces.");
-                    break;
-
-                case "USERNAME_EXISTS":
-                    error("Registration Failed", "This username is already taken.");
-                    break;
-
-                case "PASSWORD_EMPTY":
-                    error("Invalid Password", "Password cannot be empty.");
-                    break;
-
-                default:
-                    error("Registration Failed", "Database error. Please try again.");
+                case "USERNAME_EMPTY" -> error("Invalid Username", "Username cannot be empty.");
+                case "USERNAME_SPACE" -> error("Invalid Username", "Username cannot contain spaces.");
+                case "USERNAME_EXISTS" -> error("Registration Failed", "This username is already taken.");
+                case "PASSWORD_EMPTY" -> error("Invalid Password", "Password cannot be empty.");
+                default -> error("Registration Failed", "Database error. Please try again.");
             }
         }
     }
@@ -134,7 +105,8 @@ public class RegisterController {
             Stage primaryStage = (Stage) backLoginBtn.getScene().getWindow();
             Stage secondaryStage = new Stage();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
-            Scene scene = new Scene(root, 640, 480);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             secondaryStage.setScene(scene);
             secondaryStage.setTitle("Login");
             secondaryStage.show();
@@ -143,4 +115,23 @@ public class RegisterController {
             e.printStackTrace();
         }
     }
+    
+    private void dialogue(String headerMsg, String contentMsg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Message");
+        alert.setHeaderText(headerMsg);
+        alert.setContentText(contentMsg);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+        alert.showAndWait();
+    }
+
+    private void error(String headerMsg, String contentMsg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(headerMsg);
+        alert.setContentText(contentMsg);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+        alert.showAndWait();
+    }
+
 }

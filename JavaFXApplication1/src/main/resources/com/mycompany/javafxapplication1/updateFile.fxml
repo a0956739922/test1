@@ -1,31 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.mycompany.javafxapplication1.controller.UpdateFileController"
-      style="-fx-padding: 20;"
-      spacing="12">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.UpdateFileController"
+            style="-fx-padding: 30;">
 
-    <Label text="Update File"
-           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <top>
+        <Label text="Update File"
+               styleClass="title"
+               BorderPane.alignment="CENTER"/>
+    </top>
 
-    <Label text="File Name:"/>
-    <TextField fx:id="nameField"/>
+    <center>
+        <VBox spacing="16" maxWidth="480">
+            <Label text="File Name:"/>
+            <TextField fx:id="nameField"/>
 
-    <Label text="File Path:"/>
-    <TextField fx:id="pathField"/>
+            <Label text="File Path:"/>
+            <TextField fx:id="pathField"/>
 
-    <Label text="Content:"/>
-    <TextArea fx:id="contentArea" prefRowCount="8"/>
+            <Label text="Content:"/>
+            <TextArea fx:id="contentArea"
+                      VBox.vgrow="ALWAYS"
+                      wrapText="true"/>
+        </VBox>
+    </center>
 
-    <HBox spacing="10">
-        <Button text="Save" onAction="#updateFile"/>
-        <Button text="Cancel" onAction="#closeWindow"/>
-    </HBox>
+    <bottom>
+        <VBox alignment="CENTER">
+            <HBox spacing="16"
+                  alignment="CENTER_RIGHT"
+                  maxWidth="480">
 
-</VBox>
+                <Button text="Cancel"
+                        prefWidth="140"
+                        onAction="#closeWindow"/>
+
+                <Button text="Save"
+                        prefWidth="140"
+                        styleClass="primary"
+                        onAction="#updateFile"/>
+
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

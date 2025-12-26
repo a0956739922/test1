@@ -3,20 +3,20 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.mycompany.javafxapplication1.controller.ViewFileController"
-      style="-fx-padding: 20;"
-      spacing="12">
+      spacing="24"
+      style="-fx-padding: 40;">
 
-    <Label text="View File"
-           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <Label text="View File" styleClass="title"/>
 
     <TextArea fx:id="contentArea"
-              prefRowCount="15"
+              VBox.vgrow="ALWAYS"
               wrapText="true"/>
 
-    <HBox spacing="10">
-        <Button text="Close" onAction="#closeWindow"/>
+    <HBox spacing="16" alignment="CENTER_RIGHT">
+        <Button text="Close" prefWidth="140" onAction="#closeWindow"/>
     </HBox>
 
 </VBox>

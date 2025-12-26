@@ -101,8 +101,10 @@ public class UserManagementController {
             userService.logout();
             dialogue("Deleted", "Your account has been deleted.");
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) deleteAccountBtn.getScene().getWindow();
-            stage.setScene(new Scene(root, 640, 480));
+            stage.setScene(scene);
             stage.setTitle("Login");
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,8 +119,10 @@ public class UserManagementController {
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
             controller.initialise(sessionUser);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) backBtn.getScene().getWindow();
-            stage.setScene(new Scene(root, 640, 480));
+            stage.setScene(scene);
             stage.setTitle("Welcome, " + sessionUser.getUsername());
         } catch (IOException e) {
             e.printStackTrace();
@@ -126,16 +130,17 @@ public class UserManagementController {
     }
     
     @FXML
-    private void logout() {
+    private void logout() {  
         if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
             return;
         }
         try {
             new SQLiteDB().clearSession();
-            Stage stage = (Stage) logoutBtn.getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
-            stage.setScene(new Scene(root, 640, 480));
-            stage.setTitle("Login");
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            Stage stage = (Stage) logoutBtn.getScene().getWindow();
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -147,6 +152,7 @@ public class UserManagementController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

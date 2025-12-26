@@ -3,21 +3,47 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.mycompany.javafxapplication1.controller.ShareFileController"
-      style="-fx-padding: 20;"
-      spacing="12">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.ShareFileController"
+            style="-fx-padding: 30;">
 
-    <Label text="Share File"
-           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <top>
+        <Label text="Share File" styleClass="title" BorderPane.alignment="CENTER"/>
+    </top>
 
-    <Label text="Share with (username):"/>
-    <TextField fx:id="usernameField"/>
+    <center>
+        <GridPane hgap="20" vgap="16" maxWidth="420" alignment="CENTER">
 
-    <HBox spacing="10">
-        <Button text="read" onAction="#shareRead"/>
-        <Button text="write" onAction="#shareWrite"/>
-        <Button text="Cancel" onAction="#closeWindow"/>
-    </HBox>
+            <columnConstraints>
+                <ColumnConstraints minWidth="160"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
 
-</VBox>
+            <Label text="Share with (username):" GridPane.columnIndex="0"/>
+
+            <TextField fx:id="usernameField" GridPane.columnIndex="1"/>
+
+        </GridPane>
+    </center>
+
+    <bottom>
+        <VBox alignment="CENTER">
+            <GridPane hgap="16" maxWidth="420">
+
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Button text="Read" maxWidth="Infinity" GridPane.columnIndex="0" onAction="#shareRead"/>
+                <Button text="Write" maxWidth="Infinity" GridPane.columnIndex="1" onAction="#shareWrite"/>
+                <Button text="Cancel" maxWidth="Infinity" GridPane.columnIndex="2" onAction="#closeWindow"/>
+
+            </GridPane>
+        </VBox>
+        
+    </bottom>
+    
+</BorderPane>

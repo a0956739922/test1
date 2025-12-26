@@ -1,62 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.controller.AdvancedController">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedController">
 
     <left>
-        <VBox spacing="20"
-              style="-fx-padding: 20; -fx-background-color: #1A5675; -fx-pref-width: 200;">
+        <VBox spacing="24"
+              prefWidth="250"
+              style="-fx-padding: 30; -fx-background-color: #1A5675;">
 
-            <Label text="Management"
-                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
+            <Label text="Management" styleClass="section"/>
 
             <Button fx:id="userManageBtn"
                     text="User Management"
-                    prefWidth="160"
-                    onAction="#openUserManagement"
-                    style="-fx-background-color: white;" />
+                    prefWidth="210"
+                    onAction="#openUserManagement"/>
 
             <Button fx:id="fileManageBtn"
                     text="File Management"
-                    prefWidth="160"
-                    onAction="#openFileManagement"
-                    style="-fx-background-color: white;" />
+                    prefWidth="210"
+                    onAction="#openFileManagement"/>
 
             <Button fx:id="logBtn"
                     text="Logs"
-                    prefWidth="160"
-                    onAction="#openLogView"
-                    style="-fx-background-color: white;" />
+                    prefWidth="210"
+                    onAction="#openLogView"/>
 
-            <Pane VBox.vgrow="ALWAYS" />
+            <Pane VBox.vgrow="ALWAYS"/>
 
             <Button fx:id="backBtn"
                     text="Back"
-                    prefWidth="160"
-                    onAction="#goBack"
-                    style="-fx-background-color: white;" />
+                    prefWidth="210"
+                    onAction="#goBack"/>
 
             <Button fx:id="logoutBtn"
                     text="Logout"
-                    prefWidth="160"
-                    onAction="#logout"
-                    style="-fx-background-color: #FF6666; -fx-text-fill: white;" />
-
+                    prefWidth="210"
+                    styleClass="danger"
+                    onAction="#logout"/>
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="15"
-              style="-fx-padding: 30; -fx-background-color: #E8F1F5;">
+        <VBox spacing="16"
+            alignment="TOP_LEFT"
+            style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
 
-            <Label text="Advanced Panel"
-                   style="-fx-font-size: 24px; -fx-text-fill: #333; -fx-font-weight: bold;" />
+            <Label text="Advanced Panel" styleClass="title"/>
+            <Label text="Welcome to Admin Terminal.&#10;Type a command and press Enter."/>
+            <TextArea
+                fx:id="terminalOutput"
+                editable="false"
+                wrapText="true"
+                VBox.vgrow="ALWAYS"
+            />
 
-            <Label text="(System logs will appear here)"
-                   style="-fx-font-size: 14px; -fx-text-fill: #555;" />
+            <TextField
+                fx:id="terminalInput"
+                promptText="available command: ls, whoami, ps, tree, mkdir, cp, mv, nano"
+                onAction="#handleCommand"
+            />
 
         </VBox>
     </center>
