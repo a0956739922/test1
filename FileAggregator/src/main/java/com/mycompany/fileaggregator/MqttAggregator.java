@@ -37,48 +37,56 @@ public class MqttAggregator {
                     JsonObject req = Json.createReader(new StringReader(new String(msg.getPayload()))).readObject();
                     String reqId = req.getString("req_id");
                     String action = req.getString("action");
-                    JsonObjectBuilder result = Json.createObjectBuilder();
-                    switch (action) {
-                        case "create" -> result.add("fileId",
-                                aggregator.create(
+                    JsonObjectBuilder resBuilder = Json.createObjectBuilder().add("req_id", reqId).add("action", action);
+                    try {
+                        switch (action) {
+                            case "create" -> {
+                                int fileId = aggregator.create(
                                         req.getJsonNumber("ownerId").intValue(),
                                         req.getString("fileName"),
                                         req.getString("logicalPath"),
                                         req.getString("content")
-                                )
-                        );
-                        case "download" -> result.add("remoteFilePath",
-                                aggregator.download(req.getJsonNumber("ownerId").intValue(), req.getJsonNumber("fileId").intValue())
-                        );
-                        case "loadContent" -> result.add("content",
-                                aggregator.loadContent(req.getJsonNumber("fileId").intValue())
-                        );
-                        case "update" -> {
-                            aggregator.update(
-                                    req.getJsonNumber("ownerId").intValue(),
-                                    req.getJsonNumber("fileId").intValue(),
-                                    req.containsKey("newName") ? req.getString("newName") : null,
-                                    req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
-                                    req.containsKey("content") ? req.getString("content") : null
-                            );
+                                );
+                                resBuilder.add("fileId", fileId);
+                            }
+                            case "download" -> {
+                                String path = aggregator.download(req.getJsonNumber("ownerId").intValue(), req.getJsonNumber("fileId").intValue());
+                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue()).add("remoteFilePath", path);
+                            }
+                            case "loadContent" -> {
+                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue())
+                                        .add("content", aggregator.loadContent(req.getJsonNumber("fileId").intValue()));
+                            }
+                            case "update" -> {
+                                aggregator.update(
+                                        req.getJsonNumber("ownerId").intValue(),
+                                        req.getJsonNumber("fileId").intValue(),
+                                        req.containsKey("newName") ? req.getString("newName") : null,
+                                        req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
+                                        req.containsKey("content") ? req.getString("content") : null
+                                );
+                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue());
+                            }
+                            case "delete" -> {
+                                aggregator.delete(req.getJsonNumber("ownerId").intValue(), req.getJsonNumber("fileId").intValue());
+                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue());
+                            }
+                            case "share" -> {
+                                aggregator.share(
+                                        req.getJsonNumber("ownerId").intValue(),
+                                        req.getJsonNumber("fileId").intValue(),
+                                        req.getJsonNumber("targetId").intValue(),
+                                        req.getString("permission")
+                                );
+                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue());
+                            }
+                            default -> throw new IllegalArgumentException("Unknown action: " + action);
                         }
-                        case "delete" -> {
-                            aggregator.delete(req.getJsonNumber("ownerId").intValue(), req.getJsonNumber("fileId").intValue());
-                        }
-                        case "share" -> {
-                            aggregator.share(
-                                    req.getJsonNumber("ownerId").intValue(),
-                                    req.getJsonNumber("fileId").intValue(),
-                                    req.getJsonNumber("targetId").intValue(),
-                                    req.getString("permission")
-                            );
-                        }
+                        resBuilder.add("status", "ok");
+                    } catch (Exception e) {
+                        resBuilder.add("status", "error").add("error", "operation_failed");
                     }
-                    JsonObject res = Json.createObjectBuilder()
-                        .add("req_id", reqId)
-                        .add("status", "ok")
-                        .addAll(result)
-                        .build();
+                    JsonObject res = resBuilder.build();
                     client.publish(AGG_RES, new MqttMessage(res.toString().getBytes()));
                 } catch (Exception e) {
                     e.printStackTrace();
