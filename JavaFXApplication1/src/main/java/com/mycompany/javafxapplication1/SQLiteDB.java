@@ -100,7 +100,7 @@ public class SQLiteDB {
 
     public List<FileModel> getAllOwnedFiles(int userId) {
         List<FileModel> files = new ArrayList<>();
-        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state != 'PENDING_DELETE' ORDER BY updated_at DESC";
+        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state != 'PENDING_DELETE' AND sync_state != 'SENDING_DELETE' ORDER BY updated_at DESC";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
@@ -127,7 +127,7 @@ public class SQLiteDB {
                 long now = System.currentTimeMillis();
                 if (rs.next()) {
                     String state = rs.getString("sync_state");
-                    if ("PENDING_DELETE".equals(state)) {
+                    if ("PENDING_DELETE".equals(state) || "SENDING_DELETE".equals(state)) {
                         continue;
                     }
                     PreparedStatement update = conn.prepareStatement(updateSql);
@@ -180,13 +180,25 @@ public class SQLiteDB {
         }
         return id;
     }
+    
+    public void markSendingDelete(int ownerUserId, int remoteFileId) {
+        String sql = "UPDATE local_files SET sync_state = 'SENDING_DELETE', updated_at = ? WHERE remote_file_id = ? AND owner_user_id = ? AND sync_state = 'PENDING_DELETE'";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, System.currentTimeMillis());
+            stmt.setInt(2, remoteFileId);
+            stmt.setInt(3, ownerUserId);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    public void finalizeDelete(int ownerUserId, int remoteFileId) {
-        String sql = "DELETE FROM local_files WHERE remote_file_id = ? AND owner_user_id = ?";
+    public void finalizeDelete(int remoteFileId) {
+        String sql = "DELETE FROM local_files WHERE remote_file_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, remoteFileId);
-            stmt.setInt(2, ownerUserId);
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

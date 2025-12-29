@@ -41,16 +41,21 @@ public class MqttSubUI {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage msg) {
-                    System.out.println("[UI] messageArrived topic=" + topic);
                     try {
                         String payload = new String(msg.getPayload());
                         System.out.println("[UI] payload=" + payload);
                         JsonObject res = Json.createReader(new StringReader(payload)).readObject();
-                        String reqId = res.getString("req_id", "");
+                        String reqId  = res.getString("req_id", "");
+                        String action = res.getString("action", "");
+                        String status = res.getString("status", "");
                         RESULTS.put(reqId, payload);
-                        System.out.println("[UI] result stored for req_id=" + reqId);
+                        if ("delete".equals(action) && "ok".equals(status)) {
+                            int fileId = res.getInt("fileId");
+                            SQLiteDB sqlite = new SQLiteDB();
+                            sqlite.finalizeDelete(fileId);
+                            System.out.println("[UI] finalize delete fileId=" + fileId);
+                        }
                     } catch (Exception e) {
-                        System.out.println("[UI] EXCEPTION inside messageArrived");
                         e.printStackTrace();
                     }
                 }

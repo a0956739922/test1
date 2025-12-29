@@ -25,7 +25,7 @@ public class SyncService {
         for (int fileId : pending) {
             try {
                 fileService.delete(userId, username, fileId);
-                sqlite.finalizeDelete(userId, fileId);
+                sqlite.markSendingDelete(userId, fileId);
             } catch (Exception e) {
             }
         }

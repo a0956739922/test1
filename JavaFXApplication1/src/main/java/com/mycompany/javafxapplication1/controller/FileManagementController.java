@@ -105,8 +105,7 @@ public class FileManagementController {
             mysql.testConnection();
             List<FileModel> remoteOwned = mysql.getAllFilesByUser(sessionUser.getUserId());
             sqlite.cacheRemoteOwnedFiles(sessionUser.getUserId(), remoteOwned);
-        } catch (Exception ignore) {
-        }
+        } catch (Exception ignore) {}
         List<FileModel> localOwned = sqlite.getAllOwnedFiles(sessionUser.getUserId());
         for (FileModel f : localOwned) {
             f.setOwnerName(sessionUser.getUsername());
@@ -118,8 +117,7 @@ public class FileManagementController {
             mysql.testConnection();
             List<FileModel> shared = mysql.getSharedFilesByUser(sessionUser.getUserId());
             allFiles.addAll(shared);
-        } catch (Exception ignore) {
-        }
+        } catch (Exception ignore) {}
         fileTable.getItems().setAll(allFiles);
     }
 
