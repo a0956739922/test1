@@ -9,6 +9,7 @@ import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
+import com.mycompany.javafxapplication1.SyncService;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
 import java.io.IOException;
@@ -79,10 +80,12 @@ public class FileManagementController {
     public void initialise(User user) {
         this.sessionUser = user;
         this.fileService = new FileService();
+        colFilename.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
+        colOwner.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
+        colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         loadFiles();
-        fileTable.getSelectionModel()
-             .selectedItemProperty()
-             .addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
+        fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
         fileTable.setRowFactory(tv -> {
             TableRow<FileModel> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -95,28 +98,29 @@ public class FileManagementController {
     }
     
     private void loadFiles() {
+        List<FileModel> allFiles = new ArrayList<>();
+        SQLiteDB sqlite = new SQLiteDB();
         try {
             MySQLDB mysql = new MySQLDB();
-            List<FileModel> allFiles = new ArrayList<>();
-            List<FileModel> owned = mysql.getAllFilesByUser(sessionUser.getUserId());
-            for (FileModel f : owned) {
-                f.setOwnerName(sessionUser.getUsername());
-                f.setPermission("owner");
-            }
-            List<FileModel> shared = mysql.getSharedFilesByUser(sessionUser.getUserId());
-            allFiles.addAll(owned);
-            allFiles.addAll(shared);
-            colFilename.setCellValueFactory(new PropertyValueFactory<>("name"));
-            colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
-            colOwner.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
-            colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
-            fileTable.getItems().setAll(allFiles);
-            fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-            colPath.setMaxWidth(Integer.MAX_VALUE);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Cannot load files.");
+            mysql.testConnection();
+            List<FileModel> remoteOwned = mysql.getAllFilesByUser(sessionUser.getUserId());
+            sqlite.cacheRemoteOwnedFiles(sessionUser.getUserId(), remoteOwned);
+        } catch (Exception ignore) {
         }
+        List<FileModel> localOwned = sqlite.getAllOwnedFiles(sessionUser.getUserId());
+        for (FileModel f : localOwned) {
+            f.setOwnerName(sessionUser.getUsername());
+            f.setPermission("owner");
+        }
+        allFiles.addAll(localOwned);
+        try {
+            MySQLDB mysql = new MySQLDB();
+            mysql.testConnection();
+            List<FileModel> shared = mysql.getSharedFilesByUser(sessionUser.getUserId());
+            allFiles.addAll(shared);
+        } catch (Exception ignore) {
+        }
+        fileTable.getItems().setAll(allFiles);
     }
 
     @FXML
@@ -165,21 +169,13 @@ public class FileManagementController {
     @FXML
     private void deleteFile() {
         FileModel selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            dialogue("No File Selected", "Please select a file to delete.");
-            return;
-        }
+        if (selected == null) return;
         if (!dialogue("Delete", "Proceed to delete " + selected.getName() + "?")) {
             return;
         }
-        try {
-            fileService.delete(sessionUser.getUserId(), sessionUser.getUsername(), selected.getId());
-            dialogue("Deleted", "File deleted successfully.");
-            loadFiles();
-        } catch (Exception e) {
-            e.printStackTrace();
-            dialogue("Error", "Failed to delete file.");
-        }
+        SQLiteDB sqlite = new SQLiteDB();
+        sqlite.markPendingDelete(sessionUser.getUserId(), selected.getId());
+        loadFiles();
     }
 
     @FXML

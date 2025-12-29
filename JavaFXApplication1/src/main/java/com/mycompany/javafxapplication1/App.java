@@ -29,6 +29,11 @@ public class App extends Application {
             } catch (Exception e) {
                 mysqlOnline = false;
             }
+            if (cached != null) {
+                FileService fileService = new FileService();
+                SyncManager syncManager = new SyncManager();
+                syncManager.start(cached, fileService);
+            }
             if (!mysqlOnline && cached != null) {
                 openSecondary(stage, cached, true);
                 return;

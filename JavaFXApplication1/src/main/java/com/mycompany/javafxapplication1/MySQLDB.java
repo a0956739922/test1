@@ -40,7 +40,7 @@ public class MySQLDB {
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(
-                "jdbc:mysql://lamp-server:3306/soft40051?useSSL=false",
+                "jdbc:mysql://lamp-server:3306/soft40051?useSSL=false&connectTimeout=2000&socketTimeout=2000&autoReconnect=false",
                 "admin",
                 "GPx5ZPfEG0ek"
         );
@@ -126,12 +126,7 @@ public class MySQLDB {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new User(
-                    rs.getInt("user_id"),
-                    rs.getString("username"),
-                    rs.getString("password_hash"),
-                    rs.getString("role")
-                );
+                return new User(rs.getInt("user_id"), rs.getString("username"), rs.getString("password_hash"), rs.getString("role"));
             }
         }
         return null;
@@ -143,12 +138,7 @@ public class MySQLDB {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new User(
-                    rs.getInt("user_id"),
-                    rs.getString("username"),
-                    rs.getString("password_hash"),
-                    rs.getString("role")
-                );
+                return new User(rs.getInt("user_id"), rs.getString("username"), rs.getString("password_hash"), rs.getString("role"));
             }
         }
         return null;
@@ -197,60 +187,40 @@ public class MySQLDB {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                list.add(new User(
-                    rs.getInt("user_id"),
-                    rs.getString("username"),
-                    rs.getString("password_hash"),
-                    rs.getString("role")
-                ));
+                list.add(new User(rs.getInt("user_id"), rs.getString("username"), rs.getString("password_hash"), rs.getString("role")));
             }
         }
         return list;
     }
     
     public List<FileModel> getAllFilesByUser(int userId) throws Exception {
-        String sql = "SELECT id, owner_user_id, name, logical_path, size_bytes FROM files WHERE owner_user_id = ? AND is_deleted = 0";
+        String sql = "SELECT * FROM files WHERE owner_user_id = ? AND is_deleted = 0";
         List<FileModel> files = new ArrayList<>();
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                files.add(new FileModel(
-                    rs.getInt("id"),
-                    rs.getInt("owner_user_id"),
-                    rs.getString("name"),
-                    rs.getString("logical_path"),
-                    rs.getInt("size_bytes")
-                ));
+                files.add(new FileModel(rs.getInt("id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path")));
             }
         }
         return files;
     }
     
     public List<FileModel> getSharedFilesByUser(int userId) throws Exception {
-        String sql = """
-            SELECT f.id, f.owner_user_id, f.name, f.logical_path, f.size_bytes,
-                   fs.permission, u.username AS owner_name
-            FROM file_shares fs
-            JOIN files f ON fs.file_id = f.id
-            JOIN users u ON f.owner_user_id = u.user_id
-            WHERE fs.target_user_id = ?
-              AND f.is_deleted = 0
-        """;
         List<FileModel> files = new ArrayList<>();
+        String sql = "SELECT f.id, f.owner_user_id, f.name, f.logical_path, "
+                   + "fs.permission, u.username AS owner_name "
+                   + "FROM file_shares fs "
+                   + "JOIN files f ON fs.file_id = f.id "
+                   + "JOIN users u ON f.owner_user_id = u.user_id "
+                   + "WHERE fs.target_user_id = ? AND f.is_deleted = 0";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                FileModel fm = new FileModel(
-                        rs.getInt("id"),
-                        rs.getInt("owner_user_id"),
-                        rs.getString("name"),
-                        rs.getString("logical_path"),
-                        rs.getInt("size_bytes")
-                );
+                FileModel fm = new FileModel(rs.getInt("id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path"));
                 fm.setOwnerName(rs.getString("owner_name"));
                 fm.setPermission(rs.getString("permission"));
                 files.add(fm);

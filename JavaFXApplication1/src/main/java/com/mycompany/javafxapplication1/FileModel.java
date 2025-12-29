@@ -13,16 +13,14 @@ public class FileModel {
     private int ownerUserId;
     private String name;
     private String logicalPath;
-    private int sizeBytes;
     private String ownerName;
     private String permission;
 
-    public FileModel(int id, int ownerUserId, String name, String logicalPath, int sizeBytes) {
+    public FileModel(int id, int ownerUserId, String name, String logicalPath) {
         this.id = id;
         this.ownerUserId = ownerUserId;
         this.name = name;
         this.logicalPath = logicalPath;
-        this.sizeBytes = sizeBytes;
     }
 
     public int getId() {
@@ -39,10 +37,6 @@ public class FileModel {
     
     public String getLogicalPath() {
         return logicalPath; 
-    }
-    
-    public int getSizeBytes() {
-        return sizeBytes; 
     }
     
     public String getOwnerName() {
@@ -67,10 +61,6 @@ public class FileModel {
 
     public void setLogicalPath(String logicalPath) {
         this.logicalPath = logicalPath;
-    }
-
-    public void setSizeBytes(int sizeBytes) {
-        this.sizeBytes = sizeBytes;
     }
     
     public void setOwnerName(String ownerName) {
