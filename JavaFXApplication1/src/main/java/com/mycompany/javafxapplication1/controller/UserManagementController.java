@@ -98,7 +98,6 @@ public class UserManagementController {
         }
         try {
             userService.deleteUser(sessionUser, sessionUser);
-            userService.logout();
             dialogue("Deleted", "Your account has been deleted.");
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
@@ -135,7 +134,6 @@ public class UserManagementController {
             return;
         }
         try {
-            new SQLiteDB().clearSession();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());

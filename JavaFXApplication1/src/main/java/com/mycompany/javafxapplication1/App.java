@@ -20,23 +20,12 @@ public class App extends Application {
         try {
             mqttSubUI = new MqttSubUI();
             mqttSubUI.start();
-            SQLiteDB sqlite = new SQLiteDB();
-            User cached = sqlite.loadSession();
             boolean mysqlOnline = true;
             try {
                 MySQLDB mysql = new MySQLDB();
                 mysql.testConnection();
             } catch (Exception e) {
                 mysqlOnline = false;
-            }
-            if (cached != null) {
-                FileService fileService = new FileService();
-                SyncManager syncManager = new SyncManager();
-                syncManager.start(cached, fileService);
-            }
-            if (!mysqlOnline && cached != null) {
-                openSecondary(stage, cached, true);
-                return;
             }
             FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
             Parent root = loader.load();
@@ -48,20 +37,6 @@ public class App extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void openSecondary(Stage stage, User user, boolean offline) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
-        Parent root = loader.load();
-        SecondaryController controller = loader.getController();
-        controller.initialise(user);
-        Scene scene = new Scene(root, 1000, 700);
-        scene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
-        stage.setScene(scene);
-        String title = "Welcome, " + user.getUsername();
-        if (offline) title += " (Offline Mode)";
-        stage.setTitle(title);
-        stage.show();
     }
 
     public static void main(String[] args) {

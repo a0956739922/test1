@@ -9,7 +9,6 @@ import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
-import com.mycompany.javafxapplication1.SyncService;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
 import java.io.IOException;
@@ -333,7 +332,6 @@ public class FileManagementController {
             return;
         }
         try {
-            new SQLiteDB().clearSession();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());

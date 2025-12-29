@@ -18,7 +18,7 @@ public class MqttSubUI {
 
     private static final String BROKER = "tcp://mqtt-broker:1883";
     private static final String AGG_RES = "/agg/response";
-    private static final String CLIENT_ID = "UIClientSub";
+    private static final String CLIENT_ID = "UIClientSub-" + java.util.UUID.randomUUID();
 
     public static final Map<String, String> RESULTS = new ConcurrentHashMap<>();
 

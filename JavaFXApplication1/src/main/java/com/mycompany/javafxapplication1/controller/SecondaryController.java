@@ -1,6 +1,8 @@
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.SQLiteDB;
+import com.mycompany.javafxapplication1.SyncManager;
 import com.mycompany.javafxapplication1.User;
 import java.io.IOException;
 import java.util.Optional;
@@ -87,7 +89,6 @@ public class SecondaryController {
             return;
         }
         try {
-            new SQLiteDB().clearSession();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
@@ -113,6 +114,13 @@ public class SecondaryController {
         this.sessionUser = user;
         if (!"admin".equals(user.getRole())) {
             advancedPanelBtn.setVisible(false);
+        }
+        try {
+            FileService fileService = new FileService();
+            SyncManager syncManager = new SyncManager();
+            syncManager.start(user, fileService);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     

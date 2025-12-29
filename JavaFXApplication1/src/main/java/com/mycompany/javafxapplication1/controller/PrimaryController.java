@@ -38,7 +38,7 @@ public class PrimaryController {
             e.printStackTrace();
         }
     }
-    
+
     @FXML
     private void switchToSecondary() {
         String username = userTextField.getText();
@@ -49,8 +49,7 @@ public class PrimaryController {
         }
         UserService service = new UserService();
         try {
-            service.login(username, password);
-            User sessionUser = service.getSessionUser();
+            User sessionUser = service.login(username, password);
             Stage stage = (Stage) registerBtn.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
@@ -70,7 +69,7 @@ public class PrimaryController {
             dialogue("Login Failed", "Cannot connect to MySQL.");
         }
     }
-    
+
     private void dialogue(String headerMsg, String contentMsg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
@@ -79,5 +78,4 @@ public class PrimaryController {
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         alert.showAndWait();
     }
-
 }
