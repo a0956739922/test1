@@ -1,10 +1,13 @@
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.FileModel;
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.SyncManager;
 import com.mycompany.javafxapplication1.User;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -117,6 +120,13 @@ public class SecondaryController {
         }
         try {
             FileService fileService = new FileService();
+            SQLiteDB sqlite = new SQLiteDB();
+            try {
+                MySQLDB mysql = new MySQLDB();
+                List<FileModel> remoteFiles = mysql.getAllFilesByUser(user.getUserId());
+                sqlite.cacheRemoteOwnedFiles(user.getUserId(), remoteFiles);
+            } catch (Exception ignore) {
+            }
             SyncManager syncManager = new SyncManager();
             syncManager.start(user, fileService);
         } catch (Exception e) {

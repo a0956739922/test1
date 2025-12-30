@@ -97,27 +97,9 @@ public class FileManagementController {
     }
     
     private void loadFiles() {
-        List<FileModel> allFiles = new ArrayList<>();
         SQLiteDB sqlite = new SQLiteDB();
-        try {
-            MySQLDB mysql = new MySQLDB();
-            mysql.testConnection();
-            List<FileModel> remoteOwned = mysql.getAllFilesByUser(sessionUser.getUserId());
-            sqlite.cacheRemoteOwnedFiles(sessionUser.getUserId(), remoteOwned);
-        } catch (Exception ignore) {}
-        List<FileModel> localOwned = sqlite.getAllOwnedFiles(sessionUser.getUserId());
-        for (FileModel f : localOwned) {
-            f.setOwnerName(sessionUser.getUsername());
-            f.setPermission("owner");
-        }
-        allFiles.addAll(localOwned);
-        try {
-            MySQLDB mysql = new MySQLDB();
-            mysql.testConnection();
-            List<FileModel> shared = mysql.getSharedFilesByUser(sessionUser.getUserId());
-            allFiles.addAll(shared);
-        } catch (Exception ignore) {}
-        fileTable.getItems().setAll(allFiles);
+        List<FileModel> files = sqlite.getAllOwnedFiles(sessionUser.getUserId());
+        fileTable.getItems().setAll(files);
     }
 
     @FXML

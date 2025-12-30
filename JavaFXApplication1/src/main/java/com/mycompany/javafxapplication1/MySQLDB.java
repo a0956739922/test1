@@ -194,30 +194,24 @@ public class MySQLDB {
     }
     
     public List<FileModel> getAllFilesByUser(int userId) throws Exception {
-        String sql = "SELECT * FROM files WHERE owner_user_id = ? AND is_deleted = 0";
         List<FileModel> files = new ArrayList<>();
+        String sql =
+            "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
+            "'owner' AS permission, u.username AS owner_name " +
+            "FROM files f " +
+            "JOIN users u ON f.owner_user_id = u.user_id " +
+            "WHERE f.owner_user_id = ? AND f.is_deleted = 0 " +
+            "UNION ALL " +
+            "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
+            "fs.permission, u.username AS owner_name " +
+            "FROM file_shares fs " +
+            "JOIN files f ON fs.file_id = f.id " +
+            "JOIN users u ON f.owner_user_id = u.user_id " +
+            "WHERE fs.target_user_id = ? AND f.is_deleted = 0";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                files.add(new FileModel(rs.getInt("id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path")));
-            }
-        }
-        return files;
-    }
-    
-    public List<FileModel> getSharedFilesByUser(int userId) throws Exception {
-        List<FileModel> files = new ArrayList<>();
-        String sql = "SELECT f.id, f.owner_user_id, f.name, f.logical_path, "
-                   + "fs.permission, u.username AS owner_name "
-                   + "FROM file_shares fs "
-                   + "JOIN files f ON fs.file_id = f.id "
-                   + "JOIN users u ON f.owner_user_id = u.user_id "
-                   + "WHERE fs.target_user_id = ? AND f.is_deleted = 0";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
+            stmt.setInt(2, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 FileModel fm = new FileModel(rs.getInt("id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path"));

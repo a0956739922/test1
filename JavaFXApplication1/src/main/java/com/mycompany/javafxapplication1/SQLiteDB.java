@@ -29,8 +29,10 @@ public class SQLiteDB {
                 "local_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "remote_file_id INTEGER, " +
                 "owner_user_id INTEGER NOT NULL, " +
+                "username TEXT NOT NULL, " +
                 "name TEXT NOT NULL, " +
                 "logical_path TEXT NOT NULL, " +
+                "permission TEXT NOT NULL, " +
                 "content TEXT, " +
                 "sync_state TEXT NOT NULL, " +
                 "updated_at TEXT" +
@@ -46,13 +48,16 @@ public class SQLiteDB {
 
     public List<FileModel> getAllOwnedFiles(int userId) {
         List<FileModel> files = new ArrayList<>();
-        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state != 'PENDING_DELETE' AND sync_state != 'SENDING_DELETE' ORDER BY updated_at DESC";
+        String sql =" SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state != 'PENDING_DELETE' AND sync_state != 'SENDING_DELETE' ORDER BY updated_at DESC";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                files.add(new FileModel(rs.getInt("remote_file_id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path")));
+                FileModel fm = new FileModel(rs.getInt("remote_file_id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path"));
+                fm.setPermission(rs.getString("permission"));
+                fm.setOwnerName(rs.getString("username"));
+                files.add(fm);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,10 +68,11 @@ public class SQLiteDB {
     public void cacheRemoteOwnedFiles(int userId, List<FileModel> remoteFiles) {
         String selectSql = "SELECT sync_state FROM local_files WHERE remote_file_id = ? AND owner_user_id = ?";
         String insertSql =
-                "INSERT INTO local_files (remote_file_id, owner_user_id, name, logical_path, sync_state, updated_at) " +
-                "VALUES (?, ?, ?, ?, 'SYNCED', datetime('now'))";
+                "INSERT INTO local_files " +
+                "(remote_file_id, owner_user_id, name, logical_path, permission, username, sync_state, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, 'SYNCED', datetime('now'))";
         String updateSql =
-                "UPDATE local_files SET name = ?, logical_path = ?, updated_at = datetime('now') " +
+                "UPDATE local_files SET name = ?, logical_path = ?, permission = ?, username = ?, updated_at = datetime('now') " +
                 "WHERE remote_file_id = ? AND owner_user_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl)) {
             for (FileModel f : remoteFiles) {
@@ -82,8 +88,10 @@ public class SQLiteDB {
                     PreparedStatement update = conn.prepareStatement(updateSql);
                     update.setString(1, f.getName());
                     update.setString(2, f.getLogicalPath());
-                    update.setInt(3, f.getId());
-                    update.setInt(4, userId);
+                    update.setString(3, f.getPermission());
+                    update.setString(4, f.getOwnerName());
+                    update.setInt(5, f.getId());
+                    update.setInt(6, userId);
                     update.executeUpdate();
                 } else {
                     PreparedStatement insert = conn.prepareStatement(insertSql);
@@ -91,6 +99,8 @@ public class SQLiteDB {
                     insert.setInt(2, userId);
                     insert.setString(3, f.getName());
                     insert.setString(4, f.getLogicalPath());
+                    insert.setString(5, f.getPermission());
+                    insert.setString(6, f.getOwnerName());
                     insert.executeUpdate();
                 }
             }
