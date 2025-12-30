@@ -11,7 +11,6 @@ com/mycompany/javafxapplication1/controller/ViewFileController.class
 com/mycompany/javafxapplication1/controller/AdvancedUserManagementController.class
 com/mycompany/javafxapplication1/FileService.class
 com/mycompany/javafxapplication1/SyncService.class
-com/mycompany/javafxapplication1/SyncManager.class
 com/mycompany/javafxapplication1/SQLiteDB.class
 com/mycompany/javafxapplication1/controller/UploadFileController.class
 com/mycompany/javafxapplication1/MqttSubUI.class

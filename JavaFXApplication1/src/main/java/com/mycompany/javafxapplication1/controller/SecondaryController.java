@@ -1,10 +1,9 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileModel;
-import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
-import com.mycompany.javafxapplication1.SyncManager;
+import com.mycompany.javafxapplication1.SyncService;
 import com.mycompany.javafxapplication1.User;
 import java.io.IOException;
 import java.util.List;
@@ -35,6 +34,7 @@ public class SecondaryController {
     private Button logoutBtn;
     
     private User sessionUser;
+    private SyncService syncService;
 
     @FXML
     private void openUserManagement() {
@@ -117,20 +117,6 @@ public class SecondaryController {
         this.sessionUser = user;
         if (!"admin".equals(user.getRole())) {
             advancedPanelBtn.setVisible(false);
-        }
-        try {
-            FileService fileService = new FileService();
-            SQLiteDB sqlite = new SQLiteDB();
-            try {
-                MySQLDB mysql = new MySQLDB();
-                List<FileModel> remoteFiles = mysql.getAllFilesByUser(user.getUserId());
-                sqlite.cacheRemoteOwnedFiles(user.getUserId(), remoteFiles);
-            } catch (Exception ignore) {
-            }
-            SyncManager syncManager = new SyncManager();
-            syncManager.start(user, fileService);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
     

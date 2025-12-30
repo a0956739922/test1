@@ -4,28 +4,43 @@
  */
 package com.mycompany.javafxapplication1;
 
-import java.util.List;
-
 /**
  *
  * @author ntu-user
  */
-public class SyncService {
+public class SyncService extends Thread {
 
-    private final SQLiteDB sqlite;
+    private final User user;
     private final FileService fileService;
 
-    public SyncService(SQLiteDB sqlite, FileService fileService) {
-        this.sqlite = sqlite;
+    public SyncService(User user, FileService fileService) {
+        this.user = user;
         this.fileService = fileService;
     }
 
-    public void syncDeletes(int userId, String username) {
-        List<Integer> pending = sqlite.getPendingDeleteId(userId);
-        for (int fileId : pending) {
+    @Override
+    public void run() {
+        while (true) {
+            boolean online = false;
             try {
-                fileService.delete(userId, username, fileId);
-                sqlite.markSendingDelete(userId, fileId);
+                new MySQLDB().testConnection();
+                online = true;
+            } catch (Exception e) {}
+            if (online) {
+                syncDeletes();
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (Exception e) {}
+        }
+    }
+
+    private void syncDeletes() {
+        SQLiteDB sqlite = new SQLiteDB();
+        for (int fileId : sqlite.getPendingId(user.getUserId())) {
+            try {
+                fileService.delete(user.getUserId(), user.getUsername(), fileId);
+                sqlite.clearPending(user.getUserId(), fileId);
             } catch (Exception e) {
             }
         }
