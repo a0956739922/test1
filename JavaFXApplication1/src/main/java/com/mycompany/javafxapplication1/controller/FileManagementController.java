@@ -48,6 +48,9 @@ public class FileManagementController {
 
     @FXML
     private TableColumn<FileModel, String> colPermission;
+    
+    @FXML
+    private TableColumn<FileModel, String> colShareTo;
 
     @FXML
     private Button createBtn;
@@ -83,6 +86,7 @@ public class FileManagementController {
         colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
         colOwner.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
+        colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
         loadFiles();
         fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
         fileTable.setRowFactory(tv -> {

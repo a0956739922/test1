@@ -197,13 +197,18 @@ public class MySQLDB {
         List<FileModel> files = new ArrayList<>();
         String sql =
             "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
-            "'owner' AS permission, u.username AS owner_name " +
+            "'owner' AS permission, u.username AS owner_name, " +
+            "GROUP_CONCAT(u2.username) AS share_to " +
             "FROM files f " +
             "JOIN users u ON f.owner_user_id = u.user_id " +
+            "LEFT JOIN file_shares fs2 ON fs2.file_id = f.id " +
+            "LEFT JOIN users u2 ON fs2.target_user_id = u2.user_id " +
             "WHERE f.owner_user_id = ? AND f.is_deleted = 0 " +
+            "GROUP BY f.id " +
             "UNION ALL " +
             "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
-            "fs.permission, u.username AS owner_name " +
+            "fs.permission, u.username AS owner_name, " +
+            "'' AS share_to " +
             "FROM file_shares fs " +
             "JOIN files f ON fs.file_id = f.id " +
             "JOIN users u ON f.owner_user_id = u.user_id " +
@@ -214,9 +219,15 @@ public class MySQLDB {
             stmt.setInt(2, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                FileModel fm = new FileModel(rs.getInt("id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path"));
+                FileModel fm = new FileModel(
+                    rs.getInt("id"),
+                    rs.getInt("owner_user_id"),
+                    rs.getString("name"),
+                    rs.getString("logical_path")
+                );
                 fm.setOwnerName(rs.getString("owner_name"));
                 fm.setPermission(rs.getString("permission"));
+                fm.setSharedTo(rs.getString("share_to"));
                 files.add(fm);
             }
         }

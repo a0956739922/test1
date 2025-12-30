@@ -15,6 +15,7 @@ public class FileModel {
     private String logicalPath;
     private String ownerName;
     private String permission;
+    private String sharedTo;
 
     public FileModel(int id, int ownerUserId, String name, String logicalPath) {
         this.id = id;
@@ -47,6 +48,10 @@ public class FileModel {
         return permission;
     }
     
+    public String getSharedTo() {
+        return sharedTo;
+    }
+    
     public void setId(int id) {
         this.id = id;
     }
@@ -69,6 +74,10 @@ public class FileModel {
 
     public void setPermission(String permission) {
         this.permission = permission;
+    }
+    
+    public void setSharedTo(String sharedTo) {
+        this.sharedTo = sharedTo;
     }
 
 }

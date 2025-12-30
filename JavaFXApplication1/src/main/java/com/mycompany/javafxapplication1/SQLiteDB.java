@@ -33,6 +33,7 @@ public class SQLiteDB {
                 "name TEXT NOT NULL, " +
                 "logical_path TEXT NOT NULL, " +
                 "permission TEXT NOT NULL, " +
+                "share_to TEXT NOT NULL, " +
                 "content TEXT, " +
                 "sync_state TEXT NOT NULL, " +
                 "updated_at TEXT" +
@@ -57,6 +58,7 @@ public class SQLiteDB {
                 FileModel fm = new FileModel(rs.getInt("remote_file_id"), rs.getInt("owner_user_id"), rs.getString("name"), rs.getString("logical_path"));
                 fm.setPermission(rs.getString("permission"));
                 fm.setOwnerName(rs.getString("username"));
+                fm.setSharedTo(rs.getString("share_to"));
                 files.add(fm);
             }
         } catch (Exception e) {
@@ -69,10 +71,10 @@ public class SQLiteDB {
         String selectSql = "SELECT sync_state FROM local_files WHERE remote_file_id = ? AND owner_user_id = ?";
         String insertSql =
                 "INSERT INTO local_files " +
-                "(remote_file_id, owner_user_id, name, logical_path, permission, username, sync_state, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, 'SYNCED', datetime('now'))";
+                "(remote_file_id, owner_user_id, name, logical_path, permission, username, share_to, sync_state, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, 'SYNCED', datetime('now'))";
         String updateSql =
-                "UPDATE local_files SET name = ?, logical_path = ?, permission = ?, username = ?, updated_at = datetime('now') " +
+                "UPDATE local_files SET name = ?, logical_path = ?, permission = ?, username = ?, share_to = ?, updated_at = datetime('now') " +
                 "WHERE remote_file_id = ? AND owner_user_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl)) {
             for (FileModel f : remoteFiles) {
@@ -90,8 +92,9 @@ public class SQLiteDB {
                     update.setString(2, f.getLogicalPath());
                     update.setString(3, f.getPermission());
                     update.setString(4, f.getOwnerName());
-                    update.setInt(5, f.getId());
-                    update.setInt(6, userId);
+                    update.setString(5, f.getSharedTo());
+                    update.setInt(6, f.getId());
+                    update.setInt(7, userId);
                     update.executeUpdate();
                 } else {
                     PreparedStatement insert = conn.prepareStatement(insertSql);
@@ -101,6 +104,7 @@ public class SQLiteDB {
                     insert.setString(4, f.getLogicalPath());
                     insert.setString(5, f.getPermission());
                     insert.setString(6, f.getOwnerName());
+                    insert.setString(7, f.getSharedTo());
                     insert.executeUpdate();
                 }
             }
