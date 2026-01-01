@@ -13,12 +13,15 @@ import java.io.IOException;
 public class App extends Application {
     
     private MqttSubUI mqttSubUI;
+    private SyncService syncService;
     
     @Override
     public void start(Stage stage) throws IOException {
         try {
             mqttSubUI = new MqttSubUI();
             mqttSubUI.start();
+            syncService = new SyncService();
+            syncService.start();
             boolean mysqlOnline = true;
             try {
                 MySQLDB mysql = new MySQLDB();

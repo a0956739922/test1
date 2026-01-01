@@ -5,6 +5,7 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.util.Optional;
 import javafx.fxml.FXML;
@@ -43,7 +44,6 @@ public class CreateFileController {
                 dialogue("Missing Fields", "Name and Path cannot be empty.");
                 return;
             }
-            fileService.create(sessionUser.getUserId(), sessionUser.getUsername(), fileName, logicalPath, content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

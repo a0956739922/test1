@@ -51,8 +51,7 @@ public class MqttSubUI {
                         RESULTS.put(reqId, payload);
                         if ("delete".equals(action) && "ok".equals(status)) {
                             int fileId = res.getInt("fileId");
-                            SQLiteDB sqlite = new SQLiteDB();
-                            sqlite.finalizeDelete(fileId);
+                            new SQLiteDB().finalizeDelete(fileId);
                             System.out.println("[UI] finalize delete fileId=" + fileId);
                         }
                     } catch (Exception e) {

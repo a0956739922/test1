@@ -10,39 +10,42 @@ package com.mycompany.javafxapplication1;
  */
 public class SyncService extends Thread {
 
-    private final User user;
-    private final FileService fileService;
-
-    public SyncService(User user, FileService fileService) {
-        this.user = user;
-        this.fileService = fileService;
-    }
+    private final FileService fileService = new FileService();
+    private final SQLiteDB sqlite = new SQLiteDB();
 
     @Override
     public void run() {
+        sqlite.resetSendingDelete();
         while (true) {
-            boolean online = false;
+            syncDeletes();
             try {
-                new MySQLDB().testConnection();
-                online = true;
-            } catch (Exception e) {}
-            if (online) {
-                syncDeletes();
-            }
-            try {
-                Thread.sleep(5000);
-            } catch (Exception e) {}
-        }
-    }
-
-    private void syncDeletes() {
-        SQLiteDB sqlite = new SQLiteDB();
-        for (int fileId : sqlite.getPendingId(user.getUserId())) {
-            try {
-                fileService.delete(user.getUserId(), user.getUsername(), fileId);
-                sqlite.clearPending(user.getUserId(), fileId);
+                Thread.sleep(3000);
             } catch (Exception e) {
             }
         }
     }
+
+    private void syncDeletes() {
+        if (!isOnline()) return;
+        for (int userId : sqlite.getUsersWithPendingDelete()) {
+            String username = sqlite.getUsernameByUserId(userId);
+            for (int fileId : sqlite.getPendingDeleteId(userId)) {
+                sqlite.markSendingDelete(userId, fileId);
+                try {
+                    fileService.delete(userId, username, fileId);
+                } catch (Exception e) {
+                }
+            }
+        }
+    }
+    
+    private boolean isOnline() {
+        try {
+            new MySQLDB().testConnection();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
 }

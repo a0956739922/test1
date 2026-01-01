@@ -1,10 +1,8 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileModel;
-import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
-import com.mycompany.javafxapplication1.SyncService;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
 import java.util.List;
@@ -30,8 +28,6 @@ public class PrimaryController {
     @FXML
     private PasswordField passPasswordField;
     
-    private SyncService syncService;
-
     @FXML
     private void registerBtnHandler(ActionEvent event) {
         try {
@@ -64,10 +60,6 @@ public class PrimaryController {
                 List<FileModel> remoteFiles = mysql.getAllFilesByUser(sessionUser.getUserId());
                 sqlite.cacheRemoteOwnedFiles(sessionUser.getUserId(), remoteFiles);
             } catch (Exception e) {
-            }
-            if (syncService == null) {
-                syncService = new SyncService(sessionUser, new FileService());
-                syncService.start();
             }
             Stage stage = (Stage) registerBtn.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));

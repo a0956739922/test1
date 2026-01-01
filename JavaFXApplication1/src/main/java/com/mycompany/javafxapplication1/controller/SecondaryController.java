@@ -1,12 +1,7 @@
 package com.mycompany.javafxapplication1.controller;
 
-import com.mycompany.javafxapplication1.FileModel;
-import com.mycompany.javafxapplication1.MySQLDB;
-import com.mycompany.javafxapplication1.SQLiteDB;
-import com.mycompany.javafxapplication1.SyncService;
 import com.mycompany.javafxapplication1.User;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -34,8 +29,7 @@ public class SecondaryController {
     private Button logoutBtn;
     
     private User sessionUser;
-    private SyncService syncService;
-
+    
     @FXML
     private void openUserManagement() {
         try {

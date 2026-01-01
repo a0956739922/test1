@@ -122,6 +122,26 @@ public class FileManagementController {
             e.printStackTrace();
         }
     }
+    
+    @FXML
+    private void uploadFile() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/uploadFile.fxml"));
+            Parent root = loader.load();
+            UploadFileController controller = loader.getController();
+            controller.initialise(sessionUser, fileService);
+            Stage stage = new Stage();
+            stage.setTitle("Upload File");
+            Scene scene = new Scene(root, 600, 450);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
+            stage.showAndWait();
+            loadFiles();
+        } catch (Exception e) {
+            e.printStackTrace();
+            dialogue("Error", "Failed to open upload window.");
+        }
+    }
 
     @FXML
     private void updateFile() {
@@ -157,26 +177,6 @@ public class FileManagementController {
         SQLiteDB sqlite = new SQLiteDB();
         sqlite.markPendingDelete(sessionUser.getUserId(), selected.getId());
         loadFiles();
-    }
-
-    @FXML
-    private void uploadFile() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/uploadFile.fxml"));
-            Parent root = loader.load();
-            UploadFileController controller = loader.getController();
-            controller.initialise(sessionUser, fileService);
-            Stage stage = new Stage();
-            stage.setTitle("Upload File");
-            Scene scene = new Scene(root, 600, 450);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
-            stage.setScene(scene);
-            stage.showAndWait();
-            loadFiles();
-        } catch (Exception e) {
-            e.printStackTrace();
-            dialogue("Error", "Failed to open upload window.");
-        }
     }
 
     @FXML
