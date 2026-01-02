@@ -46,7 +46,7 @@ public class UpdateFileController {
         pathField.setDisable(true);
         contentArea.setDisable(true);
 
-        loadContentAsync(file.getId());
+        loadContentAsync(file.getRemoteId());
     }
 
     @FXML
@@ -90,7 +90,7 @@ public class UpdateFileController {
             fileService.update(
                     sessionUser.getUserId(),
                     sessionUser.getUsername(),
-                    originalFile.getId(),
+                    originalFile.getRemoteId(),
                     newName,
                     newPath,
                     content

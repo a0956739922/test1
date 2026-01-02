@@ -9,23 +9,34 @@ package com.mycompany.javafxapplication1;
  * @author ntu-user
  */
 public class FileModel {
-    private int id;
+    private Integer localId;
+    private Integer remoteId;
+    private String reqId;
     private int ownerUserId;
     private String name;
     private String logicalPath;
     private String ownerName;
     private String permission;
+    private String content;
     private String sharedTo;
 
-    public FileModel(int id, int ownerUserId, String name, String logicalPath) {
-        this.id = id;
+    public FileModel(Integer remoteId, int ownerUserId, String name, String logicalPath) {
+        this.remoteId = remoteId;
         this.ownerUserId = ownerUserId;
         this.name = name;
         this.logicalPath = logicalPath;
     }
+    
+    public Integer getLocalId() {
+        return localId;
+    }
 
-    public int getId() {
-        return id;
+    public Integer getRemoteId() {
+        return remoteId;
+    }
+    
+    public String getReqId() {
+        return reqId;
     }
     
     public int getOwnerUserId() {
@@ -48,12 +59,24 @@ public class FileModel {
         return permission;
     }
     
+    public String getContent() {
+        return content;
+    }
+    
     public String getSharedTo() {
         return sharedTo;
     }
     
-    public void setId(int id) {
-        this.id = id;
+    public void setLocalId(Integer localId) {
+        this.localId = localId;
+    }
+    
+    public void setRemoteId(Integer remoteId) {
+        this.remoteId = remoteId;
+    }
+    
+    public void setReqId(String reqId) {
+        this.reqId = reqId;
     }
 
     public void setOwnerUserId(int ownerUserId) {
@@ -74,6 +97,10 @@ public class FileModel {
 
     public void setPermission(String permission) {
         this.permission = permission;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
     }
     
     public void setSharedTo(String sharedTo) {

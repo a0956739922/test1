@@ -30,6 +30,7 @@ public class SQLiteDB {
                 = "CREATE TABLE IF NOT EXISTS local_files (" 
                 + "local_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "remote_file_id INTEGER, "
+                + "req_id TEXT, "
                 + "owner_user_id INTEGER NOT NULL, "
                 + "username TEXT NOT NULL, "
                 + "name TEXT NOT NULL, "
@@ -53,18 +54,20 @@ public class SQLiteDB {
         List<FileModel> files = new ArrayList<>();
         String sql 
                 = "SELECT * FROM local_files "
-                + "WHERE owner_user_id = ? AND sync_state = 'SYNCED' AND deleted = 0 ORDER BY updated_at DESC";
+                + "WHERE owner_user_id = ? AND deleted = 0 ORDER BY updated_at DESC";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
+            Integer remoteId = rs.getObject("remote_file_id") == null ? null : rs.getInt("remote_file_id");
             while (rs.next()) {
                 FileModel fm = new FileModel(
-                    rs.getInt("remote_file_id"),
+                    remoteId,
                     rs.getInt("owner_user_id"),
                     rs.getString("name"),
                     rs.getString("logical_path")
                 );
+                fm.setLocalId(rs.getInt("local_id"));
                 fm.setPermission(rs.getString("permission"));
                 fm.setOwnerName(rs.getString("username"));
                 fm.setSharedTo(rs.getString("share_to"));
@@ -77,19 +80,19 @@ public class SQLiteDB {
     }
 
     public void cacheRemoteOwnedFiles(int userId, List<FileModel> remoteFiles) {
-        String selectSql =
-                "SELECT sync_state, deleted FROM local_files " +
-                "WHERE remote_file_id = ? AND owner_user_id = ?";
-        String insertSql =
-                "INSERT INTO local_files (remote_file_id, owner_user_id, name, logical_path, permission, username, share_to, sync_state, deleted, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, 'SYNCED', 0, datetime('now'))";
-        String updateSql =
-                "UPDATE local_files SET name = ?, logical_path = ?, permission = ?, username = ?, share_to = ?, updated_at = datetime('now') " +
-                "WHERE remote_file_id = ? AND owner_user_id = ?";
+        String selectSql 
+                = "SELECT sync_state, deleted FROM local_files "
+                + "WHERE remote_file_id = ? AND owner_user_id = ?";
+        String insertSql 
+                = "INSERT INTO local_files (remote_file_id, owner_user_id, name, logical_path, permission, username, share_to, sync_state, deleted, updated_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, 'SYNCED', 0, datetime('now'))";
+        String updateSql 
+                = "UPDATE local_files SET name = ?, logical_path = ?, permission = ?, username = ?, share_to = ?, updated_at = datetime('now') "
+                + "WHERE remote_file_id = ? AND owner_user_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl)) {
             for (FileModel file : remoteFiles) {
                 try (PreparedStatement check = conn.prepareStatement(selectSql)) {
-                    check.setInt(1, file.getId());
+                    check.setInt(1, file.getRemoteId());
                     check.setInt(2, userId);
                     try (ResultSet rs = check.executeQuery()) {
                         if (rs.next()) {
@@ -103,13 +106,13 @@ public class SQLiteDB {
                                 update.setString(3, file.getPermission());
                                 update.setString(4, file.getOwnerName());
                                 update.setString(5, file.getSharedTo());
-                                update.setInt(6, file.getId());
+                                update.setInt(6, file.getRemoteId());
                                 update.setInt(7, userId);
                                 update.executeUpdate();
                             }
                         } else {
                             try (PreparedStatement insert = conn.prepareStatement(insertSql)) {
-                                insert.setInt(1, file.getId());
+                                insert.setInt(1, file.getRemoteId());
                                 insert.setInt(2, userId);
                                 insert.setString(3, file.getName());
                                 insert.setString(4, file.getLogicalPath());
@@ -127,7 +130,7 @@ public class SQLiteDB {
         }
     }
 
-    public String getUsernameByUserId(int userId) {
+    public String getUsername(int userId) {
         String sql
                 = "SELECT username FROM local_files "
                 + "WHERE owner_user_id = ? LIMIT 1";
@@ -144,10 +147,27 @@ public class SQLiteDB {
         return "UNKNOWN";
     }
     
-    public List<Integer> getUsersWithPendingDelete() {
+    public List<Integer> getPendingCreateUser() {
         List<Integer> userIds = new ArrayList<>();
         String sql
                 = "SELECT DISTINCT owner_user_id FROM local_files "
+                + "WHERE sync_state = 'PENDING_CREATE'";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                userIds.add(rs.getInt("owner_user_id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return userIds;
+    }
+    
+    public List<Integer> getPendingDeleteUser() {
+        List<Integer> userIds = new ArrayList<>();
+        String sql
+                = "SELECT owner_user_id FROM local_files "
                 + "WHERE sync_state = 'PENDING_DELETE'";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -159,6 +179,76 @@ public class SQLiteDB {
             e.printStackTrace();
         }
         return userIds;
+    }
+    
+    public void markPendingCreate(int userId, String username, String reqId, String name, String logicalPath, String permission, String content) {
+        String sql
+                = "INSERT INTO local_files "
+                + "(req_id, remote_file_id, owner_user_id, username, name, logical_path, permission, share_to, content, sync_state, deleted, updated_at) "
+                + "VALUES (?, NULL, ?, ?, ?, ?, ?, NULL, ?, 'PENDING_CREATE', 0, datetime('now'))";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, reqId);
+            stmt.setInt(2, userId);
+            stmt.setString(3, username);
+            stmt.setString(4, name);
+            stmt.setString(5, logicalPath);
+            stmt.setString(6, permission);
+            stmt.setString(7, content);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public List<FileModel> getPendingCreate(int userId) {
+        List<FileModel> files = new ArrayList<>();
+        String sql
+                = "SELECT * FROM local_files "
+                + "WHERE owner_user_id = ? AND sync_state = 'PENDING_CREATE'";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                FileModel fm = new FileModel(null, userId, rs.getString("name"), rs.getString("logical_path"));
+                fm.setLocalId(rs.getInt("local_id"));
+                fm.setReqId(rs.getString("req_id"));
+                fm.setPermission(rs.getString("permission"));
+                fm.setOwnerName(rs.getString("username"));
+                fm.setSharedTo(rs.getString("share_to"));
+                fm.setContent(rs.getString("content"));
+                files.add(fm);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return files;
+    }
+    
+    public void markSendingCreate(String reqId) {
+        String sql
+                = "UPDATE local_files SET sync_state = 'CREATING' "
+                + "WHERE req_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, reqId);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void resetSendingCreate() {
+        String sql 
+                = "UPDATE local_files SET sync_state = 'PENDING_CREATE' "
+                + "WHERE sync_state = 'CREATING'";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void markPendingDelete(int userId, int fileId) {
@@ -173,6 +263,24 @@ public class SQLiteDB {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    public List<Integer> getPendingDelete(int userId) {
+        List<Integer> fileIds = new ArrayList<>();
+        String sql 
+                = "SELECT remote_file_id FROM local_files "
+                + "WHERE owner_user_id = ? AND sync_state = 'PENDING_DELETE'";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                fileIds.add(rs.getInt("remote_file_id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileIds;
     }
     
     public void markSendingDelete(int userId, int fileId) {
@@ -214,6 +322,17 @@ public class SQLiteDB {
             e.printStackTrace();
         }
     }
+    
+    public void deletePendingCreate(int fileId) {
+        String sql = "DELETE FROM local_files WHERE local_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, fileId);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public void finalizeDelete(int fileId) {
         String sql = "DELETE FROM local_files WHERE remote_file_id = ?";
@@ -225,23 +344,19 @@ public class SQLiteDB {
             e.printStackTrace();
         }
     }
-
-    public List<Integer> getPendingDeleteId(int userId) {
-        List<Integer> fileIds = new ArrayList<>();
-        String sql 
-                = "SELECT remote_file_id FROM local_files "
-                + "WHERE owner_user_id = ? AND sync_state = 'PENDING_DELETE'";
+    
+    public void finalizeCreate(String reqId, int remoteFileId) {
+        String sql
+                = "UPDATE local_files SET remote_file_id = ?, sync_state = 'SYNCED', req_id = NULL, content = NULL, updated_at = datetime('now') "
+                + "WHERE req_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                fileIds.add(rs.getInt("remote_file_id"));
-            }
+            stmt.setInt(1, remoteFileId);
+            stmt.setString(2, reqId);
+            stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return fileIds;
     }
     
 }

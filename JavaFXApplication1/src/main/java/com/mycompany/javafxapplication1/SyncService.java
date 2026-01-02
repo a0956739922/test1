@@ -16,8 +16,10 @@ public class SyncService extends Thread {
     @Override
     public void run() {
         sqlite.resetSendingDelete();
+        sqlite.resetSendingCreate();
         while (true) {
             syncDeletes();
+            syncCreates();
             try {
                 Thread.sleep(3000);
             } catch (Exception e) {
@@ -27,12 +29,26 @@ public class SyncService extends Thread {
 
     private void syncDeletes() {
         if (!isOnline()) return;
-        for (int userId : sqlite.getUsersWithPendingDelete()) {
-            String username = sqlite.getUsernameByUserId(userId);
-            for (int fileId : sqlite.getPendingDeleteId(userId)) {
+        for (int userId : sqlite.getPendingDeleteUser()) {
+            String username = sqlite.getUsername(userId);
+            for (int fileId : sqlite.getPendingDelete(userId)) {
                 sqlite.markSendingDelete(userId, fileId);
                 try {
                     fileService.delete(userId, username, fileId);
+                } catch (Exception e) {
+                }
+            }
+        }
+    }
+    
+    private void syncCreates() {
+        if (!isOnline()) return;
+        for (int userId : sqlite.getPendingCreateUser()) {
+            String username = sqlite.getUsername(userId);
+            for (FileModel fm : sqlite.getPendingCreate(userId)) {
+                sqlite.markSendingCreate(fm.getReqId());
+                try {
+                    fileService.create(fm.getReqId(), userId, username, fm.getName(), fm.getLogicalPath(), fm.getContent());
                 } catch (Exception e) {
                 }
             }
@@ -47,5 +63,4 @@ public class SyncService extends Thread {
             return false;
         }
     }
-    
 }

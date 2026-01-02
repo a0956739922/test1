@@ -23,9 +23,8 @@ public class FileService {
     private final int REMOTE_PORT = 22;
     private MySQLDB remote = new MySQLDB();
     
-    public String create(Integer userId, String username, String fileName, String logicalPath, String content) throws Exception {
+    public String create(String reqId, Integer userId, String username, String fileName, String logicalPath, String content) throws Exception {
         remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName + ", logicalPath=" + logicalPath);
-        String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "create")

@@ -175,7 +175,11 @@ public class FileManagementController {
             return;
         }
         SQLiteDB sqlite = new SQLiteDB();
-        sqlite.markPendingDelete(sessionUser.getUserId(), selected.getId());
+        if (selected.getRemoteId() == null) {
+            sqlite.deletePendingCreate(selected.getLocalId());
+        } else {
+            sqlite.markPendingDelete(sessionUser.getUserId(), selected.getRemoteId());
+        }
         loadFiles();
     }
 
@@ -196,7 +200,7 @@ public class FileManagementController {
         File file = chooser.showSaveDialog(stage);
         if (file == null) return;
         try {
-            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getId());
+            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteId());
             new Thread(() -> {
                 try {
                     String resultJson = null;
@@ -229,7 +233,7 @@ public class FileManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
             Parent root = loader.load();
             ShareFileController controller = loader.getController();
-            controller.initialise(sessionUser, fileService, selected.getId());
+            controller.initialise(sessionUser, fileService, selected.getRemoteId());
             Stage stage = new Stage();
             stage.setTitle("Share File");
             Scene scene = new Scene(root, 480, 300);
@@ -280,7 +284,7 @@ public class FileManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/viewFile.fxml"));
             Parent root = loader.load();
             ViewFileController controller = loader.getController();
-            controller.initialise(fileService, selected.getId());
+            controller.initialise(fileService, selected.getRemoteId());
             Stage stage = new Stage();
             stage.setTitle("View File: " + selected.getName());
             Scene scene = new Scene(root, 800, 600);
