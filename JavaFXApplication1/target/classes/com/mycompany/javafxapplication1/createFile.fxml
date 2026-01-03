@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.CreateFileController"
+            style="-fx-padding: 30;">
+
+    <top>
+        <Label text="Create New File"
+               styleClass="title"
+               BorderPane.alignment="CENTER"/>
+    </top>
+
+    <center>
+        <VBox spacing="16" maxWidth="480">
+            <Label text="File Name:"/>
+            <TextField fx:id="nameField"/>
+
+            <Label text="File Path:"/>
+            <TextField fx:id="pathField"/>
+
+            <Label text="Content:"/>
+            <TextArea fx:id="contentArea"
+                      VBox.vgrow="ALWAYS"
+                      wrapText="true"/>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox alignment="CENTER">
+            <HBox spacing="16"
+                  alignment="CENTER_RIGHT"
+                  maxWidth="480">
+
+                <Button text="Cancel"
+                        prefWidth="140"
+                        onAction="#closeWindow"/>
+
+                <Button text="Create"
+                        prefWidth="140"
+                        styleClass="primary"
+                        onAction="#createFile"/>
+
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

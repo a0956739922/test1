@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedUserManagementController">
+
+    <left>
+        <VBox spacing="24"
+              prefWidth="250"
+              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+
+            <Label text="User Actions" styleClass="section"/>
+
+            <Button fx:id="changePasswordBtn"
+                    text="Change Password"
+                    prefWidth="210"
+                    onAction="#changePassword"/>
+
+            <Button fx:id="promoteDemoteBtn"
+                    text="Promote / Demote"
+                    prefWidth="210"
+                    onAction="#promoteDemote"/>
+
+            <Button fx:id="deleteUserBtn"
+                    text="Delete User"
+                    prefWidth="210"
+                    onAction="#deleteUser"/>
+
+            <Pane VBox.vgrow="ALWAYS"/>
+
+            <Button fx:id="backBtn"
+                    text="Back"
+                    prefWidth="210"
+                    onAction="#goBack"/>
+
+            <Button fx:id="logoutBtn"
+                    text="Logout"
+                    prefWidth="210"
+                    styleClass="danger"
+                    onAction="#logout"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="24"
+              alignment="TOP_CENTER"
+              style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+
+            <Label text="All Users" styleClass="title"/>
+
+            <TableView fx:id="userTable"
+                       VBox.vgrow="ALWAYS"
+                       maxWidth="720">
+                <columns>
+                    <TableColumn fx:id="colUserId" text="ID" prefWidth="80"/>
+                    <TableColumn fx:id="colUsername" text="Username" prefWidth="260"/>
+                    <TableColumn fx:id="colRole" text="Role" prefWidth="150"/>
+                </columns>
+            </TableView>
+
+            <Label fx:id="selectionLabel"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

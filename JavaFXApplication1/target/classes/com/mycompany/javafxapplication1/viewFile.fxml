@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.mycompany.javafxapplication1.controller.ViewFileController"
+      spacing="24"
+      style="-fx-padding: 40;">
+
+    <Label text="View File" styleClass="title"/>
+
+    <TextArea fx:id="contentArea"
+              VBox.vgrow="ALWAYS"
+              wrapText="true"/>
+
+    <HBox spacing="16" alignment="CENTER_RIGHT">
+        <Button text="Close" prefWidth="140" onAction="#closeWindow"/>
+    </HBox>
+
+</VBox>

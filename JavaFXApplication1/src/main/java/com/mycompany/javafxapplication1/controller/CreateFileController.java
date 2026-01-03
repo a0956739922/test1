@@ -46,15 +46,7 @@ public class CreateFileController {
             }
             String reqId = java.util.UUID.randomUUID().toString();
             SQLiteDB sqlite = new SQLiteDB();
-            sqlite.markPendingCreate(
-                    sessionUser.getUserId(),
-                    sessionUser.getUsername(),
-                    reqId,
-                    fileName,
-                    logicalPath,
-                    "owner",
-                    content
-            );
+            sqlite.markPendingCreate(sessionUser.getUserId(), sessionUser.getUsername(), reqId, fileName, logicalPath, "owner", content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

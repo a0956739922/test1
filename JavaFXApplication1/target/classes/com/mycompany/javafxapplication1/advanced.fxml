@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedController">
+
+    <left>
+        <VBox spacing="24"
+              prefWidth="250"
+              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+
+            <Label text="Management" styleClass="section"/>
+
+            <Button fx:id="userManageBtn"
+                    text="User Management"
+                    prefWidth="210"
+                    onAction="#openUserManagement"/>
+
+            <Button fx:id="fileManageBtn"
+                    text="File Management"
+                    prefWidth="210"
+                    onAction="#openFileManagement"/>
+
+            <Button fx:id="logBtn"
+                    text="Logs"
+                    prefWidth="210"
+                    onAction="#openLogView"/>
+
+            <Pane VBox.vgrow="ALWAYS"/>
+
+            <Button fx:id="backBtn"
+                    text="Back"
+                    prefWidth="210"
+                    onAction="#goBack"/>
+
+            <Button fx:id="logoutBtn"
+                    text="Logout"
+                    prefWidth="210"
+                    styleClass="danger"
+                    onAction="#logout"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="16"
+            alignment="TOP_LEFT"
+            style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+
+            <Label text="Advanced Panel" styleClass="title"/>
+            <Label text="Welcome to Admin Terminal.&#10;Type a command and press Enter."/>
+            <TextArea
+                fx:id="terminalOutput"
+                editable="false"
+                wrapText="true"
+                VBox.vgrow="ALWAYS"
+            />
+
+            <TextField
+                fx:id="terminalInput"
+                promptText="available command: ls, whoami, ps, tree, mkdir, cp, mv, nano"
+                onAction="#handleCommand"
+            />
+
+        </VBox>
+    </center>
+
+</BorderPane>

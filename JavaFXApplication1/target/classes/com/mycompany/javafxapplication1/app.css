@@ -1,0 +1,54 @@
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 16px;
+}
+
+.label {
+    -fx-font-size: 16px;
+}
+
+.label.title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.label.section {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.text-field,
+.password-field {
+    -fx-font-size: 16px;
+    -fx-min-height: 34px;
+}
+
+.text-area {
+    -fx-font-size: 15px;
+    -fx-font-family: "Consolas", "Segoe UI", monospace;
+}
+
+.button {
+    -fx-font-size: 16px;
+    -fx-min-height: 40px;
+    -fx-min-width: 120px;
+}
+
+.button.primary {
+    -fx-background-color: #1A5675;
+    -fx-text-fill: white;
+}
+
+.button.danger {
+    -fx-background-color: #FF6666;
+    -fx-text-fill: white;
+}
+
+.table-view {
+    -fx-font-size: 16px;
+}
+
+.table-view .column-header .label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}

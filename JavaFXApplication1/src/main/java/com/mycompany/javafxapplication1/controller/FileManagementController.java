@@ -4,7 +4,6 @@
  */
 package com.mycompany.javafxapplication1.controller;
 
-import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
@@ -86,6 +85,7 @@ public class FileManagementController {
         colOwner.setCellValueFactory(new PropertyValueFactory<>("username"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
+        MqttSubUI.addRefreshListener(this::loadFiles);
         loadFiles();
         fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
         fileTable.setRowFactory(tv -> {

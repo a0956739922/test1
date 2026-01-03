@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.UploadFileController"
+            style="-fx-padding: 30;">
+
+    <top>
+        <Label text="Upload File"
+               styleClass="title"
+               BorderPane.alignment="CENTER"/>
+    </top>
+
+    <center>
+        <VBox spacing="16" maxWidth="480">
+            <Label text="File Name:"/>
+            <TextField fx:id="nameField"/>
+
+            <Label text="Local File:"/>
+            <HBox spacing="10">
+                <TextField fx:id="localPathField"
+                           editable="false"
+                           HBox.hgrow="ALWAYS"/>
+                <Button text="Browse"
+                        prefWidth="120"
+                        onAction="#browseFile"/>
+            </HBox>
+
+            <Label text="Logical Path:"/>
+            <TextField fx:id="logicalPathField"/>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox alignment="CENTER">
+            <HBox spacing="16"
+                  alignment="CENTER_RIGHT"
+                  maxWidth="480">
+
+                <Button text="Cancel"
+                        prefWidth="140"
+                        onAction="#closeWindow"/>
+
+                <Button text="Upload"
+                        prefWidth="140"
+                        styleClass="primary"
+                        onAction="#uploadFile"/>
+
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

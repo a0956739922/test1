@@ -5,8 +5,10 @@
 package com.mycompany.javafxapplication1;
 
 import java.io.StringReader;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.*;
@@ -21,8 +23,21 @@ public class MqttSubUI {
     private static final String CLIENT_ID = "UIClientSub-" + java.util.UUID.randomUUID();
 
     public static final Map<String, String> RESULTS = new ConcurrentHashMap<>();
+    private static final List<Runnable> listeners = new CopyOnWriteArrayList<>();
 
     private MqttClient client;
+    
+    public static void addRefreshListener(Runnable listener) {
+        listeners.add(listener);
+    }
+    
+    private void notifyUI() {
+        javafx.application.Platform.runLater(() -> {
+            for (Runnable listener : listeners) {
+                listener.run();
+            }
+        });
+    }
 
     public void start() {
         try {
@@ -52,11 +67,12 @@ public class MqttSubUI {
                         if ("delete".equals(action) && "ok".equals(status)) {
                             int fileId = res.getInt("fileId");
                             new SQLiteDB().finalizeDelete(fileId);
-                            System.out.println("[UI] finalize delete fileId=" + fileId);
+                            notifyUI();
                         }
                         if ("create".equals(action) && "ok".equals(status)) {
                             int fileId = res.getInt("fileId");
                             new SQLiteDB().finalizeCreate(reqId, fileId);
+                            notifyUI();
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

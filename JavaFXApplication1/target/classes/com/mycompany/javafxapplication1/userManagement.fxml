@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.UserManagementController">
+
+    <left>
+        <VBox spacing="24"
+              prefWidth="250"
+              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+
+            <Label text="Account" styleClass="section"/>
+
+            <Button fx:id="updatePasswordBtn"
+                    text="Update Password"
+                    prefWidth="210"
+                    onAction="#updatePassword"/>
+
+            <Button fx:id="deleteAccountBtn"
+                    text="Delete Account"
+                    prefWidth="210"
+                    onAction="#deleteAccount"/>
+
+            <Pane VBox.vgrow="ALWAYS"/>
+
+            <Button fx:id="backBtn"
+                    text="Back"
+                    prefWidth="210"
+                    onAction="#goBack"/>
+
+            <Button fx:id="logoutBtn"
+                    text="Logout"
+                    prefWidth="210"
+                    styleClass="danger"
+                    onAction="#logout"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="24"
+              alignment="TOP_CENTER"
+              style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+
+            <Label text="User Management" styleClass="title"/>
+            <GridPane hgap="20" vgap="20" maxWidth="480">
+                <Label text="Username:"/>
+                <TextField fx:id="usernameField"
+                           editable="false"
+                           GridPane.columnIndex="1"/>
+
+                <Label text="Current Password:" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="currentPassField"
+                               GridPane.rowIndex="1"
+                               GridPane.columnIndex="1"/>
+
+                <Label text="New Password:" GridPane.rowIndex="2"/>
+                <PasswordField fx:id="newPassField"
+                               GridPane.rowIndex="2"
+                               GridPane.columnIndex="1"/>
+
+                <Label text="Retype Password:" GridPane.rowIndex="3"/>
+                <PasswordField fx:id="retypeField"
+                               GridPane.rowIndex="3"
+                               GridPane.columnIndex="1"/>
+            </GridPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>
