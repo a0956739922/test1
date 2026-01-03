@@ -2,6 +2,7 @@ package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileModel;
 import com.mycompany.javafxapplication1.MySQLDB;
+import com.mycompany.javafxapplication1.RemoteFile;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
@@ -57,7 +58,7 @@ public class PrimaryController {
             SQLiteDB sqlite = new SQLiteDB();
             try {
                 MySQLDB mysql = new MySQLDB();
-                List<FileModel> remoteFiles = mysql.getAllFilesByUser(sessionUser.getUserId());
+                List<RemoteFile> remoteFiles = mysql.getAllFilesByUser(sessionUser.getUserId());
                 sqlite.cacheRemoteOwnedFiles(sessionUser.getUserId(), remoteFiles);
             } catch (Exception e) {
             }

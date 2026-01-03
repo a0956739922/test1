@@ -193,8 +193,8 @@ public class MySQLDB {
         return list;
     }
     
-    public List<FileModel> getAllFilesByUser(int userId) throws Exception {
-        List<FileModel> files = new ArrayList<>();
+    public List<RemoteFile> getAllFilesByUser(int userId) throws Exception {
+        List<RemoteFile> files = new ArrayList<>();
         String sql =
             "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
             "'owner' AS permission, u.username AS owner_name, " +
@@ -219,16 +219,16 @@ public class MySQLDB {
             stmt.setInt(2, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                FileModel fm = new FileModel(
+                RemoteFile rf = new RemoteFile(
                     rs.getInt("id"),
                     rs.getInt("owner_user_id"),
                     rs.getString("name"),
                     rs.getString("logical_path")
                 );
-                fm.setOwnerName(rs.getString("owner_name"));
-                fm.setPermission(rs.getString("permission"));
-                fm.setSharedTo(rs.getString("share_to"));
-                files.add(fm);
+                rf.setOwnerName(rs.getString("owner_name"));
+                rf.setPermission(rs.getString("permission"));
+                rf.setSharedTo(rs.getString("share_to"));
+                files.add(rf);
             }
         }
         return files;

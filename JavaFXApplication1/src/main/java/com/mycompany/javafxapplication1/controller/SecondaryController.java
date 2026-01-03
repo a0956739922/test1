@@ -60,6 +60,7 @@ public class SecondaryController {
             stage.setScene(scene);
             stage.setTitle("File Management");
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     

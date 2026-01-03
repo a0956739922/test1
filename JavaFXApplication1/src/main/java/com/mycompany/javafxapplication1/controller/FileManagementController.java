@@ -4,8 +4,9 @@
  */
 package com.mycompany.javafxapplication1.controller;
 
-import com.mycompany.javafxapplication1.FileModel;
+import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
@@ -33,22 +34,22 @@ import javafx.stage.Stage;
 public class FileManagementController {
     
     @FXML
-    private TableView<FileModel> fileTable;
+    private TableView<LocalFile> fileTable;
 
     @FXML
-    private TableColumn<FileModel, String> colOwner;
+    private TableColumn<LocalFile, String> colOwner;
 
     @FXML
-    private TableColumn<FileModel, String> colFilename;
+    private TableColumn<LocalFile, String> colFilename;
 
     @FXML
-    private TableColumn<FileModel, String> colPath;
+    private TableColumn<LocalFile, String> colPath;
 
     @FXML
-    private TableColumn<FileModel, String> colPermission;
+    private TableColumn<LocalFile, String> colPermission;
     
     @FXML
-    private TableColumn<FileModel, String> colShareTo;
+    private TableColumn<LocalFile, String> colShareTo;
 
     @FXML
     private Button createBtn;
@@ -80,15 +81,15 @@ public class FileManagementController {
     public void initialise(User user) {
         this.sessionUser = user;
         this.fileService = new FileService();
-        colFilename.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
-        colOwner.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
+        colOwner.setCellValueFactory(new PropertyValueFactory<>("username"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
         loadFiles();
         fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
         fileTable.setRowFactory(tv -> {
-            TableRow<FileModel> row = new TableRow<>();
+            TableRow<LocalFile> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     openViewer(row.getItem());
@@ -100,7 +101,7 @@ public class FileManagementController {
     
     private void loadFiles() {
         SQLiteDB sqlite = new SQLiteDB();
-        List<FileModel> files = sqlite.getAllOwnedFiles(sessionUser.getUserId());
+        List<LocalFile> files = sqlite.getAllOwnedFiles(sessionUser.getUserId());
         fileTable.getItems().setAll(files);
     }
 
@@ -145,47 +146,47 @@ public class FileManagementController {
 
     @FXML
     private void updateFile() {
-        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            dialogue("No File Selected", "Please select a file to update.");
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml"));
-            Parent root = loader.load();
-            UpdateFileController controller = loader.getController();
-            controller.initialise(sessionUser, fileService, selected);
-            Stage stage = new Stage();
-            stage.setTitle("Update File");
-            Scene scene = new Scene(root, 600, 450);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
-            stage.setScene(scene);
-            stage.showAndWait();
-            loadFiles();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
+//        if (selected == null) {
+//            dialogue("No File Selected", "Please select a file to update.");
+//            return;
+//        }
+//        try {
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml"));
+//            Parent root = loader.load();
+//            UpdateFileController controller = loader.getController();
+//            controller.initialise(sessionUser, fileService, selected);
+//            Stage stage = new Stage();
+//            stage.setTitle("Update File");
+//            Scene scene = new Scene(root, 600, 450);
+//            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+//            stage.setScene(scene);
+//            stage.showAndWait();
+//            loadFiles();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @FXML
     private void deleteFile() {
-        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
-        if (!dialogue("Delete", "Proceed to delete " + selected.getName() + "?")) {
+        if (!dialogue("Delete", "Proceed to delete " + selected.getFileName() + "?")) {
             return;
         }
         SQLiteDB sqlite = new SQLiteDB();
-        if (selected.getRemoteId() == null) {
+        if (selected.getRemoteFileId() == null) {
             sqlite.deletePendingCreate(selected.getLocalId());
         } else {
-            sqlite.markPendingDelete(sessionUser.getUserId(), selected.getRemoteId());
+            sqlite.markPendingDelete(sessionUser.getUserId(), selected.getRemoteFileId());
         }
         loadFiles();
     }
 
     @FXML
     private void downloadFile() {
-        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             dialogue("No File Selected", "Please select a file to download.");
             return;
@@ -195,12 +196,12 @@ public class FileManagementController {
         }
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save File As");
-        chooser.setInitialFileName(selected.getName());
+        chooser.setInitialFileName(selected.getFileName());
         Stage stage = (Stage) downloadBtn.getScene().getWindow();
         File file = chooser.showSaveDialog(stage);
         if (file == null) return;
         try {
-            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteId());
+            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteFileId());
             new Thread(() -> {
                 try {
                     String resultJson = null;
@@ -227,13 +228,13 @@ public class FileManagementController {
     
     @FXML
     private void shareFile() {
-        FileModel selected = fileTable.getSelectionModel().getSelectedItem();
+        LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
         if (selected == null) { dialogue("No File Selected", "Please select a file to share."); return; }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
             Parent root = loader.load();
             ShareFileController controller = loader.getController();
-            controller.initialise(sessionUser, fileService, selected.getRemoteId());
+            controller.initialise(sessionUser, fileService, selected.getRemoteFileId());
             Stage stage = new Stage();
             stage.setTitle("Share File");
             Scene scene = new Scene(root, 480, 300);
@@ -245,7 +246,7 @@ public class FileManagementController {
         }
     }
     
-    private void updateButtonState(FileModel selected) {
+    private void updateButtonState(LocalFile selected) {
         if (selected == null) {
             updateBtn.setDisable(true);
             deleteBtn.setDisable(true);
@@ -279,14 +280,14 @@ public class FileManagementController {
         }
     }
     
-    private void openViewer(FileModel selected) {
+    private void openViewer(LocalFile selected) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/viewFile.fxml"));
             Parent root = loader.load();
             ViewFileController controller = loader.getController();
-            controller.initialise(fileService, selected.getRemoteId());
+            controller.initialise(fileService, selected.getRemoteFileId());
             Stage stage = new Stage();
-            stage.setTitle("View File: " + selected.getName());
+            stage.setTitle("View File: " + selected.getFileName());
             Scene scene = new Scene(root, 800, 600);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
