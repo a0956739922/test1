@@ -1,12 +1,13 @@
 package com.mycompany.javafxapplication1.controller;
 
-import com.mycompany.javafxapplication1.FileModel;
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
+import com.mycompany.javafxapplication1.MySQLDB;
+import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.StringReader;
 import java.util.Optional;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -26,37 +27,50 @@ public class UpdateFileController {
 
     private User sessionUser;
     private FileService fileService;
-    private FileModel originalFile;
+    private LocalFile originalFile;
 
     private boolean contentLoaded = false;
     private boolean userEdited = false;
 
-    public void initialise(User user, FileService service, FileModel file) {
+    public void initialise(User user, FileService service, LocalFile file) {
         this.sessionUser = user;
         this.fileService = service;
         this.originalFile = file;
-        nameField.setText(file.getName());
+        nameField.setText(file.getFileName());
         nameField.setDisable(true);
         contentArea.setDisable(true);
-        loadContentAsync(file.getRemoteId());
+        if (file.getRemoteFileId() == null) {
+            loadLocalContent();
+            return;
+        }
+        contentArea.setText("Loading...");
+        loadContent(file.getRemoteFileId());
     }
 
     @FXML
     public void initialize() {
-        Platform.runLater(() -> {
+        javafx.application.Platform.runLater(() -> {
             Stage stage = (Stage) nameField.getScene().getWindow();
             stage.setOnCloseRequest(event -> {
                 if (userEdited) {
-                    boolean confirm = dialogue(
-                            "Unsaved Changes",
-                            "You have unsaved changes. Leave without saving?"
-                    );
+                    boolean confirm = dialogue("Unsaved Changes", "You have unsaved changes. Leave without saving?");
                     if (!confirm) {
                         event.consume();
                     }
                 }
             });
         });
+    }
+    
+    private void loadLocalContent() {
+        SQLiteDB sqlite = new SQLiteDB();
+        String content = sqlite.getLocalFileContent(originalFile.getLocalId());
+        contentArea.setText(content);
+        contentLoaded = true;
+        nameField.setDisable(false);
+        contentArea.setDisable(false);
+        nameField.textProperty().addListener((o, a, b) -> userEdited = true);
+        contentArea.textProperty().addListener((o, a, b) -> userEdited = true);
     }
 
     @FXML
@@ -65,60 +79,53 @@ public class UpdateFileController {
             if (!contentLoaded) {
                 return;
             }
-
             if (!userEdited) {
                 closeWindow();
                 return;
             }
-
             if (!dialogue("Save Changes", "Do you want to save the changes?")) {
                 return;
             }
-
-            String newName = nameField.getText().trim();
+            String name = nameField.getText();
             String content = contentArea.getText();
-
+            if (originalFile.getRemoteFileId() == null) {
+                SQLiteDB sqlite = new SQLiteDB();
+                sqlite.updateLocalFile(originalFile.getLocalId(), name, content);
+                closeWindow();
+                return;
+            }
             fileService.update(
                     sessionUser.getUserId(),
                     sessionUser.getUsername(),
-                    originalFile.getRemoteId(),
-                    newName,
+                    originalFile.getRemoteFileId(),
+                    name,
                     content
             );
-
             closeWindow();
-
         } catch (Exception e) {
-            e.printStackTrace();
-            dialogue("Error", "Failed to update file.");
+            dialogue("DB connect Failed", "Cannot update remote file while offline.");
         }
     }
 
-    private void loadContentAsync(int fileId) {
+    private void loadContent(int remoteFileId) {
         try {
-            String reqId = fileService.loadContent(fileId);
-
-            MqttSubUI.registerRequestCallback(reqId, (payload) -> {
-                Platform.runLater(() -> {
+            String reqId = fileService.loadContent(remoteFileId);
+            MqttSubUI.registerRequestCallback(reqId, payload -> {
+                javafx.application.Platform.runLater(() -> {
                     try {
                         JsonObject res = Json.createReader(new StringReader(payload)).readObject();
                         String content = res.getString("content", "");
-
                         contentArea.setText(content);
                         contentLoaded = true;
-
                         nameField.setDisable(false);
                         contentArea.setDisable(false);
-
                         nameField.textProperty().addListener((o, a, b) -> userEdited = true);
                         contentArea.textProperty().addListener((o, a, b) -> userEdited = true);
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
             });
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -127,10 +134,7 @@ public class UpdateFileController {
     @FXML
     private void closeWindow() {
         if (userEdited) {
-            boolean confirm = dialogue(
-                    "Unsaved Changes",
-                    "You have unsaved changes. Leave without saving?"
-            );
+            boolean confirm = dialogue("Unsaved Changes", "You have unsaved changes. Leave without saving?");
             if (!confirm) {
                 return;
             }
@@ -144,8 +148,7 @@ public class UpdateFileController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
-        alert.getDialogPane().getStylesheets()
-                .add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

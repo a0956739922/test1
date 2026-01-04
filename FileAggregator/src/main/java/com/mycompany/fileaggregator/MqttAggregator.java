@@ -86,6 +86,7 @@ public class MqttAggregator {
                     }
                     JsonObject res = resBuilder.build();
                     client.publish(AGG_RES, new MqttMessage(res.toString().getBytes()));
+                    System.out.println(res);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

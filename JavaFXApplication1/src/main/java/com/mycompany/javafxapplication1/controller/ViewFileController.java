@@ -5,7 +5,9 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
+import com.mycompany.javafxapplication1.SQLiteDB;
 import java.io.StringReader;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
@@ -21,24 +23,27 @@ public class ViewFileController {
     private TextArea contentArea;
 
     private FileService fileService;
-    private int fileId;
+    private LocalFile file;
 
-    public void initialise(FileService service, int fileId) {
+    public void initialise(FileService service, LocalFile file) {
         this.fileService = service;
-        this.fileId = fileId;
+        this.file = file;
+        contentArea.setEditable(false);
+        if (file.getRemoteFileId() == null) {
+            loadLocalContent();
+            return;
+        }
+        contentArea.setText("Loading...");
         loadContent();
     }
 
     private void loadContent() {
         try {
-            String reqId = fileService.loadContent(fileId);
-            MqttSubUI.registerRequestCallback(reqId, (resultJson) -> {
+            String reqId = fileService.loadContent(file.getRemoteFileId());
+            MqttSubUI.registerRequestCallback(reqId, resultJson -> {
                 try {
                     String content = Json.createReader(new StringReader(resultJson)).readObject().getString("content", "");
-                    javafx.application.Platform.runLater(() -> {
-                        contentArea.setText(content);
-                        contentArea.setEditable(false);
-                    });
+                    javafx.application.Platform.runLater(() -> contentArea.setText(content));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -46,6 +51,12 @@ public class ViewFileController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private void loadLocalContent() {
+        SQLiteDB sqlite = new SQLiteDB();
+        String content = sqlite.getLocalFileContent(file.getLocalId());
+        contentArea.setText(content);
     }
 
     @FXML

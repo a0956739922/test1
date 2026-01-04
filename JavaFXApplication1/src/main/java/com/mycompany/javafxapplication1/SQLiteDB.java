@@ -363,4 +363,33 @@ public class SQLiteDB {
         }
     }
     
+    public String getLocalFileContent(int localFileId) {
+        String sql = "SELECT content FROM local_files WHERE local_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, localFileId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("content");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public void updateLocalFile(int localId, String name, String content) {
+        String sql = "UPDATE local_files SET name = ?, content = ? WHERE local_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, content);
+            ps.setInt(3, localId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    
 }

@@ -7,6 +7,7 @@ package com.mycompany.javafxapplication1.controller;
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
+import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
@@ -114,7 +115,8 @@ public class FileManagementController {
             Scene scene = new Scene(root, 600, 450);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
-            stage.show();
+            stage.showAndWait();
+            loadFiles();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,25 +143,29 @@ public class FileManagementController {
 
     @FXML
     private void updateFile() {
-//        LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
-//        if (selected == null) {
-//            dialogue("No File Selected", "Please select a file to update.");
-//            return;
-//        }
-//        try {
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml"));
-//            Parent root = loader.load();
-//            UpdateFileController controller = loader.getController();
-//            controller.initialise(sessionUser, fileService, selected);
-//            Stage stage = new Stage();
-//            stage.setTitle("Update File");
-//            Scene scene = new Scene(root, 600, 450);
-//            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
-//            stage.setScene(scene);
-//            stage.show();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            dialogue("No File Selected", "Please select a file to update.");
+            return;
+        }
+        if (selected.getRemoteFileId() != null && !isOnline()) {
+            dialogue("DB connect Failed", "Cannot update remote file while offline.");
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml"));
+            Parent root = loader.load();
+            UpdateFileController controller = loader.getController();
+            controller.initialise(sessionUser, fileService, selected);
+            Stage stage = new Stage();
+            stage.setTitle("Update File");
+            Scene scene = new Scene(root, 600, 450);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -209,14 +215,21 @@ public class FileManagementController {
                 }).start();
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            dialogue("DB connect Failed", "Cannot download remote file while offline.");
         }
     }
 
     @FXML
     private void shareFile() {
         LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) { dialogue("No File Selected", "Please select a file to share."); return; }
+        if (selected == null) { 
+            dialogue("No File Selected", "Please select a file to share."); 
+            return; 
+        }
+        if (selected.getRemoteFileId() == null && !isOnline()) {
+            dialogue("DB connect Failed", "Cannot share file while offline.");
+            return;
+        }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
             Parent root = loader.load();
@@ -230,6 +243,36 @@ public class FileManagementController {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    private void openViewer(LocalFile selected) {
+        if (selected.getRemoteFileId() != null && !isOnline()) {
+            dialogue("DB connect Failed", "Cannot read remote file while offline.");
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/viewFile.fxml"));
+            Parent root = loader.load();
+            ViewFileController controller = loader.getController();
+            controller.initialise(fileService, selected);
+            Stage stage = new Stage();
+            stage.setTitle("View File: " + selected.getFileName());
+            Scene scene = new Scene(root, 600, 450);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private boolean isOnline() {
+        try {
+            new MySQLDB().testConnection();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
     
@@ -264,24 +307,6 @@ public class FileManagementController {
                 deleteBtn.setDisable(true);
                 shareBtn.setDisable(true);
             }
-        }
-    }
-    
-    private void openViewer(LocalFile selected) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/viewFile.fxml"));
-            Parent root = loader.load();
-            ViewFileController controller = loader.getController();
-            controller.initialise(fileService, selected.getRemoteFileId());
-            Stage stage = new Stage();
-            stage.setTitle("View File: " + selected.getFileName());
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
-            stage.setScene(scene);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            dialogue("Error", "Failed to load file content.");
         }
     }
 

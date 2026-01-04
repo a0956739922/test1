@@ -59,8 +59,7 @@ public class ShareFileController {
             fileService.share(sessionUser.getUserId(), sessionUser.getUsername(), fileId, targetUser.getUserId(), permission);
             closeWindow();
         } catch (Exception e) {
-            e.printStackTrace();
-            dialogue("Error", "Failed to share file.");
+            dialogue("DB connect Failed", "Cannot share file while offline.");
         }
     }
 

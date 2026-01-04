@@ -18,8 +18,10 @@ public class SyncService extends Thread {
         sqlite.resetSendingDelete();
         sqlite.resetSendingCreate();
         while (true) {
-            syncDeletes();
-            syncCreates();
+            if (isOnline()) {
+                syncDeletes();
+                syncCreates();
+            }
             try {
                 Thread.sleep(3000);
             } catch (Exception e) {
@@ -28,7 +30,6 @@ public class SyncService extends Thread {
     }
 
     private void syncDeletes() {
-        if (!isOnline()) return;
         for (int userId : sqlite.getPendingDeleteUser()) {
             String username = sqlite.getUsername(userId);
             for (int fileId : sqlite.getPendingDelete(userId)) {
@@ -36,24 +37,25 @@ public class SyncService extends Thread {
                 try {
                     fileService.delete(userId, username, fileId);
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
-    
+
     private void syncCreates() {
-        if (!isOnline()) return;
         for (int userId : sqlite.getPendingCreateUser()) {
             for (LocalFile lf : sqlite.getPendingCreate(userId)) {
                 sqlite.markSendingCreate(lf.getReqId());
                 try {
                     fileService.create(lf.getReqId(), userId, lf.getUsername(), lf.getFileName(), lf.getContent());
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
-    
+
     private boolean isOnline() {
         try {
             new MySQLDB().testConnection();
