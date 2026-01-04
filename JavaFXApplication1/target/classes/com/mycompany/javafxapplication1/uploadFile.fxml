@@ -29,8 +29,6 @@
                         onAction="#browseFile"/>
             </HBox>
 
-            <Label text="Logical Path:"/>
-            <TextField fx:id="logicalPathField"/>
         </VBox>
     </center>
 

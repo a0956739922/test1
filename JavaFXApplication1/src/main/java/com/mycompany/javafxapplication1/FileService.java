@@ -23,29 +23,27 @@ public class FileService {
     private final int REMOTE_PORT = 22;
     private MySQLDB remote = new MySQLDB();
     
-    public String create(String reqId, Integer userId, String username, String fileName, String logicalPath, String content) throws Exception {
-        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName + ", logicalPath=" + logicalPath);
+    public String create(String reqId, Integer userId, String username, String fileName, String content) throws Exception {
+        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "create")
                 .add("ownerId", userId)
                 .add("fileName", fileName)
-                .add("logicalPath", logicalPath)
                 .add("content", content)
                 .build();
         new MqttPubUI().send(json);
         return reqId;
     }
     
-    public String upload(Integer userId, String username, String fileName, String logicalPath, String content) throws Exception {
-        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName + ", logicalPath=" + logicalPath);
+    public String upload(Integer userId, String username, String fileName, String content) throws Exception {
+        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName);
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "create")
                 .add("ownerId", userId)
                 .add("fileName", fileName)
-                .add("logicalPath", logicalPath)
                 .add("content", content)
                 .build();
         new MqttPubUI().send(json);
@@ -63,16 +61,15 @@ public class FileService {
         return reqId;
     }
 
-    public String update(Integer userId, String username, int fileId, String newName, String newLogical, String content) throws Exception {
-        remote.log(userId, username, "FILE_UPDATE_REQ", "fileId=" + fileId + ", newName=" + newName + ", newLogicalPath=" + newLogical + ", hasContent=" + (content != null));
+    public String update(Integer userId, String username, int fileId, String newName, String content) throws Exception {
+        remote.log(userId, username, "FILE_UPDATE_REQ", "fileId=" + fileId + ", newName=" + newName + ", hasContent=" + (content != null));
         String reqId = java.util.UUID.randomUUID().toString();
         JsonObjectBuilder json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "update")
                 .add("ownerId", userId)
                 .add("fileId", fileId)
-                .add("newName", newName)
-                .add("newLogicalPath", newLogical);
+                .add("newName", newName);
         if (content != null) {
             json.add("content", content);
         }

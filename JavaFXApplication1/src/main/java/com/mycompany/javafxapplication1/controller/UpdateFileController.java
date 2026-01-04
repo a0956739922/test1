@@ -22,9 +22,6 @@ public class UpdateFileController {
     private TextField nameField;
 
     @FXML
-    private TextField pathField;
-
-    @FXML
     private TextArea contentArea;
 
     private User sessionUser;
@@ -38,14 +35,9 @@ public class UpdateFileController {
         this.sessionUser = user;
         this.fileService = service;
         this.originalFile = file;
-
         nameField.setText(file.getName());
-        pathField.setText(file.getLogicalPath());
-
         nameField.setDisable(true);
-        pathField.setDisable(true);
         contentArea.setDisable(true);
-
         loadContentAsync(file.getRemoteId());
     }
 
@@ -84,7 +76,6 @@ public class UpdateFileController {
             }
 
             String newName = nameField.getText().trim();
-            String newPath = pathField.getText().trim();
             String content = contentArea.getText();
 
             fileService.update(
@@ -92,7 +83,6 @@ public class UpdateFileController {
                     sessionUser.getUsername(),
                     originalFile.getRemoteId(),
                     newName,
-                    newPath,
                     content
             );
 
@@ -118,11 +108,9 @@ public class UpdateFileController {
                         contentLoaded = true;
 
                         nameField.setDisable(false);
-                        pathField.setDisable(false);
                         contentArea.setDisable(false);
 
                         nameField.textProperty().addListener((o, a, b) -> userEdited = true);
-                        pathField.textProperty().addListener((o, a, b) -> userEdited = true);
                         contentArea.textProperty().addListener((o, a, b) -> userEdited = true);
 
                     } catch (Exception e) {

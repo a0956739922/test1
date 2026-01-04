@@ -44,11 +44,10 @@ public class SyncService extends Thread {
     private void syncCreates() {
         if (!isOnline()) return;
         for (int userId : sqlite.getPendingCreateUser()) {
-            String username = sqlite.getUsername(userId);
-            for (FileModel fm : sqlite.getPendingCreate(userId)) {
-                sqlite.markSendingCreate(fm.getReqId());
+            for (LocalFile lf : sqlite.getPendingCreate(userId)) {
+                sqlite.markSendingCreate(lf.getReqId());
                 try {
-                    fileService.create(fm.getReqId(), userId, username, fm.getName(), fm.getLogicalPath(), fm.getContent());
+                    fileService.create(lf.getReqId(), userId, lf.getUsername(), lf.getFileName(), lf.getContent());
                 } catch (Exception e) {
                 }
             }

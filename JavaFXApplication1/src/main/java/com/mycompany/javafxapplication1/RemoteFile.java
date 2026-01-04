@@ -13,16 +13,14 @@ public class RemoteFile {
     private int fileId;
     private int ownerUserId;
     private String name;
-    private String logicalPath;
     private String ownerName;
     private String permission;
     private String sharedTo;
 
-    public RemoteFile(int fileId, int ownerUserId, String name, String logicalPath) {
+    public RemoteFile(int fileId, int ownerUserId, String name) {
         this.fileId = fileId;
         this.ownerUserId = ownerUserId;
         this.name = name;
-        this.logicalPath = logicalPath;
     }
 
     public int getFileId() {
@@ -35,10 +33,6 @@ public class RemoteFile {
 
     public String getName() {
         return name;
-    }
-
-    public String getLogicalPath() {
-        return logicalPath;
     }
 
     public String getOwnerName() {

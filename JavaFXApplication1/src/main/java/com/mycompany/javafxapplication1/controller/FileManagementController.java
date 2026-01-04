@@ -42,9 +42,6 @@ public class FileManagementController {
     private TableColumn<LocalFile, String> colFilename;
 
     @FXML
-    private TableColumn<LocalFile, String> colPath;
-
-    @FXML
     private TableColumn<LocalFile, String> colPermission;
     
     @FXML
@@ -81,10 +78,10 @@ public class FileManagementController {
         this.sessionUser = user;
         this.fileService = new FileService();
         colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
-        colPath.setCellValueFactory(new PropertyValueFactory<>("logicalPath"));
         colOwner.setCellValueFactory(new PropertyValueFactory<>("username"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
+        fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         MqttSubUI.addRefreshListener(this::loadFiles);
         loadFiles();
         fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
@@ -132,7 +129,7 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService);
             Stage stage = new Stage();
             stage.setTitle("Upload File");
-            Scene scene = new Scene(root, 600, 450);
+            Scene scene = new Scene(root, 500, 320);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.show();

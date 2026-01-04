@@ -16,7 +16,6 @@ public class LocalFile {
     private int userId;
     private String username;
     private String fileName;
-    private String logicalPath;
     private String permission;
     private String sharedTo;
     private String content;
@@ -70,14 +69,6 @@ public class LocalFile {
 
     public void setName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public String getLogicalPath() {
-        return logicalPath;
-    }
-
-    public void setLogicalPath(String logicalPath) {
-        this.logicalPath = logicalPath;
     }
 
     public String getPermission() {

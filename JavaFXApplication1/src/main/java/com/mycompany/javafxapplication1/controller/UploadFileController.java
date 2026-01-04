@@ -24,10 +24,7 @@ public class UploadFileController {
 
     @FXML
     private TextField localPathField;
-
-    @FXML
-    private TextField logicalPathField;
-
+    
     private User sessionUser;
     private FileService fileService;
     private File selectedFile;
@@ -58,13 +55,12 @@ public class UploadFileController {
                 return;
             }
             String fileName = nameField.getText();
-            String logicalPath = logicalPathField.getText();
-            if (fileName.isEmpty() || logicalPath.isEmpty()) {
+            if (fileName.isEmpty()) {
                 dialogue("Missing Fields", "All fields are required.");
                 return;
             }
             String content = Files.readString(selectedFile.toPath());
-            fileService.upload(sessionUser.getUserId(), sessionUser.getUsername(), fileName, logicalPath, content);
+            fileService.upload(sessionUser.getUserId(), sessionUser.getUsername(), fileName, content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

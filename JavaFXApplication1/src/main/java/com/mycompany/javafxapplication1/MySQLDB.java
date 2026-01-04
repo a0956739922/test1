@@ -196,7 +196,7 @@ public class MySQLDB {
     public List<RemoteFile> getAllFilesByUser(int userId) throws Exception {
         List<RemoteFile> files = new ArrayList<>();
         String sql =
-            "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
+            "SELECT f.id, f.owner_user_id, f.name, " +
             "'owner' AS permission, u.username AS owner_name, " +
             "GROUP_CONCAT(u2.username) AS share_to " +
             "FROM files f " +
@@ -206,7 +206,7 @@ public class MySQLDB {
             "WHERE f.owner_user_id = ? AND f.is_deleted = 0 " +
             "GROUP BY f.id " +
             "UNION ALL " +
-            "SELECT f.id, f.owner_user_id, f.name, f.logical_path, " +
+            "SELECT f.id, f.owner_user_id, f.name, " +
             "fs.permission, u.username AS owner_name, " +
             "'' AS share_to " +
             "FROM file_shares fs " +
@@ -222,8 +222,7 @@ public class MySQLDB {
                 RemoteFile rf = new RemoteFile(
                     rs.getInt("id"),
                     rs.getInt("owner_user_id"),
-                    rs.getString("name"),
-                    rs.getString("logical_path")
+                    rs.getString("name")
                 );
                 rf.setOwnerName(rs.getString("owner_name"));
                 rf.setPermission(rs.getString("permission"));

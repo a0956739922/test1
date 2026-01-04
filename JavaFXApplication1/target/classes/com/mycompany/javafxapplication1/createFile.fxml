@@ -19,9 +19,6 @@
             <Label text="File Name:"/>
             <TextField fx:id="nameField"/>
 
-            <Label text="File Path:"/>
-            <TextField fx:id="pathField"/>
-
             <Label text="Content:"/>
             <TextArea fx:id="contentArea"
                       VBox.vgrow="ALWAYS"

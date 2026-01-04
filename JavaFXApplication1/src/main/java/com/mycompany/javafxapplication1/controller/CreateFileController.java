@@ -21,9 +21,6 @@ public class CreateFileController {
     private TextField nameField;
 
     @FXML
-    private TextField pathField;
-
-    @FXML
     private TextArea contentArea;
 
     private User sessionUser;
@@ -38,15 +35,14 @@ public class CreateFileController {
     private void createFile() {
         try {
             String fileName = nameField.getText();
-            String logicalPath = pathField.getText();
             String content = contentArea.getText();
-            if (fileName.isEmpty() || logicalPath.isEmpty()) {
-                dialogue("Missing Fields", "Name and Path cannot be empty.");
+            if (fileName.isEmpty()) {
+                dialogue("Missing Fields", "Name cannot be empty.");
                 return;
             }
             String reqId = java.util.UUID.randomUUID().toString();
             SQLiteDB sqlite = new SQLiteDB();
-            sqlite.markPendingCreate(sessionUser.getUserId(), sessionUser.getUsername(), reqId, fileName, logicalPath, "owner", content);
+            sqlite.markPendingCreate(sessionUser.getUserId(), sessionUser.getUsername(), reqId, fileName, "owner", content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();
