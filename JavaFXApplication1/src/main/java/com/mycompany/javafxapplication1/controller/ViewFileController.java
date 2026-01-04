@@ -32,13 +32,8 @@ public class ViewFileController {
     private void loadContent() {
         try {
             String reqId = fileService.loadContent(fileId);
-            new Thread(() -> {
+            MqttSubUI.registerRequestCallback(reqId, (resultJson) -> {
                 try {
-                    String resultJson = null;
-                    while (resultJson == null) {
-                        resultJson = MqttSubUI.RESULTS.remove(reqId);
-                        Thread.sleep(100);
-                    }
                     String content = Json.createReader(new StringReader(resultJson)).readObject().getString("content", "");
                     javafx.application.Platform.runLater(() -> {
                         contentArea.setText(content);
@@ -47,7 +42,7 @@ public class ViewFileController {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }).start();
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }

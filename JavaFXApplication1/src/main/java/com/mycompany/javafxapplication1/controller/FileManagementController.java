@@ -117,8 +117,7 @@ public class FileManagementController {
             Scene scene = new Scene(root, 600, 450);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
-            stage.showAndWait();
-            loadFiles();
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -136,8 +135,7 @@ public class FileManagementController {
             Scene scene = new Scene(root, 600, 450);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
-            stage.showAndWait();
-            loadFiles();
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
             dialogue("Error", "Failed to open upload window.");
@@ -161,8 +159,7 @@ public class FileManagementController {
 //            Scene scene = new Scene(root, 600, 450);
 //            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
 //            stage.setScene(scene);
-//            stage.showAndWait();
-//            loadFiles();
+//            stage.show();
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
@@ -202,30 +199,23 @@ public class FileManagementController {
         if (file == null) return;
         try {
             String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteFileId());
-            new Thread(() -> {
-                try {
-                    String resultJson = null;
-                    while (resultJson == null) {
-                        resultJson = MqttSubUI.RESULTS.remove(reqId);
-                        Thread.sleep(100);
+            MqttSubUI.registerRequestCallback(reqId, (finalResult) -> {
+                new Thread(() -> {
+                    try {
+                        fileService.downloadSftp(sessionUser.getUserId(), sessionUser.getUsername(), finalResult, file.getName(), file.getParent());
+                        javafx.application.Platform.runLater(() -> 
+                            dialogue("Success", "Download completed: " + file.getName())
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    String finalResult = resultJson;
-                    javafx.application.Platform.runLater(() -> {
-                        try {
-                            fileService.downloadSftp(sessionUser.getUserId(), sessionUser.getUsername(), finalResult, file.getName(), file.getParent());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
+                }).start();
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     @FXML
     private void shareFile() {
         LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
@@ -240,7 +230,7 @@ public class FileManagementController {
             Scene scene = new Scene(root, 480, 300);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
-            stage.showAndWait();
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }

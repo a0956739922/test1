@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.*;
@@ -22,18 +23,22 @@ public class MqttSubUI {
     private static final String AGG_RES = "/agg/response";
     private static final String CLIENT_ID = "UIClientSub-" + java.util.UUID.randomUUID();
 
-    public static final Map<String, String> RESULTS = new ConcurrentHashMap<>();
-    private static final List<Runnable> listeners = new CopyOnWriteArrayList<>();
-
+    private static final List<Runnable> refreshListeners = new CopyOnWriteArrayList<>();
+    private static final Map<String, Consumer<String>> requestCallbacks = new ConcurrentHashMap<>();
+    
     private MqttClient client;
-    
+
     public static void addRefreshListener(Runnable listener) {
-        listeners.add(listener);
+        refreshListeners.add(listener);
     }
-    
-    private void notifyUI() {
+
+    public static void registerRequestCallback(String reqId, Consumer<String> callback) {
+        requestCallbacks.put(reqId, callback);
+    }
+
+    private void notifyRefresh() {
         javafx.application.Platform.runLater(() -> {
-            for (Runnable listener : listeners) {
+            for (Runnable listener : refreshListeners) {
                 listener.run();
             }
         });
@@ -45,34 +50,31 @@ public class MqttSubUI {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
-            System.out.println("[UI] Connected to broker");
             client.subscribe(AGG_RES, 1);
-            System.out.println("[UI] Subscribed to " + AGG_RES);
             client.setCallback(new MqttCallback() {
                 @Override
-                public void connectionLost(Throwable cause) {
-                    System.out.println("[UI] Connection lost: " + cause.getMessage());
-                }
+                public void connectionLost(Throwable cause) {}
 
                 @Override
                 public void messageArrived(String topic, MqttMessage msg) {
                     try {
                         String payload = new String(msg.getPayload());
-                        System.out.println("[UI] payload=" + payload);
                         JsonObject res = Json.createReader(new StringReader(payload)).readObject();
-                        String reqId  = res.getString("req_id", "");
+                        String reqId = res.getString("req_id", "");
                         String action = res.getString("action", "");
                         String status = res.getString("status", "");
-                        RESULTS.put(reqId, payload);
-                        if ("delete".equals(action) && "ok".equals(status)) {
-                            int fileId = res.getInt("fileId");
-                            new SQLiteDB().finalizeDelete(fileId);
-                            notifyUI();
+                        if ("ok".equals(status)) {
+                            if ("delete".equals(action)) {
+                                new SQLiteDB().finalizeDelete(res.getInt("fileId"));
+                                notifyRefresh();
+                            } else if ("create".equals(action)) {
+                                new SQLiteDB().finalizeCreate(reqId, res.getInt("fileId"));
+                                notifyRefresh();
+                            }
                         }
-                        if ("create".equals(action) && "ok".equals(status)) {
-                            int fileId = res.getInt("fileId");
-                            new SQLiteDB().finalizeCreate(reqId, fileId);
-                            notifyUI();
+                        Consumer<String> callback = requestCallbacks.remove(reqId);
+                        if (callback != null) {
+                            callback.accept(payload);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -80,10 +82,8 @@ public class MqttSubUI {
                 }
 
                 @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                }
+                public void deliveryComplete(IMqttDeliveryToken token) {}
             });
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,7 +94,6 @@ public class MqttSubUI {
             if (client != null && client.isConnected()) {
                 client.disconnect();
                 client.close();
-                System.out.println("[UI] MQTT disconnected");
             }
         } catch (Exception e) {
             e.printStackTrace();

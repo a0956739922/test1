@@ -105,18 +105,10 @@ public class UpdateFileController {
     }
 
     private void loadContentAsync(int fileId) {
-        new Thread(() -> {
-            try {
-                String reqId = fileService.loadContent(fileId);
-                String resultJson = null;
+        try {
+            String reqId = fileService.loadContent(fileId);
 
-                while (resultJson == null) {
-                    resultJson = MqttSubUI.RESULTS.remove(reqId);
-                    Thread.sleep(100);
-                }
-
-                String payload = resultJson;
-
+            MqttSubUI.registerRequestCallback(reqId, (payload) -> {
                 Platform.runLater(() -> {
                     try {
                         JsonObject res = Json.createReader(new StringReader(payload)).readObject();
@@ -137,11 +129,11 @@ public class UpdateFileController {
                         e.printStackTrace();
                     }
                 });
+            });
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
