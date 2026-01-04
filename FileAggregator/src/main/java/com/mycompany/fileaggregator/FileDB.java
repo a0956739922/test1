@@ -48,15 +48,14 @@ public class FileDB {
 
     public int insertFile(int ownerId, JsonObject metadata) throws Exception {
         String sql =
-            "INSERT INTO files (owner_user_id, name, logical_path, size_bytes, metadata, is_deleted, updated_at) " +
-            "VALUES (?, ?, ?, ?, ?, FALSE, NOW())";
+            "INSERT INTO files (owner_user_id, name, size_bytes, metadata, is_deleted, updated_at) " +
+            "VALUES (?, ?, ?, ?, FALSE, NOW())";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, ownerId);
             stmt.setString(2, metadata.getString("file_name"));
-            stmt.setString(3, metadata.getString("logical_path"));
-            stmt.setInt(4, metadata.getJsonNumber("size_bytes").intValue());
-            stmt.setString(5, toJson(metadata));
+            stmt.setInt(3, metadata.getJsonNumber("size_bytes").intValue());
+            stmt.setString(4, toJson(metadata));
             stmt.executeUpdate();
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
@@ -66,22 +65,21 @@ public class FileDB {
         return -1;
     }
 
-    public void updateFile(int fileId, String newName, String newLogicalPath, Integer newSize) throws Exception {
+    public void updateFile(int fileId, String newName, Integer newSize) throws Exception {
         String sql;
         if (newSize == null) {
-            sql = "UPDATE files SET name = ?, logical_path = ?, updated_at = NOW() WHERE id = ?";
+            sql = "UPDATE files SET name = ?, updated_at = NOW() WHERE id = ?";
         } else {
-            sql = "UPDATE files SET name = ?, logical_path = ?, size_bytes = ?, updated_at = NOW() WHERE id = ?";
+            sql = "UPDATE files SET name = ?, size_bytes = ?, updated_at = NOW() WHERE id = ?";
         }
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newName);
-            stmt.setString(2, newLogicalPath);
             if (newSize == null) {
-                stmt.setInt(3, fileId);
+                stmt.setInt(2, fileId);
             } else {
-                stmt.setInt(3, newSize);
-                stmt.setInt(4, fileId);
+                stmt.setInt(2, newSize);
+                stmt.setInt(3, fileId);
             }
             stmt.executeUpdate();
         }
@@ -121,7 +119,6 @@ public class FileDB {
                         .add("id", rs.getInt("id"))
                         .add("owner_user_id", rs.getInt("owner_user_id"))
                         .add("name", rs.getString("name"))
-                        .add("logical_path", rs.getString("logical_path"))
                         .add("size_bytes", rs.getInt("size_bytes"))
                         .add("is_deleted", rs.getBoolean("is_deleted"))
                         .add("metadata", fromJson(rs.getString("metadata")))

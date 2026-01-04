@@ -44,7 +44,6 @@ public class MqttAggregator {
                                 int fileId = aggregator.create(
                                         req.getJsonNumber("ownerId").intValue(),
                                         req.getString("fileName"),
-                                        req.getString("logicalPath"),
                                         req.getString("content")
                                 );
                                 resBuilder.add("fileId", fileId);
@@ -62,7 +61,6 @@ public class MqttAggregator {
                                         req.getJsonNumber("ownerId").intValue(),
                                         req.getJsonNumber("fileId").intValue(),
                                         req.containsKey("newName") ? req.getString("newName") : null,
-                                        req.containsKey("newLogicalPath") ? req.getString("newLogicalPath") : null,
                                         req.containsKey("content") ? req.getString("content") : null
                                 );
                                 resBuilder.add("fileId", req.getJsonNumber("fileId").intValue());

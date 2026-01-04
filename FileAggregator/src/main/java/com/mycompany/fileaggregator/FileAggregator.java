@@ -38,7 +38,7 @@ public class FileAggregator {
         };
     }
 
-    public int create(int ownerId, String fileName, String logicalPath, String content) throws Exception {
+    public int create(int ownerId, String fileName, String content) throws Exception {
         Path tmpDir = Path.of("/home/ntu-user/tmp/upload");
         Files.createDirectories(tmpDir);
         Path localFile = Files.createTempFile(tmpDir, "create-", ".tmp");
@@ -53,7 +53,6 @@ public class FileAggregator {
                 ownerId,
                 Json.createObjectBuilder()
                         .add("file_name", fileName)
-                        .add("logical_path", logicalPath)
                         .add("size_bytes", sizeBytes)
                         .add("encryption_key", key)
                         .add("total_chunks", chunks.size())
@@ -82,7 +81,6 @@ public class FileAggregator {
                 Json.createObjectBuilder()
                         .add("file_id", fileId)
                         .add("file_name", fileName)
-                        .add("logical_path", logicalPath)
                         .add("size_bytes", sizeBytes)
                         .add("encryption_key", key)
                         .add("total_chunks", chunks.size())
@@ -92,7 +90,7 @@ public class FileAggregator {
         for (File f : chunks) f.delete();
         Files.deleteIfExists(zipFile);
         Files.deleteIfExists(localFile);
-        db.log(ownerId, null, "FILE_CREATE_OK", "fileId=" + fileId + ", fileName=" + fileName + ", logicalPath=" + logicalPath + ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size());
+        db.log(ownerId, null, "FILE_CREATE_OK", "fileId=" + fileId + ", fileName=" + fileName + ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size());
         return fileId;
     }
     
@@ -146,18 +144,14 @@ public class FileAggregator {
         return Files.readString(Path.of(filePath));
     }
 
-    public void update(int ownerId, int fileId, String newName, String newLogicalPath, String content) throws Exception {
+    public void update(int ownerId, int fileId, String newName, String content) throws Exception {
         JsonObject oldMeta = db.getMetadata(fileId);
         String oldName = oldMeta.getString("file_name");
-        String oldPath = oldMeta.getString("logical_path");
         boolean nameChanged = newName != null && !newName.equals(oldName);
-        boolean pathChanged = newLogicalPath != null && !newLogicalPath.equals(oldPath);
         boolean contentChanged = content != null;
         String finalName = nameChanged ? newName : oldName;
-        String finalLogicalPath = pathChanged ? newLogicalPath : oldPath;
         String detail = "fileId=" + fileId +
                 ", nameChanged=" + nameChanged +
-                ", pathChanged=" + pathChanged +
                 ", contentChanged=" + contentChanged;
         if (contentChanged) {
             JsonArray oldChunks = oldMeta.getJsonArray("chunks");
@@ -191,25 +185,21 @@ public class FileAggregator {
             JsonObject newMeta = Json.createObjectBuilder()
                     .add("file_id", fileId)
                     .add("file_name", finalName)
-                    .add("logical_path", finalLogicalPath)
                     .add("size_bytes", sizeBytes)
                     .add("encryption_key", key)
                     .add("total_chunks", chunks.size())
                     .add("chunks", chunkArr.build())
                     .build();
             db.updateMetadata(fileId, newMeta);
-            db.updateFile(fileId, finalName, finalLogicalPath, sizeBytes);
+            db.updateFile(fileId, finalName, sizeBytes);
             detail += ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size();
             for (File chunk : chunks) chunk.delete();
             Files.deleteIfExists(tmp);
             Files.deleteIfExists(Path.of(zipPath));
-        } else if (nameChanged || pathChanged) {
-            JsonObject updated = Json.createObjectBuilder(oldMeta)
-                    .add("file_name", finalName)
-                    .add("logical_path", finalLogicalPath)
-                    .build();
+        } else if (nameChanged) {
+            JsonObject updated = Json.createObjectBuilder(oldMeta).add("file_name", finalName).build();
             db.updateMetadata(fileId, updated);
-            db.updateFile(fileId, finalName, finalLogicalPath, null);
+            db.updateFile(fileId, finalName, null);
         } else {
             return;
         }
