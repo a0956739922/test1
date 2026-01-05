@@ -200,6 +200,19 @@ public class FileManagementController {
         Stage stage = (Stage) downloadBtn.getScene().getWindow();
         File file = chooser.showSaveDialog(stage);
         if (file == null) return;
+        if (selected.getRemoteFileId() == null) {
+            try {
+                fileService.downloadLocal(selected.getLocalId(), file);
+                dialogue("Success", "Download completed: " + file.getName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        if (!isOnline()) {
+            dialogue("DB connect Failed", "Cannot download remote file while offline.");
+            return;
+        }
         try {
             String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteFileId());
             MqttSubUI.registerRequestCallback(reqId, (finalResult) -> {
@@ -215,7 +228,7 @@ public class FileManagementController {
                 }).start();
             });
         } catch (Exception e) {
-            dialogue("DB connect Failed", "Cannot download remote file while offline.");
+            e.printStackTrace();
         }
     }
 
@@ -226,7 +239,7 @@ public class FileManagementController {
             dialogue("No File Selected", "Please select a file to share."); 
             return; 
         }
-        if (selected.getRemoteFileId() == null && !isOnline()) {
+        if (!isOnline()) {
             dialogue("DB connect Failed", "Cannot share file while offline.");
             return;
         }

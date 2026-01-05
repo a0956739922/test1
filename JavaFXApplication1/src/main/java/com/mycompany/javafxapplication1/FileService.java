@@ -7,6 +7,8 @@ package com.mycompany.javafxapplication1;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -15,7 +17,6 @@ import javax.json.JsonObjectBuilder;
  *
  * @author ntu-user
  */
-
 public class FileService {
     
     private final String USERNAME = "ntu-user";
@@ -128,6 +129,18 @@ public class FileService {
         session.disconnect();
         System.out.println("[SFTP] Download completed");
     }
+    
+    public void downloadLocal(int localId, File targetFile) throws Exception {
+        SQLiteDB sqlite = new SQLiteDB();
+        String content = sqlite.getLocalFileContent(localId);
+        if (content == null) {
+            content = "";
+        }
+        try (FileWriter writer = new FileWriter(targetFile)) {
+            writer.write(content);
+        }
+    }
+
 
     public void share(Integer userId, String username, int fileId, int targetId, String permission) throws Exception {
         remote.log(userId, username, "FILE_SHARE_REQ", "fileId=" + fileId + ", targetId=" + targetId + ", permission=" + permission);

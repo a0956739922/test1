@@ -76,8 +76,8 @@ public class AdvancedController {
     }
     
     @FXML
-    private void handleCommand() {
-        String input = terminalInput.getText().trim();
+    private void handleCommand() {  
+        String input = terminalInput.getText();
         terminalInput.clear();
         if (input.isEmpty()) return;
         terminalOutput.appendText("terminal@ntu-user $ " + input + "\n");

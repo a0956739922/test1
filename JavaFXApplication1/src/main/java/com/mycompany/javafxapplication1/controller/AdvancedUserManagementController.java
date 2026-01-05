@@ -76,6 +76,7 @@ public class AdvancedUserManagementController {
             colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
             colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
             colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
+            userTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             userTable.getItems().setAll(users);
             userTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
                 if (selected != null)

@@ -91,6 +91,7 @@ public class UpdateFileController {
             if (originalFile.getRemoteFileId() == null) {
                 SQLiteDB sqlite = new SQLiteDB();
                 sqlite.updateLocalFile(originalFile.getLocalId(), name, content);
+                userEdited = false;
                 closeWindow();
                 return;
             }
@@ -101,6 +102,7 @@ public class UpdateFileController {
                     name,
                     content
             );
+            userEdited = false;
             closeWindow();
         } catch (Exception e) {
             dialogue("DB connect Failed", "Cannot update remote file while offline.");

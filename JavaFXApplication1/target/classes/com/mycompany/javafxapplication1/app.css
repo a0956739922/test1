@@ -15,6 +15,7 @@
 .label.section {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
+    -fx-text-fill: white;
 }
 
 .text-field,

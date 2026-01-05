@@ -43,8 +43,8 @@ public class ShareFileController {
     }
 
     private void share(String permission) {
+        String targetUsername = usernameField.getText();
         try {
-            String targetUsername = usernameField.getText().trim();
             if (targetUsername.isEmpty()) {
                 dialogue("Missing Field", "Username cannot be empty.");
                 return;
@@ -59,7 +59,8 @@ public class ShareFileController {
             fileService.share(sessionUser.getUserId(), sessionUser.getUsername(), fileId, targetUser.getUserId(), permission);
             closeWindow();
         } catch (Exception e) {
-            dialogue("DB connect Failed", "Cannot share file while offline.");
+            e.printStackTrace();
+            dialogue("Error", "Failed to share file.");
         }
     }
 
