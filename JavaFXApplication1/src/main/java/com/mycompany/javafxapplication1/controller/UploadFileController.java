@@ -5,6 +5,7 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.File;
 import java.nio.file.Files;
@@ -60,7 +61,9 @@ public class UploadFileController {
                 return;
             }
             String content = Files.readString(selectedFile.toPath());
-            fileService.upload(sessionUser.getUserId(), sessionUser.getUsername(), fileName, content);
+            String reqId = java.util.UUID.randomUUID().toString();
+            SQLiteDB sqlite = new SQLiteDB();
+            sqlite.markPendingCreate(sessionUser.getUserId(), sessionUser.getUsername(), reqId, fileName, "owner",content);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

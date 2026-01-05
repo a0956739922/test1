@@ -134,7 +134,8 @@ public class FileManagementController {
             Scene scene = new Scene(root, 500, 320);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
-            stage.show();
+            stage.showAndWait();
+            loadFiles();
         } catch (Exception e) {
             e.printStackTrace();
             dialogue("Error", "Failed to open upload window.");
