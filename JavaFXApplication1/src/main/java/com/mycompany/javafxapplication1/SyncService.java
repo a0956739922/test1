@@ -19,7 +19,6 @@ public class SyncService extends Thread {
         this.fileService = fileService;
     }
 
-
     @Override
     public void run() {
         sqlite.resetSendingDelete();

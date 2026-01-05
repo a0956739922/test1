@@ -17,7 +17,6 @@ com/mycompany/javafxapplication1/SQLiteDB.class
 com/mycompany/javafxapplication1/controller/UploadFileController.class
 com/mycompany/javafxapplication1/MqttSubUI.class
 com/mycompany/javafxapplication1/controller/PrimaryController.class
-com/mycompany/javafxapplication1/FileModel.class
 com/mycompany/javafxapplication1/MqttPubUI.class
 com/mycompany/javafxapplication1/controller/AdvancedController.class
 com/mycompany/javafxapplication1/controller/UpdateFileController.class

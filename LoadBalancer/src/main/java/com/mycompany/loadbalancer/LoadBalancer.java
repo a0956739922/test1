@@ -95,10 +95,10 @@ public class LoadBalancer {
         int dispatchSlots = capacity - processingQueue.size();
         List<Request> toDispatch = scheduler.select(readyQueue, dispatchSlots);
         for (Request r : toDispatch) {
+            readyQueue.remove(r);
             if (dispatchHandler != null) {
                 dispatchHandler.dispatch(r);
             }
-            readyQueue.remove(r);
         }
     }
 
