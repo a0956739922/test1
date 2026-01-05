@@ -1,6 +1,5 @@
 package com.mycompany.javafxapplication1.controller;
 
-import com.mycompany.javafxapplication1.FileModel;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.RemoteFile;
 import com.mycompany.javafxapplication1.SQLiteDB;

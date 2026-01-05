@@ -1,5 +1,6 @@
 package com.mycompany.javafxapplication1;
 
+import com.mycompany.javafxapplication1.controller.SecondaryController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,21 +14,29 @@ import java.io.IOException;
 public class App extends Application {
     
     private MqttSubUI mqttSubUI;
-    private SyncService syncService;
     
     @Override
     public void start(Stage stage) throws IOException {
         try {
             mqttSubUI = new MqttSubUI();
             mqttSubUI.start();
-            syncService = new SyncService();
-            syncService.start();
+            SQLiteDB sqlite = new SQLiteDB();
+            User cached = sqlite.loadSession();
             boolean mysqlOnline = true;
             try {
                 MySQLDB mysql = new MySQLDB();
                 mysql.testConnection();
             } catch (Exception e) {
                 mysqlOnline = false;
+            }
+            if (cached != null) {
+                FileService fileService = new FileService();
+                SyncService syncService = new SyncService(cached, fileService);
+                syncService.start();
+            }
+            if (!mysqlOnline && cached != null) {
+                openSecondary(stage, cached, true);
+                return;
             }
             FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
             Parent root = loader.load();
@@ -39,6 +48,20 @@ public class App extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void openSecondary(Stage stage, User user, boolean offline) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+        Parent root = loader.load();
+        SecondaryController controller = loader.getController();
+        controller.initialise(user);
+        Scene scene = new Scene(root, 1000, 700);
+        scene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
+        stage.setScene(scene);
+        String title = "Welcome, " + user.getUsername();
+        if (offline) title += " (Offline Mode)";
+        stage.setTitle(title);
+        stage.show();
     }
 
     public static void main(String[] args) {

@@ -10,8 +10,15 @@ package com.mycompany.javafxapplication1;
  */
 public class SyncService extends Thread {
 
-    private final FileService fileService = new FileService();
+    private final User user;
+    private final FileService fileService;
     private final SQLiteDB sqlite = new SQLiteDB();
+
+    public SyncService(User user, FileService fileService) {
+        this.user = user;
+        this.fileService = fileService;
+    }
+
 
     @Override
     public void run() {
@@ -30,28 +37,23 @@ public class SyncService extends Thread {
     }
 
     private void syncDeletes() {
-        for (int userId : sqlite.getPendingDeleteUser()) {
-            String username = sqlite.getUsername(userId);
-            for (int fileId : sqlite.getPendingDelete(userId)) {
-                sqlite.markSendingDelete(userId, fileId);
-                try {
-                    fileService.delete(userId, username, fileId);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        for (int fileId : sqlite.getPendingDelete(user.getUserId())) {
+            sqlite.markSendingDelete(user.getUserId(), fileId);
+            try {
+                fileService.delete(user.getUserId(), user.getUsername(), fileId);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
 
     private void syncCreates() {
-        for (int userId : sqlite.getPendingCreateUser()) {
-            for (LocalFile lf : sqlite.getPendingCreate(userId)) {
-                sqlite.markSendingCreate(lf.getReqId());
-                try {
-                    fileService.create(lf.getReqId(), userId, lf.getUsername(), lf.getFileName(), lf.getContent());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        for (LocalFile lf : sqlite.getPendingCreate(user.getUserId())) {
+            sqlite.markSendingCreate(lf.getReqId());
+            try {
+                fileService.create(lf.getReqId(), user.getUserId(), user.getUsername(), lf.getFileName(), lf.getContent());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
