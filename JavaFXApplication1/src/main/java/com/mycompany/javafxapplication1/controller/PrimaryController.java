@@ -53,7 +53,8 @@ public class PrimaryController {
         }
         UserService service = new UserService();
         try {
-            User sessionUser = service.login(username, password);
+            service.login(username, password);
+            User sessionUser = service.getSessionUser();
             SQLiteDB sqlite = new SQLiteDB();
             try {
                 MySQLDB mysql = new MySQLDB();

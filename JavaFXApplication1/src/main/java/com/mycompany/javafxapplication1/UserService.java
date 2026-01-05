@@ -14,7 +14,7 @@ public class UserService {
     private MySQLDB remote = new MySQLDB();
     private SQLiteDB local = new SQLiteDB();
 
-    public User login(String username, String password) throws Exception {
+    public void login(String username, String password) throws Exception {
         try {
             remote.ensureDefaultAdmin();
         } catch (Exception e) {
@@ -30,8 +30,8 @@ public class UserService {
                 remote.log(null, username, "LOGIN_FAIL", "Wrong password");
                 throw new IllegalArgumentException("PASSWORD_WRONG");
             }
+            local.saveSession(user);
             remote.log(user.getUserId(), username, "LOGIN_SUCCESS", "");
-            return user;
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
@@ -87,5 +87,12 @@ public class UserService {
     public ObservableList<User> getAllUsers() throws Exception {
         return remote.getAllUsers();
     }
+
+    public User getSessionUser() {
+        return local.loadSession();
+    }
     
+    public void logout() {
+        local.clearSession();
+    }
 }
