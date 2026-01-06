@@ -10,7 +10,6 @@ import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 import javafx.fxml.FXML;
@@ -21,6 +20,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -62,29 +63,33 @@ public class AdvancedUserManagementController {
     private Button logoutBtn;
 
     private User sessionUser;
-
+    private final ObservableList<User> userItems = FXCollections.observableArrayList();
+    
     public void initialise(User user) {
-        sessionUser = user;
+        this.sessionUser = user;
+        colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
+        colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
+        userTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        userTable.setItems(userItems);
+        userTable.getSelectionModel().selectedItemProperty().addListener(
+            (obs, oldVal, selected) -> {
+                if (selected != null)
+                    selectionLabel.setText("Selected user: " + selected.getUsername());
+                else
+                    selectionLabel.setText("Select a user to manage.");
+            }
+        );
         loadUsers();
     }
 
     private void loadUsers() {
         try {
             MySQLDB mysql = new MySQLDB();
-            List<User> users = mysql.getAllUsers();
+            ObservableList<User> users = mysql.getAllUsers();
             users.removeIf(u -> u.getUsername().equals("admin"));
             users.removeIf(u -> u.getUserId() == sessionUser.getUserId());
-            colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
-            colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
-            colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
-            userTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-            userTable.getItems().setAll(users);
-            userTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
-                if (selected != null)
-                    selectionLabel.setText("Selected user: " + selected.getUsername());
-                else
-                    selectionLabel.setText("Select a user to manage.");
-            });
+            userItems.setAll(users);
         } catch (Exception e) {
             selectionLabel.setText("Cannot load users.");
         }
@@ -117,20 +122,21 @@ public class AdvancedUserManagementController {
     @FXML
     private void promoteDemote() {
         User target = userTable.getSelectionModel().getSelectedItem();
-        UserService userService = new UserService();
         if (target == null) {
             dialogue("No Selection", "Please select a user from the table.");
             return;
         }
         try {
+            UserService userService = new UserService();
             if (target.getRole().equals("admin")) {
                 userService.demote(sessionUser, target);
+                target.setRole("standard");
                 dialogue("User Updated", target.getUsername() + " is now a standard user.");
             } else {
                 userService.promote(sessionUser, target);
+                target.setRole("admin");
                 dialogue("User Updated", target.getUsername() + " is now an admin.");
             }
-            loadUsers();
         } catch (Exception e) {
             e.printStackTrace();
             dialogue("Error", "Operation failed.");
@@ -147,7 +153,14 @@ public class AdvancedUserManagementController {
         if (!dialogue("Delete User", "Are you sure you want to delete " + target.getUsername() + "?")) {
             return;
         }
-        System.out.println("Deleting user: " + target.getUsername());
+        try {
+            UserService userService = new UserService();
+            userService.deleteUser(sessionUser, target);
+            userItems.remove(target);
+        } catch (Exception e) {
+            e.printStackTrace();
+            dialogue("Error", "Delete failed.");
+        }
     }
 
     @FXML

@@ -245,5 +245,23 @@ public class MySQLDB {
             stmt.executeUpdate();
         }
     }
+    
+    public ObservableList<Log> getAllLogs() throws Exception {
+        ObservableList<Log> list = FXCollections.observableArrayList();
+        String sql = "SELECT * FROM logs ORDER BY log_id DESC";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                String time = rs.getString("timestamp");
+                int uId = rs.getInt("user_id");
+                if (rs.wasNull()) {
+                    uId = 0;
+                }
+                list.add(new Log(rs.getInt("log_id"), uId, rs.getString("username"), rs.getString("action"), rs.getString("detail"), time));
+            }
+        }
+        return list;
+    }
 
 }

@@ -11,6 +11,8 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -103,8 +105,8 @@ public class SQLiteDB {
         }
     }
 
-    public List<LocalFile> getAllOwnedFiles(int userId) {
-        List<LocalFile> files = new ArrayList<>();
+    public ObservableList<LocalFile> getAllOwnedFiles(int userId) {
+        ObservableList<LocalFile> files = FXCollections.observableArrayList();
         String sql
                 = "SELECT * FROM local_files "
                 + "WHERE owner_user_id = ? AND deleted = 0 ORDER BY updated_at DESC";
@@ -256,33 +258,33 @@ public class SQLiteDB {
     }
     
     public List<LocalFile> getPendingCreate(int userId) {
-    List<LocalFile> files = new ArrayList<>();
-    String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state = 'PENDING_CREATE'";
-    try (Connection conn = DriverManager.getConnection(dbUrl);
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setInt(1, userId);
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-            LocalFile lf = new LocalFile();
-            lf.setLocalId(rs.getInt("local_id"));
-            lf.setRemoteFileId(rs.getObject("remote_file_id") == null ? null : rs.getInt("remote_file_id"));
-            lf.setReqId(rs.getString("req_id"));
-            lf.setUserId(rs.getInt("owner_user_id"));
-            lf.setUsername(rs.getString("username"));
-            lf.setName(rs.getString("name"));
-            lf.setPermission(rs.getString("permission"));
-            lf.setSharedTo(rs.getString("share_to"));
-            lf.setContent(rs.getString("content"));
-            lf.setSyncState(rs.getString("sync_state"));
-            lf.setDeleted(rs.getInt("deleted") == 1);
-            lf.setUpdatedAt(rs.getString("updated_at"));
-            files.add(lf);
+        List<LocalFile> files = new ArrayList<>();
+        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state = 'PENDING_CREATE'";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                LocalFile lf = new LocalFile();
+                lf.setLocalId(rs.getInt("local_id"));
+                lf.setRemoteFileId(rs.getObject("remote_file_id") == null ? null : rs.getInt("remote_file_id"));
+                lf.setReqId(rs.getString("req_id"));
+                lf.setUserId(rs.getInt("owner_user_id"));
+                lf.setUsername(rs.getString("username"));
+                lf.setName(rs.getString("name"));
+                lf.setPermission(rs.getString("permission"));
+                lf.setSharedTo(rs.getString("share_to"));
+                lf.setContent(rs.getString("content"));
+                lf.setSyncState(rs.getString("sync_state"));
+                lf.setDeleted(rs.getInt("deleted") == 1);
+                lf.setUpdatedAt(rs.getString("updated_at"));
+                files.add(lf);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return files;
     }
-    return files;
-}
     
     public void markSendingCreate(String reqId) {
         String sql
@@ -411,6 +413,20 @@ public class SQLiteDB {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, remoteFileId);
             stmt.setString(2, reqId);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void finalizeShare(int fileId, String targetUsername) {
+        String sql
+                = "UPDATE local_files SET share_to = share_to || ',' || ?, updated_at = datetime('now') "
+                + "WHERE remote_file_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, targetUsername);
+            stmt.setInt(2, fileId);
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

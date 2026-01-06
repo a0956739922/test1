@@ -25,21 +25,7 @@ public class FileService {
     private MySQLDB remote = new MySQLDB();
     
     public String create(String reqId, Integer userId, String username, String fileName, String content) throws Exception {
-        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName);
-        JsonObject json = Json.createObjectBuilder()
-                .add("req_id", reqId)
-                .add("action", "create")
-                .add("ownerId", userId)
-                .add("fileName", fileName)
-                .add("content", content)
-                .build();
-        new MqttPubUI().send(json);
-        return reqId;
-    }
-    
-    public String upload(Integer userId, String username, String fileName, String content) throws Exception {
-        remote.log(userId, username, "FILE_CREATE_REQ", "fileName=" + fileName);
-        String reqId = java.util.UUID.randomUUID().toString();
+        remote.log(userId, username, "FILE_CREATE_REQ", "req_id=" + reqId + ", fileName=" + fileName);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "create")
@@ -63,8 +49,8 @@ public class FileService {
     }
 
     public String update(Integer userId, String username, int fileId, String newName, String content) throws Exception {
-        remote.log(userId, username, "FILE_UPDATE_REQ", "fileId=" + fileId + ", newName=" + newName + ", hasContent=" + (content != null));
         String reqId = java.util.UUID.randomUUID().toString();
+        remote.log(userId, username, "FILE_UPDATE_REQ", "req_id=" + reqId + ", fileId=" + fileId + ", newName=" + newName + ", contentChanged=" + (content != null));
         JsonObjectBuilder json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "update")
@@ -79,8 +65,8 @@ public class FileService {
     }
 
     public String delete(Integer userId, String username, int fileId) throws Exception {
-        remote.log(userId, username, "FILE_DELETE_REQ", "fileId=" + fileId);
         String reqId = java.util.UUID.randomUUID().toString();
+        remote.log(userId, username, "FILE_DELETE_REQ", "req_id=" + reqId + ", fileId=" + fileId);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "delete")
@@ -92,8 +78,8 @@ public class FileService {
     }
 
     public String download(Integer userId, String username, int fileId) throws Exception {
-        remote.log(userId, username, "FILE_DOWNLOAD_REQ", "fileId=" + fileId);
         String reqId = java.util.UUID.randomUUID().toString();
+        remote.log(userId, username, "FILE_DOWNLOAD_REQ", "req_id=" + reqId + ", fileId=" + fileId);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "download")
@@ -104,14 +90,14 @@ public class FileService {
         return reqId;
     }
 
-    public void downloadSftp(Integer userId, String username, String resultJson, String filename, String downloadPath) throws Exception {
+    public void downloadSftp(Integer userId, String username, String resultJson, String fileName, String downloadPath) throws Exception {
         JsonObject json = Json.createReader(new StringReader(resultJson)).readObject();
         String status = json.getString("status", "error");
         if (!"ok".equals(status)) {
             throw new Exception("Download failed: " + json);
         }
         String remotePath = json.getString("remoteFilePath");
-        remote.log(userId, username, "FILE_DOWNLOAD_RESULT", "remotePath=" + remotePath + ", localFile=" + downloadPath + "/" + filename);
+        remote.log(userId, username, "FILE_DOWNLOAD_RESULT", "remotePath=" + remotePath + ", fileName=" + fileName);
         JSch jsch = new JSch();
         jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
         Session session = jsch.getSession(USERNAME, "file-aggregator", REMOTE_PORT);
@@ -122,7 +108,7 @@ public class FileService {
         session.connect(10000);
         ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
         sftp.connect(5000);
-        String localFile = downloadPath + "/" + filename;
+        String localFile = downloadPath + "/" + fileName;
         System.out.println("[SFTP] get " + remotePath + " -> " + localFile);
         sftp.get(remotePath, localFile);
         sftp.disconnect();
@@ -142,19 +128,31 @@ public class FileService {
     }
 
 
-    public void share(Integer userId, String username, int fileId, int targetId, String permission) throws Exception {
-        remote.log(userId, username, "FILE_SHARE_REQ", "fileId=" + fileId + ", targetId=" + targetId + ", permission=" + permission);
-        String reqId = java.util.UUID.randomUUID().toString();
-        JsonObject json = Json.createObjectBuilder()
-                .add("req_id", reqId)
-                .add("action", "share")
-                .add("ownerId", userId)
-                .add("fileId", fileId)
-                .add("ownerId", userId)
-                .add("targetId", targetId)
-                .add("permission", permission)
-                .build();
-        new MqttPubUI().send(json);
+    public void share(Integer userId, String username,
+                  int fileId,
+                  int targetId, String targetUsername,
+                  String permission) throws Exception {
+            String reqId = java.util.UUID.randomUUID().toString();
+            remote.log(
+                    userId,
+                    username,
+                    "FILE_SHARE_REQ",
+                    "req_id=" + reqId +
+                    ", fileId=" + fileId +
+                    ", targetUsername=" + targetUsername +
+                    ", permission=" + permission
+            );
+            JsonObject json = Json.createObjectBuilder()
+                    .add("req_id", reqId)
+                    .add("action", "share")
+                    .add("ownerId", userId)
+                    .add("fileId", fileId)
+                    .add("targetId", targetId)
+                    .add("targetUsername", targetUsername)
+                    .add("permission", permission)
+                    .build();
+
+            new MqttPubUI().send(json);
     }
 
 }

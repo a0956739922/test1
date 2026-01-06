@@ -6,17 +6,16 @@ package com.mycompany.javafxapplication1;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
-
 /**
  *
  * @author ntu-user
  */
 public class User {
 
-    private SimpleIntegerProperty userId;
-    private SimpleStringProperty username;
-    private SimpleStringProperty passwordHash;
-    private SimpleStringProperty role;
+    private final SimpleIntegerProperty userId;
+    private final SimpleStringProperty username;
+    private final SimpleStringProperty passwordHash;
+    private final SimpleStringProperty role;
 
     public User(int userId, String username, String passwordHash, String role) {
         this.userId = new SimpleIntegerProperty(userId);
@@ -25,19 +24,27 @@ public class User {
         this.role = new SimpleStringProperty(role);
     }
 
-    public int getUserId() { 
-        return userId.get(); 
+    public int getUserId() {
+        return userId.get();
     }
-    
-    public String getUsername() { 
-        return username.get(); 
+
+    public String getUsername() {
+        return username.get();
     }
-    
-    public String getPasswordHash() { 
-        return passwordHash.get(); 
+
+    public String getPasswordHash() {
+        return passwordHash.get();
     }
-    
-    public String getRole() { 
-        return role.get(); 
+
+    public String getRole() {
+        return role.get();
+    }
+
+    public void setRole(String role) {
+        this.role.set(role);
+    }
+
+    public SimpleStringProperty roleProperty() {
+        return role;
     }
 }

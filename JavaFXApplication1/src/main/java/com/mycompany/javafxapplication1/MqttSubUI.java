@@ -64,12 +64,19 @@ public class MqttSubUI {
                         String action = res.getString("action", "");
                         String status = res.getString("status", "");
                         if ("ok".equals(status)) {
-                            if ("delete".equals(action)) {
-                                new SQLiteDB().finalizeDelete(res.getInt("fileId"));
-                                notifyRefresh();
-                            } else if ("create".equals(action)) {
-                                new SQLiteDB().finalizeCreate(reqId, res.getInt("fileId"));
-                                notifyRefresh();
+                            switch (action) {
+                                case "delete" -> {
+                                    new SQLiteDB().finalizeDelete(res.getInt("fileId"));
+                                    notifyRefresh();
+                                }
+                                case "create" -> {
+                                    new SQLiteDB().finalizeCreate(reqId, res.getInt("fileId"));
+                                    notifyRefresh();
+                                }
+                                case "share" -> {
+                                    new SQLiteDB().finalizeShare(res.getInt("fileId"), res.getString("targetUsername"));
+                                    notifyRefresh();
+                                }
                             }
                         }
                         Consumer<String> callback = requestCallbacks.remove(reqId);
