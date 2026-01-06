@@ -22,6 +22,7 @@ public class MqttSubUI {
     private static final String BROKER = "tcp://mqtt-broker:1883";
     private static final String AGG_RES = "/agg/response";
     private static final String CLIENT_ID = "UIClientSub";
+    private final FileService fileService = new FileService();
 
     private static final List<Runnable> refreshListeners = new CopyOnWriteArrayList<>();
     private static final Map<String, Consumer<String>> requestCallbacks = new ConcurrentHashMap<>();
@@ -66,15 +67,15 @@ public class MqttSubUI {
                         if ("ok".equals(status)) {
                             switch (action) {
                                 case "delete" -> {
-                                    new SQLiteDB().finalizeDelete(res.getInt("fileId"));
+                                    fileService.finalizeLocalDelete(res.getInt("fileId"));
                                     notifyRefresh();
                                 }
                                 case "create" -> {
-                                    new SQLiteDB().finalizeCreate(reqId, res.getInt("fileId"));
+                                    fileService.finalizeLocalCreate(reqId, res.getInt("fileId"));
                                     notifyRefresh();
                                 }
                                 case "share" -> {
-                                    new SQLiteDB().finalizeShare(res.getInt("fileId"), res.getString("targetUsername"));
+                                    fileService.finalizeLocalShare(res.getInt("fileId"), res.getString("targetUsername"), res.getString("permission"));
                                     notifyRefresh();
                                 }
                             }

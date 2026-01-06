@@ -78,8 +78,8 @@ public class FileManagementController {
     public void initialise(User user) {
         this.sessionUser = user;
         this.fileService = new FileService();
-        colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         colOwner.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
         fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);

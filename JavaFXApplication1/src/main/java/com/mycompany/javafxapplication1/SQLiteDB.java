@@ -419,17 +419,31 @@ public class SQLiteDB {
         }
     }
     
-    public void finalizeShare(int fileId, String targetUsername) {
-        String sql
-                = "UPDATE local_files SET share_to = share_to || ',' || ?, updated_at = datetime('now') "
-                + "WHERE remote_file_id = ?";
+    public String getShareTo(int remoteFileId) {
+        String sql = "SELECT share_to FROM local_files WHERE remote_file_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, targetUsername);
-            stmt.setInt(2, fileId);
-            stmt.executeUpdate();
+            stmt.setInt(1, remoteFileId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String val = rs.getString("share_to");
+                return val == null ? "" : val;
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); 
+        }
+        return "";
+    }
+    
+    public void updateShareTo(int remoteFileId, String newShareString) {
+        String sql = "UPDATE local_files SET share_to = ?, updated_at = datetime('now') WHERE remote_file_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newShareString);
+            stmt.setInt(2, remoteFileId);
+            stmt.executeUpdate();
+        } catch (Exception e) { 
+            e.printStackTrace(); 
         }
     }
     

@@ -79,7 +79,9 @@ public class MqttAggregator {
                                         req.getJsonNumber("targetId").intValue(),
                                         req.getString("permission")
                                 );
-                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue()).add("targetUsername", req.getString("targetUsername"));
+                                resBuilder.add("fileId", req.getJsonNumber("fileId").intValue())
+                                        .add("targetUsername", req.getString("targetUsername"))
+                                        .add("permission", req.getString("permission"));
                             }
                             default -> throw new IllegalArgumentException("Unknown action: " + action);
                         }

@@ -198,7 +198,7 @@ public class MySQLDB {
         String sql =
             "SELECT f.id, f.owner_user_id, f.name, " +
             "'owner' AS permission, u.username AS owner_name, " +
-            "GROUP_CONCAT(u2.username) AS share_to " +
+            "GROUP_CONCAT(CONCAT(u2.username, ':', fs2.permission)) AS share_to " +
             "FROM files f " +
             "JOIN users u ON f.owner_user_id = u.user_id " +
             "LEFT JOIN file_shares fs2 ON fs2.file_id = f.id " +

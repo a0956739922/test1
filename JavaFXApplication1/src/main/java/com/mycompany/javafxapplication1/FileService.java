@@ -10,6 +10,8 @@ import com.jcraft.jsch.Session;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -23,6 +25,7 @@ public class FileService {
     private final String PASSWORD = "ntu-user";
     private final int REMOTE_PORT = 22;
     private MySQLDB remote = new MySQLDB();
+    private SQLiteDB local = new SQLiteDB();
     
     public String create(String reqId, Integer userId, String username, String fileName, String content) throws Exception {
         remote.log(userId, username, "FILE_CREATE_REQ", "req_id=" + reqId + ", fileName=" + fileName);
@@ -90,6 +93,21 @@ public class FileService {
         return reqId;
     }
 
+    public void share(Integer userId, String username, int fileId, int targetId, String targetUsername, String permission) throws Exception {
+            String reqId = java.util.UUID.randomUUID().toString();
+            remote.log(userId, username, "FILE_SHARE_REQ", "req_id=" + reqId + ", fileId=" + fileId + ", targetUsername=" + targetUsername + ", permission=" + permission);
+            JsonObject json = Json.createObjectBuilder()
+                    .add("req_id", reqId)
+                    .add("action", "share")
+                    .add("ownerId", userId)
+                    .add("fileId", fileId)
+                    .add("targetId", targetId)
+                    .add("targetUsername", targetUsername)
+                    .add("permission", permission)
+                    .build();
+            new MqttPubUI().send(json);
+    }
+    
     public void downloadSftp(Integer userId, String username, String resultJson, String fileName, String downloadPath) throws Exception {
         JsonObject json = Json.createReader(new StringReader(resultJson)).readObject();
         String status = json.getString("status", "error");
@@ -117,8 +135,7 @@ public class FileService {
     }
     
     public void downloadLocal(int localId, File targetFile) throws Exception {
-        SQLiteDB sqlite = new SQLiteDB();
-        String content = sqlite.getLocalFileContent(localId);
+        String content = local.getLocalFileContent(localId);
         if (content == null) {
             content = "";
         }
@@ -126,33 +143,29 @@ public class FileService {
             writer.write(content);
         }
     }
-
-
-    public void share(Integer userId, String username,
-                  int fileId,
-                  int targetId, String targetUsername,
-                  String permission) throws Exception {
-            String reqId = java.util.UUID.randomUUID().toString();
-            remote.log(
-                    userId,
-                    username,
-                    "FILE_SHARE_REQ",
-                    "req_id=" + reqId +
-                    ", fileId=" + fileId +
-                    ", targetUsername=" + targetUsername +
-                    ", permission=" + permission
-            );
-            JsonObject json = Json.createObjectBuilder()
-                    .add("req_id", reqId)
-                    .add("action", "share")
-                    .add("ownerId", userId)
-                    .add("fileId", fileId)
-                    .add("targetId", targetId)
-                    .add("targetUsername", targetUsername)
-                    .add("permission", permission)
-                    .build();
-
-            new MqttPubUI().send(json);
+    
+    public void finalizeLocalCreate(String reqId, int remoteFileId) {
+        local.finalizeCreate(reqId, remoteFileId);
+    }
+    
+    public void finalizeLocalDelete(int remoteFileId) {
+        local.finalizeDelete(remoteFileId);
+    }
+    
+    public void finalizeLocalShare(int remoteFileId, String targetUsername, String permission) {
+        String currentStr = local.getShareTo(remoteFileId);
+        List<String> shares = new ArrayList<>();
+        if (!currentStr.isEmpty()) {
+            String[] parts = currentStr.split(",");
+            for (String p : parts) {
+                String clean = p.trim();
+                if (!clean.isEmpty() && !clean.startsWith(targetUsername + ":")) {
+                    shares.add(clean);
+                }
+            }
+        }
+        shares.add(targetUsername + ":" + permission);
+        local.updateShareTo(remoteFileId, String.join(",", shares));
     }
 
 }
