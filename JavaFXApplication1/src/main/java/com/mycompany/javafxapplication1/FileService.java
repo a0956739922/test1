@@ -26,6 +26,7 @@ public class FileService {
     private final int REMOTE_PORT = 22;
     private MySQLDB remote = new MySQLDB();
     private SQLiteDB local = new SQLiteDB();
+    private MqttPubUI mqtt = new MqttPubUI();
     
     public String create(String reqId, Integer userId, String username, String fileName, String content) throws Exception {
         remote.log(userId, username, "FILE_CREATE_REQ", "req_id=" + reqId + ", fileName=" + fileName);
@@ -36,7 +37,7 @@ public class FileService {
                 .add("fileName", fileName)
                 .add("content", content)
                 .build();
-        new MqttPubUI().send(json);
+        mqtt.send(json);
         return reqId;
     }
     
@@ -47,7 +48,7 @@ public class FileService {
                 .add("action", "loadContent")
                 .add("fileId", fileId)
                 .build();
-        new MqttPubUI().send(json);
+        mqtt.send(json);
         return reqId;
     }
 
@@ -63,7 +64,7 @@ public class FileService {
         if (content != null) {
             json.add("content", content);
         }
-        new MqttPubUI().send(json.build());
+        mqtt.send(json.build());
         return reqId;
     }
 
@@ -76,7 +77,7 @@ public class FileService {
                 .add("ownerId", userId)
                 .add("fileId", fileId)
                 .build();
-        new MqttPubUI().send(json);
+        mqtt.send(json);
         return reqId;
     }
 
@@ -89,23 +90,23 @@ public class FileService {
                 .add("ownerId", userId)
                 .add("fileId", fileId)
                 .build();
-        new MqttPubUI().send(json);
+        mqtt.send(json);
         return reqId;
     }
 
     public void share(Integer userId, String username, int fileId, int targetId, String targetUsername, String permission) throws Exception {
-            String reqId = java.util.UUID.randomUUID().toString();
-            remote.log(userId, username, "FILE_SHARE_REQ", "req_id=" + reqId + ", fileId=" + fileId + ", targetUsername=" + targetUsername + ", permission=" + permission);
-            JsonObject json = Json.createObjectBuilder()
-                    .add("req_id", reqId)
-                    .add("action", "share")
-                    .add("ownerId", userId)
-                    .add("fileId", fileId)
-                    .add("targetId", targetId)
-                    .add("targetUsername", targetUsername)
-                    .add("permission", permission)
-                    .build();
-            new MqttPubUI().send(json);
+        String reqId = java.util.UUID.randomUUID().toString();
+        remote.log(userId, username, "FILE_SHARE_REQ", "req_id=" + reqId + ", fileId=" + fileId + ", targetUsername=" + targetUsername + ", permission=" + permission);
+        JsonObject json = Json.createObjectBuilder()
+                .add("req_id", reqId)
+                .add("action", "share")
+                .add("ownerId", userId)
+                .add("fileId", fileId)
+                .add("targetId", targetId)
+                .add("targetUsername", targetUsername)
+                .add("permission", permission)
+                .build();
+        mqtt.send(json);
     }
     
     public void downloadSftp(Integer userId, String username, String resultJson, String fileName, String downloadPath) throws Exception {
