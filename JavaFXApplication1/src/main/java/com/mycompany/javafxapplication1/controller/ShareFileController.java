@@ -6,6 +6,7 @@ package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.MySQLDB;
+import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.util.Optional;
 import javafx.fxml.FXML;
@@ -52,6 +53,17 @@ public class ShareFileController {
             if (targetUsername.equals(sessionUser.getUsername())) {
                 dialogue("Invalid User", "You cannot share with yourself.");
                 return;
+            }
+            SQLiteDB local = new SQLiteDB();
+            String shareTo = local.getShareTo(fileId);
+            if (!shareTo.isEmpty()) {
+                for (String user : shareTo.split(",")) {
+                    String[] pair = user.split(":");
+                    if (pair.length == 2 && pair[0].equals(targetUsername) && pair[1].equals(permission)) {
+                        dialogue("Duplicate Share", "The user already has " + permission + " permission.");
+                        return;
+                    }
+                }
             }
             MySQLDB db = new MySQLDB();
             User targetUser = db.getUserByName(targetUsername);
