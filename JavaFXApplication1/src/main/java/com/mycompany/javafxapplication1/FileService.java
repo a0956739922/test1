@@ -145,6 +145,10 @@ public class FileService {
         }
     }
     
+    public String getLocalContent(int localId) {
+        return local.getLocalFileContent(localId);
+    }
+    
     public void finalizeLocalCreate(String reqId, int remoteFileId) {
         local.finalizeCreate(reqId, remoteFileId);
     }

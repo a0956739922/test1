@@ -30,7 +30,8 @@ public class ViewFileController {
         this.file = file;
         contentArea.setEditable(false);
         if (file.getRemoteFileId() == null) {
-            loadLocalContent();
+            String content = fileService.getLocalContent(file.getLocalId());
+            contentArea.setText(content);
             return;
         }
         contentArea.setText("Loading...");
@@ -51,12 +52,6 @@ public class ViewFileController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    
-    private void loadLocalContent() {
-        SQLiteDB sqlite = new SQLiteDB();
-        String content = sqlite.getLocalFileContent(file.getLocalId());
-        contentArea.setText(content);
     }
 
     @FXML
