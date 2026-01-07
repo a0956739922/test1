@@ -186,23 +186,6 @@ public class SQLiteDB {
             e.printStackTrace();
         }
     }
-
-    public String getUsername(int userId) {
-        String sql
-                = "SELECT username FROM local_files "
-                + "WHERE owner_user_id = ? LIMIT 1";
-        try (Connection conn = DriverManager.getConnection(dbUrl);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("username");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "UNKNOWN";
-    }
     
     public List<Integer> getPendingCreateUser() {
         List<Integer> userIds = new ArrayList<>();

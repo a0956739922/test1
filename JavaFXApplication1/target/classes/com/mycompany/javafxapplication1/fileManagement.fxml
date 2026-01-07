@@ -38,10 +38,10 @@
 
             <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" maxWidth="760">
                 <columns>
-                    <TableColumn fx:id="colOwner" text="Owner" prefWidth="120"/>
-                    <TableColumn fx:id="colFilename" text="Filename" prefWidth="150"/>
-                    <TableColumn fx:id="colPermission" text="Role" prefWidth="100"/>
-                    <TableColumn fx:id="colShareTo" text="Share To" prefWidth="100"/>
+                    <TableColumn fx:id="colOwner" text="Owner" prefWidth="80"/>
+                    <TableColumn fx:id="colFilename" text="Filename" prefWidth="120"/>
+                    <TableColumn fx:id="colShareTo" text="Share To" />
+                    <TableColumn fx:id="colPermission" text="Role" prefWidth="50"/>
                 </columns>
             </TableView>
         </VBox>

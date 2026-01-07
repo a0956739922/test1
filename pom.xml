@@ -11,10 +11,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>FileAggregator</module>
-        <module>LoadBalancer</module>
-        <module>MqttHost</module>
         <module>JavaFXApplication1</module>
+        <module>CloudSystem</module>
     </modules>
 
 </project>
