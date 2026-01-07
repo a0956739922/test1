@@ -192,6 +192,10 @@ public class FileManagementController {
             dialogue("No File Selected", "Please select a file to download.");
             return;
         }
+        if (selected.getRemoteFileId() != null && !isOnline()) {
+            dialogue("DB connect Failed", "Cannot download remote file while offline.");
+            return;
+        }
         if (!dialogue("Download", "Proceed to download?")) {
             return;
         }
@@ -208,10 +212,6 @@ public class FileManagementController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return;
-        }
-        if (!isOnline()) {
-            dialogue("DB connect Failed", "Cannot download remote file while offline.");
             return;
         }
         try {
