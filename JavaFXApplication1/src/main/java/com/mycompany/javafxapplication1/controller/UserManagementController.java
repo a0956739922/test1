@@ -73,14 +73,9 @@ public class UserManagementController {
             retypeField.clear();
         } catch (IllegalArgumentException e) {
             switch (e.getMessage()) {
-                case "PASSWORD_EMPTY":
-                    dialogue("Error", "Password cannot be empty.");
-                    break;
-                case "WRONG_CURRENT_PASSWORD":
-                    dialogue("Incorrect Password", "Current password incorrect.");
-                    break;
-                default:
-                    dialogue("Error", "Unexpected error.");
+                case "PASSWORD_EMPTY" -> dialogue("Error", "Password cannot be empty.");
+                case "WRONG_CURRENT_PASSWORD" -> dialogue("Incorrect Password", "Current password incorrect.");
+                default -> dialogue("Error", "Unexpected error.");
             }
         } catch (Exception e) {
             dialogue("Offline Mode", "Cannot update password offline.");
