@@ -19,11 +19,6 @@
                     prefWidth="210"
                     onAction="#openUserManagement"/>
 
-            <Button fx:id="fileManageBtn"
-                    text="File Management"
-                    prefWidth="210"
-                    onAction="#openFileManagement"/>
-
             <Button fx:id="logBtn"
                     text="Logs"
                     prefWidth="210"

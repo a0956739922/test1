@@ -70,7 +70,6 @@ public class AdvancedUserManagementController {
         colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
         colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
-        userTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         userTable.setItems(userItems);
         userTable.getSelectionModel().selectedItemProperty().addListener(
             (obs, oldVal, selected) -> {
@@ -186,7 +185,7 @@ public class AdvancedUserManagementController {
             return;
         }
         try {
-            new SQLiteDB().clearSession();
+            new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());

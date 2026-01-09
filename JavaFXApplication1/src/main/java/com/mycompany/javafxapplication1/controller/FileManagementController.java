@@ -10,6 +10,7 @@ import com.mycompany.javafxapplication1.MqttSubUI;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
+import com.mycompany.javafxapplication1.UserService;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -82,7 +83,6 @@ public class FileManagementController {
         colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
-        fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         MqttSubUI.addRefreshListener(this::loadFiles);
         loadFiles();
         fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
@@ -215,7 +215,7 @@ public class FileManagementController {
             return;
         }
         try {
-            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteFileId());
+            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteFileId(), selected.getFileName());
             MqttSubUI.registerRequestCallback(reqId, (finalResult) -> {
                 new Thread(() -> {
                     try {
@@ -248,7 +248,7 @@ public class FileManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
             Parent root = loader.load();
             ShareFileController controller = loader.getController();
-            controller.initialise(sessionUser, fileService, selected.getRemoteFileId());
+            controller.initialise(sessionUser, fileService, selected);
             Stage stage = new Stage();
             stage.setTitle("Share File");
             Scene scene = new Scene(root, 480, 300);
@@ -343,12 +343,12 @@ public class FileManagementController {
     }
     
     @FXML
-    private void logout() {  
+    private void logout() {
         if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
             return;
         }
         try {
-            new SQLiteDB().clearSession();
+            new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());

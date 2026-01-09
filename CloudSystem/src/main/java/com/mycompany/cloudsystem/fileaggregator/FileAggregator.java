@@ -38,7 +38,7 @@ public class FileAggregator {
         };
     }
 
-    public int create(String reqId, int ownerId, String fileName, String content) throws Exception {
+    public int create(int ownerId, String fileName, String content) throws Exception {
         try {
             Path tmpDir = Path.of("/home/ntu-user/tmp/upload");
             Files.createDirectories(tmpDir);
@@ -91,10 +91,10 @@ public class FileAggregator {
             for (File f : chunks) f.delete();
             Files.deleteIfExists(zipFile);
             Files.deleteIfExists(localFile);
-            db.log(ownerId, null, "FILE_CREATE_OK", "req_id=" + reqId + ", fileId=" + fileId + ", fileName=" + fileName + ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size());
+            db.log(ownerId, null, "FILE_CREATE_OK", "file=" + fileName + ", size=" + sizeBytes + " bytes, chunks=" + chunks.size());
             return fileId;
         } catch (Exception e) {
-            db.log(ownerId, null, "FILE_CREATE_FAIL", "req_id=" + reqId + ", fileName=" + fileName + ", error=" + e.getClass().getSimpleName());
+            db.log(ownerId, null, "FILE_CREATE_FAIL", "fileName=" + fileName + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }
@@ -138,13 +138,13 @@ public class FileAggregator {
         return baseDir + "/" + fileName;
     }
 
-    public String download(String reqId, int ownerId, int fileId) throws Exception {
+    public String download(int ownerId, int fileId, String fileName) throws Exception {
         try {
             String path = assembleFile(fileId);
-            db.log(ownerId, null, "FILE_DOWNLOAD_OK", "req_id=" + reqId + ", fileId=" + fileId);
+            db.log(ownerId, null, "FILE_DOWNLOAD_OK", "file=" + fileName);
             return path;
         } catch (Exception e) {
-            db.log(ownerId, null, "FILE_DOWNLOAD_FAIL", "req_id=" + reqId + ", fileId=" + fileId + ", error=" + e.getClass().getSimpleName());
+            db.log(ownerId, null, "FILE_DOWNLOAD_FAIL", "file=" + fileName + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }
@@ -154,15 +154,19 @@ public class FileAggregator {
         return Files.readString(Path.of(filePath));
     }
 
-    public void update(String reqId, int ownerId, int fileId, String newName, String content) throws Exception {
-        String detail = "req_id=" + reqId + ", fileId=" + fileId;
+    public void update(int ownerId, int fileId, String newName, String content) throws Exception {
+        String detail = ""; 
         try {
             JsonObject oldMeta = db.getMetadata(fileId);
             String oldName = oldMeta.getString("file_name");
             boolean nameChanged = newName != null && !newName.equals(oldName);
             boolean contentChanged = content != null;
             String finalName = nameChanged ? newName : oldName;
-            detail += ", nameChanged=" + nameChanged + ", contentChanged=" + contentChanged;
+            if (nameChanged) {
+                detail = "renamed '" + oldName + "' to '" + newName + "', content_modified=" + (contentChanged ? "yes" : "no");
+            } else {
+                detail = "file=" + finalName + ", content_modified=" + (contentChanged ? "yes" : "no");
+            }
             if (contentChanged) {
                 JsonArray oldChunks = oldMeta.getJsonArray("chunks");
                 for (int i = 0; i < oldChunks.size(); i++) {
@@ -202,7 +206,7 @@ public class FileAggregator {
                         .build();
                 db.updateMetadata(fileId, newMeta);
                 db.updateFile(fileId, finalName, sizeBytes);
-                detail += ", sizeBytes=" + sizeBytes + ", chunks=" + chunks.size();
+                detail += ", size=" + sizeBytes + ", chunks=" + chunks.size();
                 for (File chunk : chunks) chunk.delete();
                 Files.deleteIfExists(tmp);
                 Files.deleteIfExists(Path.of(zipPath));
@@ -213,15 +217,16 @@ public class FileAggregator {
             }
             db.log(ownerId, null, "FILE_UPDATE_OK", detail);
         } catch (Exception e) {
-            db.log(ownerId, null, "FILE_UPDATE_FAIL", detail + ", error=" + e.getClass().getSimpleName());
+            String logMsg = detail.isEmpty() ? "fileId=" + fileId : detail;
+            db.log(ownerId, null, "FILE_UPDATE_FAIL", logMsg + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }
 
-    public void delete(String reqId, int ownerId, int fileId) throws Exception {
+    public void delete(int ownerId, int fileId, String fileName) throws Exception {
         try {
-            JsonObject meta = db.getMetadata(fileId);
             db.deleteShares(fileId);
+            JsonObject meta = db.getMetadata(fileId);
             if (meta != null) {
                 JsonArray chunks = meta.getJsonArray("chunks");
                 for (int i = 0; i < chunks.size(); i++) {
@@ -230,14 +235,14 @@ public class FileAggregator {
                 }
             }
             db.markFileDeleted(fileId);
-            db.log(ownerId, null, "FILE_DELETE_OK", "req_id=" + reqId + ", fileId=" + fileId);
+            db.log(ownerId, null, "FILE_DELETE_OK", "file=" + fileName);
         } catch (Exception e) {
-            db.log(ownerId, null, "FILE_DELETE_FAIL", "req_id=" + reqId + ", fileId=" + fileId + ", error=" + e.getClass().getSimpleName());
+            db.log(ownerId, null, "FILE_DELETE_FAIL", "file=" + fileName + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }
 
-    public void share(String reqId, int ownerId, int fileId, int targetId, String permission) throws Exception {
+    public void share(int ownerId, int fileId, String fileName, int targetId, String targetUsername, String permission) throws Exception {
         try {
             if (db.shareExists(fileId, targetId)) {
                 db.updateShare(fileId, targetId, permission);
@@ -245,9 +250,9 @@ public class FileAggregator {
             else {
                 db.insertShare(fileId, ownerId, targetId, permission);
             }
-            db.log(ownerId, null, "FILE_SHARE_OK", "req_id=" + reqId + ", fileId=" + fileId  + ", targetId=" + targetId + ", permission=" + permission);
+            db.log(ownerId, null, "FILE_SHARE_OK", "file=" + fileName + ", target_user=" + targetUsername + ", permission=" + permission);
         } catch (Exception e) {
-            db.log(ownerId, null, "FILE_SHARE_FAIL", "req_id=" + reqId + ", fileId=" + fileId + ", targetId=" + targetId + ", error=" + e.getClass().getSimpleName());
+            db.log(ownerId, null, "FILE_SHARE_FAIL", "file=" + fileName + ", target_user=" + targetUsername + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }

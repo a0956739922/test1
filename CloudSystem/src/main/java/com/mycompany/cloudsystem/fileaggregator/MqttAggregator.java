@@ -77,7 +77,6 @@ public class MqttAggregator {
             switch (action) {
                 case "create" -> {
                     int fileId = aggregator.create(
-                            reqId,
                             req.getJsonNumber("ownerId").intValue(),
                             req.getString("fileName"),
                             req.getString("content")
@@ -86,9 +85,9 @@ public class MqttAggregator {
                 }
                 case "download" -> {
                     String path = aggregator.download(
-                            reqId, 
                             req.getJsonNumber("ownerId").intValue(), 
-                            req.getJsonNumber("fileId").intValue()
+                            req.getJsonNumber("fileId").intValue(),
+                            req.getString("fileName")
                     );
                     resBuilder.add("fileId", req.getJsonNumber("fileId").intValue()).add("remoteFilePath", path);
                 }
@@ -98,7 +97,6 @@ public class MqttAggregator {
                 }
                 case "update" -> {
                     aggregator.update(
-                            reqId,
                             req.getJsonNumber("ownerId").intValue(),
                             req.getJsonNumber("fileId").intValue(),
                             req.containsKey("newName") ? req.getString("newName") : null,
@@ -108,18 +106,19 @@ public class MqttAggregator {
                 }
                 case "delete" -> {
                     aggregator.delete(
-                            reqId, 
                             req.getJsonNumber("ownerId").intValue(), 
-                            req.getJsonNumber("fileId").intValue()
+                            req.getJsonNumber("fileId").intValue(),
+                            req.getString("fileName")
                     );
                     resBuilder.add("fileId", req.getJsonNumber("fileId").intValue());
                 }
                 case "share" -> {
                     aggregator.share(
-                            reqId,
                             req.getJsonNumber("ownerId").intValue(),
                             req.getJsonNumber("fileId").intValue(),
+                            req.getString("fileName"),
                             req.getJsonNumber("targetId").intValue(),
+                            req.getString("targetUsername"),
                             req.getString("permission")
                     );
                     resBuilder.add("fileId", req.getJsonNumber("fileId").intValue())

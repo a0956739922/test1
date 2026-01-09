@@ -37,6 +37,9 @@
             <Label text="Files" styleClass="title"/>
 
             <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" maxWidth="760">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
                 <columns>
                     <TableColumn fx:id="colOwner" text="Owner" prefWidth="80"/>
                     <TableColumn fx:id="colFilename" text="Filename" prefWidth="120"/>

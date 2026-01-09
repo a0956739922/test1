@@ -29,7 +29,7 @@ public class FileService {
     private MqttPubUI mqtt = new MqttPubUI();
     
     public String create(String reqId, Integer userId, String username, String fileName, String content) throws Exception {
-        remote.log(userId, username, "FILE_CREATE_REQ", "req_id=" + reqId + ", fileName=" + fileName);
+        remote.log(userId, username, "FILE_CREATE_REQ", "file=" + fileName);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "create")
@@ -52,9 +52,16 @@ public class FileService {
         return reqId;
     }
 
-    public String update(Integer userId, String username, int fileId, String newName, String content) throws Exception {
+    public String update(Integer userId, String username, int fileId, String oldName, String newName, String content) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
-        remote.log(userId, username, "FILE_UPDATE_REQ", "req_id=" + reqId + ", fileId=" + fileId + ", newName=" + newName + ", contentChanged=" + (content != null));
+        String contentStatus = (content != null) ? "yes" : "no";
+        String logDetail;
+        if (!oldName.equals(newName)) {
+            logDetail = "renamed '" + oldName + "' to '" + newName + "', content_modified=" + contentStatus;
+        } else {
+            logDetail = "file=" + newName + ", content_modified=" + contentStatus;
+        }
+        remote.log(userId, username, "FILE_UPDATE_REQ", logDetail);
         JsonObjectBuilder json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "update")
@@ -68,40 +75,43 @@ public class FileService {
         return reqId;
     }
 
-    public String delete(Integer userId, String username, int fileId) throws Exception {
+    public String delete(Integer userId, String username, int fileId, String fileName) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
-        remote.log(userId, username, "FILE_DELETE_REQ", "req_id=" + reqId + ", fileId=" + fileId);
+        remote.log(userId, username, "FILE_DELETE_REQ", "file=" + fileName);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "delete")
                 .add("ownerId", userId)
                 .add("fileId", fileId)
+                .add("fileName", fileName)
                 .build();
         mqtt.send(json);
         return reqId;
     }
 
-    public String download(Integer userId, String username, int fileId) throws Exception {
+    public String download(Integer userId, String username, int fileId, String fileName) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
-        remote.log(userId, username, "FILE_DOWNLOAD_REQ", "req_id=" + reqId + ", fileId=" + fileId);
+        remote.log(userId, username, "FILE_DOWNLOAD_REQ", "file=" + fileName);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "download")
                 .add("ownerId", userId)
                 .add("fileId", fileId)
+                .add("fileName", fileName)
                 .build();
         mqtt.send(json);
         return reqId;
     }
 
-    public void share(Integer userId, String username, int fileId, int targetId, String targetUsername, String permission) throws Exception {
+    public void share(Integer userId, String username, int fileId, String fileName, int targetId, String targetUsername, String permission) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
-        remote.log(userId, username, "FILE_SHARE_REQ", "req_id=" + reqId + ", fileId=" + fileId + ", targetUsername=" + targetUsername + ", permission=" + permission);
+        remote.log(userId, username, "FILE_SHARE_REQ", "file=" + fileName + ", target_user=" + targetUsername + ", permission=" + permission);
         JsonObject json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "share")
                 .add("ownerId", userId)
                 .add("fileId", fileId)
+                .add("fileName", fileName)
                 .add("targetId", targetId)
                 .add("targetUsername", targetUsername)
                 .add("permission", permission)
@@ -116,7 +126,6 @@ public class FileService {
             throw new Exception("Download failed: " + json);
         }
         String remotePath = json.getString("remoteFilePath");
-        remote.log(userId, username, "FILE_DOWNLOAD_RESULT", "remotePath=" + remotePath + ", fileName=" + fileName);
         JSch jsch = new JSch();
         jsch.setKnownHosts("/home/ntu-user/.ssh/known_hosts");
         Session session = jsch.getSession(USERNAME, "file-aggregator", REMOTE_PORT);

@@ -54,6 +54,9 @@
             <TableView fx:id="userTable"
                        VBox.vgrow="ALWAYS"
                        maxWidth="720">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
                 <columns>
                     <TableColumn fx:id="colUserId" text="ID" prefWidth="80"/>
                     <TableColumn fx:id="colUsername" text="Username" prefWidth="260"/>

@@ -56,17 +56,17 @@ public class UserService {
             currentUser = null;
         }
         remote.deleteUser(target.getUserId());
-        remote.log(currentUser, actor.getUsername(), "DELETE_USER", "target_id=" + target.getUserId());
+        remote.log(currentUser, actor.getUsername(), "DELETE_USER", "target_user=" + target.getUsername());
     }
 
     public void promote(User admin, User target) throws Exception {
         remote.updateRole(target.getUserId(), "admin");
-        remote.log(admin.getUserId(), admin.getUsername(), "PROMOTE_USER", "target_id=" + target.getUserId());
+        remote.log(admin.getUserId(), admin.getUsername(), "PROMOTE_USER", "target_user=" + target.getUsername());
     }
 
     public void demote(User admin, User target) throws Exception {
         remote.updateRole(target.getUserId(), "standard");
-        remote.log(admin.getUserId(), admin.getUsername(), "DEMOTE_USER", "target_id=" + target.getUserId());
+        remote.log(admin.getUserId(), admin.getUsername(), "DEMOTE_USER", "target_user=" + target.getUsername());
     }
 
     public void updatePassword(User user, String currentPass, String newPass) throws Exception {
@@ -75,13 +75,13 @@ public class UserService {
         if (!remote.verifyPassword(currentPass, fresh.getPasswordHash()))
             throw new IllegalArgumentException("WRONG_CURRENT_PASSWORD");
         remote.updatePassword(fresh.getUserId(), remote.hashPassword(newPass));
-        remote.log(fresh.getUserId(), fresh.getUsername(), "UPDATE_PASSWORD", "target_id=" + fresh.getUserId());
+        remote.log(fresh.getUserId(), fresh.getUsername(), "UPDATE_PASSWORD", "password_changed");
     }
     
     public void adminUpdatePassword(User admin, User target, String newPass) throws Exception {
         if (newPass.isEmpty()) throw new IllegalArgumentException("PASSWORD_EMPTY");
         remote.updatePassword(target.getUserId(), remote.hashPassword(newPass));
-        remote.log(admin.getUserId(),admin.getUsername(),"ADMIN_UPDATE_PASSWORD","target_id=" + target.getUserId());
+        remote.log(admin.getUserId(),admin.getUsername(),"ADMIN_UPDATE_PASSWORD", "target_user=" + target.getUsername());
     }
 
     public ObservableList<User> getAllUsers() throws Exception {
@@ -93,6 +93,13 @@ public class UserService {
     }
     
     public void logout() {
-        local.clearSession();
+        try {
+            User currentUser = local.loadSession();
+            remote.log(currentUser.getUserId(), currentUser.getUsername(), "LOGOUT_SUCCESS", "");
+        } catch (Exception e) {
+            System.out.println("[UserService] Failed to log logout event: " + e.getMessage());
+        } finally {
+            local.clearSession();
+        }
     }
 }

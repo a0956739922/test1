@@ -5,6 +5,7 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.FileService;
+import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
@@ -25,12 +26,12 @@ public class ShareFileController {
 
     private User sessionUser;
     private FileService fileService;
-    private int fileId;
+    private LocalFile file;
 
-    public void initialise(User user, FileService service, int fileId) {
+    public void initialise(User user, FileService service, LocalFile file) {
         this.sessionUser = user;
         this.fileService = service;
-        this.fileId = fileId;
+        this.file = file;
     }
 
     @FXML
@@ -55,7 +56,7 @@ public class ShareFileController {
                 return;
             }
             SQLiteDB local = new SQLiteDB();
-            String shareTo = local.getShareTo(fileId);
+            String shareTo = local.getShareTo(file.getRemoteFileId());
             if (!shareTo.isEmpty()) {
                 for (String user : shareTo.split(",")) {
                     String[] pair = user.split(":");
@@ -68,7 +69,7 @@ public class ShareFileController {
             MySQLDB db = new MySQLDB();
             User targetUser = db.getUserByName(targetUsername);
             if (targetUser == null) {dialogue("User Not Found", "The specified user does not exist.");return;}
-            fileService.share(sessionUser.getUserId(), sessionUser.getUsername(), fileId, targetUser.getUserId(), targetUser.getUsername(), permission);
+            fileService.share(sessionUser.getUserId(), sessionUser.getUsername(), file.getRemoteFileId(), file.getFileName(), targetUser.getUserId(), targetUser.getUsername(), permission);
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

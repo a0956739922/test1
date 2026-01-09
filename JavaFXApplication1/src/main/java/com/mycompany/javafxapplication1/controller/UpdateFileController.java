@@ -3,7 +3,6 @@ package com.mycompany.javafxapplication1.controller;
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
-import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.StringReader;
@@ -99,6 +98,7 @@ public class UpdateFileController {
                     sessionUser.getUserId(),
                     sessionUser.getUsername(),
                     originalFile.getRemoteFileId(),
+                    originalFile.getFileName(),
                     name,
                     content
             );

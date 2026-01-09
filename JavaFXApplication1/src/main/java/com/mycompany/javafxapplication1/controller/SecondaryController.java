@@ -2,6 +2,7 @@ package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
+import com.mycompany.javafxapplication1.UserService;
 import java.io.IOException;
 import java.util.Optional;
 import javafx.fxml.FXML;
@@ -83,12 +84,12 @@ public class SecondaryController {
     }
     
     @FXML
-    private void logout() {  
+    private void logout() {
         if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
             return;
         }
         try {
-            new SQLiteDB().clearSession();
+            new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
             scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());

@@ -41,6 +41,9 @@ public class AdvancedController {
     private Button userManageBtn;
     
     @FXML
+    private Button logBtn;
+    
+    @FXML
     private Button logoutBtn;
     
     private User sessionUser;
@@ -64,15 +67,20 @@ public class AdvancedController {
     }
 
     @FXML
-    private void openFileManagement() {
-        System.out.println("File Management clicked.");
-        // TODO
-    }
-
-    @FXML
     private void openLogView() {
-        System.out.println("Logs clicked.");
-        // TODO
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/log.fxml"));
+            Parent root = loader.load();
+            LogController controller = loader.getController();
+            controller.initialise(sessionUser);
+            Scene scene = new Scene(root, 1000, 700);
+            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
+            Stage stage = (Stage) logBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Log View");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML

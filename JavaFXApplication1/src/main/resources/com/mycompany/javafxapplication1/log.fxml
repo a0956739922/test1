@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.LogController">
+
+    <top>
+        <HBox spacing="20" alignment="CENTER_LEFT" 
+              style="-fx-background-color: #1A5675; -fx-padding: 15 25;">
+            
+            <Label text="System Logs" 
+                   style="-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="backBtn" text="Back" prefWidth="100" onAction="#goBack"/>
+                <Button fx:id="logoutBtn" text="Logout" prefWidth="100" 
+                        styleClass="danger" onAction="#logout"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="15" 
+              style="-fx-padding: 25; -fx-background-color: #E8F1F5;">
+
+            <HBox spacing="20" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField"
+                           promptText="Search by user, action, detail..."
+                           HBox.hgrow="ALWAYS"
+                           style="-fx-font-size: 14px; -fx-padding: 8;"/>
+                
+                <Separator orientation="VERTICAL"/>
+                <CheckBox fx:id="chkUser" text="User Logs" style="-fx-font-size: 14px;"/>
+                <CheckBox fx:id="chkFile" text="File Logs" style="-fx-font-size: 14px;"/>
+            </HBox>
+
+            <TableView fx:id="logTable" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="colUser" text="User" minWidth="80" maxWidth="80"/>
+                    <TableColumn fx:id="colAction" text="Action" minWidth="150" maxWidth="150"/>
+                    <TableColumn fx:id="colDetail" text="Detail" minWidth="300"/>
+                    <TableColumn fx:id="colTime" text="Time" minWidth="180" maxWidth="180"/>
+                </columns>
+            </TableView>
+
+        </VBox>
+    </center>
+
+</BorderPane>

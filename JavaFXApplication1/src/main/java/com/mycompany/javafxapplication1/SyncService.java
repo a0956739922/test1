@@ -36,10 +36,12 @@ public class SyncService extends Thread {
     }
 
     private void syncDeletes() {
-        for (int fileId : sqlite.getPendingDelete(user.getUserId())) {
-            sqlite.markSendingDelete(user.getUserId(), fileId);
+        for (LocalFile lf : sqlite.getPendingDeleteFiles(user.getUserId())) {
+        int fileId = lf.getRemoteFileId();
+        String fileName = lf.getFileName();
+        sqlite.markSendingDelete(user.getUserId(), fileId);
             try {
-                fileService.delete(user.getUserId(), user.getUsername(), fileId);
+                fileService.delete(user.getUserId(), user.getUsername(), fileId, fileName);
             } catch (Exception e) {
                 e.printStackTrace();
             }
