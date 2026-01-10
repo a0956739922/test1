@@ -87,25 +87,23 @@ public class UpdateFileController {
             }
             String name = nameField.getText();
             String content = contentArea.getText();
-            if (originalFile.getRemoteFileId() == null) {
-                SQLiteDB sqlite = new SQLiteDB();
-                sqlite.updateLocalFile(originalFile.getLocalId(), name, content);
-                userEdited = false;
-                closeWindow();
-                return;
+            SQLiteDB sqlite = new SQLiteDB();
+            if (!name.equals(originalFile.getFileName())) {
+                if (sqlite.isFileExists(sessionUser.getUserId(), name)) {
+                    dialogue("Duplicate Name", "A file with this name already exists.");
+                    return;
+                }
             }
-            fileService.update(
-                    sessionUser.getUserId(),
-                    sessionUser.getUsername(),
-                    originalFile.getRemoteFileId(),
-                    originalFile.getFileName(),
-                    name,
-                    content
-            );
+            if (originalFile.getRemoteFileId() == null) {
+                sqlite.updateLocalFile(originalFile.getLocalId(), name, content);
+            } else {
+                sqlite.updateRemoteFileContent(sessionUser.getUserId(), originalFile.getRemoteFileId(), name, content, "PENDING_UPDATE");
+            }
             userEdited = false;
             closeWindow();
         } catch (Exception e) {
-            dialogue("DB connect Failed", "Cannot update remote file while offline.");
+            dialogue("Error", "Cannot update remote file locally.");
+            e.printStackTrace();
         }
     }
 

@@ -60,10 +60,14 @@ public class UploadFileController {
                 dialogue("Missing Fields", "All fields are required.");
                 return;
             }
+            SQLiteDB sqlite = new SQLiteDB();
+            if (sqlite.isFileExists(sessionUser.getUserId(), fileName)) {
+                dialogue("Duplicate Name", "A file with this name already exists.");
+                return;
+            }
             String content = Files.readString(selectedFile.toPath());
             String reqId = java.util.UUID.randomUUID().toString();
-            SQLiteDB sqlite = new SQLiteDB();
-            sqlite.markPendingCreate(sessionUser.getUserId(), sessionUser.getUsername(), reqId, fileName, "owner",content);
+            sqlite.insertLocalFile(reqId, null, sessionUser.getUserId(), sessionUser.getUsername(), fileName, "owner", null, content, "PENDING_CREATE");
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

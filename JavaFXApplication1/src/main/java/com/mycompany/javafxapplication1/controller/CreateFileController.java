@@ -40,9 +40,13 @@ public class CreateFileController {
                 dialogue("Missing Fields", "Name cannot be empty.");
                 return;
             }
-            String reqId = java.util.UUID.randomUUID().toString();
             SQLiteDB sqlite = new SQLiteDB();
-            sqlite.markPendingCreate(sessionUser.getUserId(), sessionUser.getUsername(), reqId, fileName, "owner", content);
+            if (sqlite.isFileExists(sessionUser.getUserId(), fileName)) {
+                dialogue("Duplicate Name", "A file with this name already exists.");
+                return;
+            }
+            String reqId = java.util.UUID.randomUUID().toString();
+            sqlite.insertLocalFile(reqId, null, sessionUser.getUserId(), sessionUser.getUsername(), fileName, "owner", null, content, "PENDING_CREATE");
             closeWindow();
         } catch (Exception e) {
             e.printStackTrace();

@@ -74,6 +74,10 @@ public class MqttSubUI {
                                     fileService.finalizeLocalCreate(reqId, res.getInt("fileId"));
                                     notifyRefresh();
                                 }
+                                case "update" -> {
+                                    fileService.finalizeLocalUpdate(res.getInt("fileId"));
+                                    notifyRefresh();
+                                }
                                 case "share" -> {
                                     fileService.finalizeLocalShare(res.getInt("fileId"), res.getString("targetUsername"), res.getString("permission"));
                                     notifyRefresh();

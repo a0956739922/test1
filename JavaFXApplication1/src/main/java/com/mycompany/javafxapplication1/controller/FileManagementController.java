@@ -178,9 +178,9 @@ public class FileManagementController {
         }
         SQLiteDB sqlite = new SQLiteDB();
         if (selected.getRemoteFileId() == null) {
-            sqlite.deletePendingCreate(selected.getLocalId());
+            sqlite.deleteLocalFile(selected.getLocalId());
         } else {
-            sqlite.markPendingDelete(sessionUser.getUserId(), selected.getRemoteFileId());
+            sqlite.markAsDeleted(sessionUser.getUserId(), selected.getRemoteFileId());
         }
         loadFiles();
     }

@@ -52,16 +52,9 @@ public class FileService {
         return reqId;
     }
 
-    public String update(Integer userId, String username, int fileId, String oldName, String newName, String content) throws Exception {
+    public String update(Integer userId, String username, int fileId, String newName, String content) throws Exception {
         String reqId = java.util.UUID.randomUUID().toString();
-        String contentStatus = (content != null) ? "yes" : "no";
-        String logDetail;
-        if (!oldName.equals(newName)) {
-            logDetail = "renamed '" + oldName + "' to '" + newName + "', content_modified=" + contentStatus;
-        } else {
-            logDetail = "file=" + newName + ", content_modified=" + contentStatus;
-        }
-        remote.log(userId, username, "FILE_UPDATE_REQ", logDetail);
+        remote.log(userId, username, "FILE_UPDATE_REQ", "file=" + newName +", content_modified=" + (content != null ? "yes" : "no"));
         JsonObjectBuilder json = Json.createObjectBuilder()
                 .add("req_id", reqId)
                 .add("action", "update")
@@ -164,6 +157,10 @@ public class FileService {
     
     public void finalizeLocalDelete(int remoteFileId) {
         local.finalizeDelete(remoteFileId);
+    }
+    
+    public void finalizeLocalUpdate(int remoteFileId) {
+        local.finalizeUpdate(remoteFileId);
     }
     
     public void finalizeLocalShare(int remoteFileId, String targetUsername, String permission) {
