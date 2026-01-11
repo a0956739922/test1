@@ -10,12 +10,11 @@ package com.mycompany.javafxapplication1;
  */
 public class SyncService extends Thread {
 
-    private final User user;
     private final FileService fileService;
     private final SQLiteDB sqlite = new SQLiteDB();
+    private volatile boolean running = true;
 
-    public SyncService(User user, FileService fileService) {
-        this.user = user;
+    public SyncService(FileService fileService) {
         this.fileService = fileService;
     }
 
@@ -24,48 +23,63 @@ public class SyncService extends Thread {
         sqlite.resetSyncState("CREATING", "PENDING_CREATE");
         sqlite.resetSyncState("DELETING", "PENDING_DELETE");
         sqlite.resetSyncState("UPDATING", "PENDING_UPDATE");
-        while (true) {
-            if (isOnline()) {
-                syncDeletes();
-                syncCreates();
-                syncUpdates();
-            }
+
+        while (running) {
             try {
+                if (!isOnline()) {
+                    Thread.sleep(3000);
+                    continue;
+                }
+                User current = sqlite.loadSession();
+                if (current == null) {
+                    Thread.sleep(3000);
+                    continue;
+                }
+                int userId = current.getUserId();
+                String username = current.getUsername();
+                syncDeletes(userId, username);
+                syncCreates(userId, username);
+                syncUpdates(userId, username);
                 Thread.sleep(3000);
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
 
-    private void syncDeletes() {
-        for (LocalFile lf : sqlite.getFilesByState(user.getUserId(), "PENDING_DELETE")) {
-            int fileId = lf.getRemoteFileId();
-            sqlite.updateSyncStateByFileId(fileId, "DELETING");
+    private void syncDeletes(int userId, String username) {
+        for (LocalFile lf : sqlite.getFilesByState(userId, "PENDING_DELETE")) {
+            Integer remoteId = lf.getRemoteFileId();
+            if (remoteId == null) continue;
+            sqlite.updateSyncStateByFileId(remoteId, "DELETING");
             try {
-                fileService.delete(user.getUserId(), user.getUsername(), fileId, lf.getFileName());
+                fileService.delete(userId, username, remoteId, lf.getFileName());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void syncCreates() {
-        for (LocalFile lf : sqlite.getFilesByState(user.getUserId(), "PENDING_CREATE")) {
-            sqlite.updateSyncStateByReqId(lf.getReqId(), "CREATING");
+    private void syncCreates(int userId, String username) {
+        for (LocalFile lf : sqlite.getFilesByState(userId, "PENDING_CREATE")) {
+            String reqId = lf.getReqId();
+            if (reqId == null) continue;
+            sqlite.updateSyncStateByReqId(reqId, "CREATING");
             try {
-                fileService.create(lf.getReqId(), user.getUserId(), user.getUsername(), lf.getFileName(), lf.getContent());
+                fileService.create(reqId, userId, username, lf.getFileName(), lf.getContent());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-    
-    private void syncUpdates() {
-        for (LocalFile lf : sqlite.getFilesByState(user.getUserId(), "PENDING_UPDATE")) {
-            int fileId = lf.getRemoteFileId();
-            sqlite.updateSyncStateByFileId(fileId, "UPDATING");
+
+    private void syncUpdates(int userId, String username) {
+        for (LocalFile lf : sqlite.getFilesByState(userId, "PENDING_UPDATE")) {
+            Integer remoteId = lf.getRemoteFileId();
+            if (remoteId == null) continue;
+            sqlite.updateSyncStateByFileId(remoteId, "UPDATING");
             try {
-                fileService.update(user.getUserId(), user.getUsername(), fileId, lf.getFileName(), lf.getContent());
+                fileService.update(userId, username, remoteId, lf.getFileName(), lf.getContent());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -79,5 +93,10 @@ public class SyncService extends Thread {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public void shutdown() {
+        running = false;
+        interrupt();
     }
 }

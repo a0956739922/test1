@@ -14,6 +14,7 @@ import java.io.IOException;
 public class App extends Application {
     
     private MqttSubUI mqttSubUI;
+    private SyncService syncService;
     
     @Override
     public void start(Stage stage) throws IOException {
@@ -22,17 +23,15 @@ public class App extends Application {
             mqttSubUI.start();
             SQLiteDB sqlite = new SQLiteDB();
             User cached = sqlite.loadSession();
+            FileService fileService = new FileService();
+            syncService = new SyncService(fileService);
+            syncService.start();
             boolean mysqlOnline = true;
             try {
                 MySQLDB mysql = new MySQLDB();
                 mysql.testConnection();
             } catch (Exception e) {
                 mysqlOnline = false;
-            }
-            if (cached != null) {
-                FileService fileService = new FileService();
-                SyncService syncService = new SyncService(cached, fileService);
-                syncService.start();
             }
             if (!mysqlOnline && cached != null) {
                 openSecondary(stage, cached, true);
@@ -74,6 +73,7 @@ public class App extends Application {
         if (mqttSubUI != null) {
             mqttSubUI.stop();
         }
+        syncService.shutdown();
     }
 
 }
