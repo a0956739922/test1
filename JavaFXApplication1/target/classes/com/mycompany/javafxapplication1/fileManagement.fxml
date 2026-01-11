@@ -2,52 +2,88 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.mycompany.javafxapplication1.controller.FileManagementController">
+            fx:controller="com.mycompany.javafxapplication1.controller.FileManagementController"
+            style="-fx-background-color: #E8F1F5;">
 
     <left>
-        <VBox spacing="24"
-              prefWidth="250"
-              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+        <VBox spacing="22" prefWidth="260" style="-fx-padding: 36 28 36 28; -fx-background-color: #1A5675;">
 
-            <Label text="Files" styleClass="section"/>
+            <VBox spacing="6">
+                <Label text="File Manager"
+                       style="-fx-text-fill: white; -fx-font-size: 22; -fx-font-weight: bold;"/>
+                <Label text="File Operations"
+                       style="-fx-text-fill: #BFD7E5; -fx-font-size: 14;"/>
+            </VBox>
 
-            <Button fx:id="createBtn" text="Create" prefWidth="210" onAction="#createFile"/>
-            <Button fx:id="updateBtn" text="Update" prefWidth="210" onAction="#updateFile"/>
-            <Button fx:id="deleteBtn" text="Delete" prefWidth="210" onAction="#deleteFile"/>
-            <Button fx:id="uploadBtn" text="Upload" prefWidth="210" onAction="#uploadFile"/>
-            <Button fx:id="downloadBtn" text="Download" prefWidth="210" onAction="#downloadFile"/>
-            <Button fx:id="shareBtn" text="Share" prefWidth="210" onAction="#shareFile"/>
+            <Separator style="-fx-opacity: 0.4;"/>
+
+            <VBox spacing="12">
+                <Label text="ACTIONS" style="-fx-text-fill: #BFD7E5; -fx-font-size: 13; -fx-font-weight: bold;"/>
+
+                <Button fx:id="createBtn" text="Create" maxWidth="Infinity" prefHeight="44"
+                        onAction="#createFile"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="uploadBtn" text="Upload" maxWidth="Infinity" prefHeight="44"
+                        onAction="#uploadFile"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                
+                <Button fx:id="updateBtn" text="Update" maxWidth="Infinity" prefHeight="44"
+                        onAction="#updateFile"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="downloadBtn" text="Download" maxWidth="Infinity" prefHeight="44"
+                        onAction="#downloadFile"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="shareBtn" text="Share" maxWidth="Infinity" prefHeight="44"
+                        onAction="#shareFile"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="deleteBtn" text="Delete" maxWidth="Infinity" prefHeight="44"
+                        onAction="#deleteFile"
+                        style="-fx-background-color: #C0392B; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+            </VBox>
 
             <Pane VBox.vgrow="ALWAYS"/>
 
-            <Button fx:id="backBtn" text="Back" prefWidth="210" onAction="#goBack"/>
-            <Button fx:id="logoutBtn" text="Logout" prefWidth="210"
-                    styleClass="danger" onAction="#logout"/>
+            <VBox spacing="12">
+                <Button fx:id="backBtn" text="Back" maxWidth="Infinity" prefHeight="42"
+                        onAction="#goBack"
+                        style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #BFD7E5; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
+
+                <Button fx:id="logoutBtn" text="Logout" maxWidth="Infinity" prefHeight="42"
+                        onAction="#logout"
+                        style="-fx-background-color: transparent; -fx-border-color: #FF6B6B; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #FF6B6B; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </VBox>
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="30"
-              alignment="TOP_CENTER"
-              style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+        <StackPane style="-fx-padding: 36;">
+            <VBox spacing="22" maxWidth="900" style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
 
-            <Label text="Files" styleClass="title"/>
+                <Label text="Files"
+                       style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
 
-            <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" maxWidth="760">
-                <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                </columnResizePolicy>
-                <columns>
-                    <TableColumn fx:id="colOwner" text="Owner" prefWidth="80"/>
-                    <TableColumn fx:id="colFilename" text="Filename" prefWidth="120"/>
-                    <TableColumn fx:id="colShareTo" text="Share To" />
-                    <TableColumn fx:id="colPermission" text="Role" prefWidth="50"/>
-                </columns>
-            </TableView>
-        </VBox>
+                <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 14;">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colOwner" text="Owner" prefWidth="100"/>
+                        <TableColumn fx:id="colFilename" text="Filename" prefWidth="180"/>
+                        <TableColumn fx:id="colShareTo" text="Share To" prefWidth="250"/>
+                        <TableColumn fx:id="colPermission" text="Role" prefWidth="70"/>
+                    </columns>
+                </TableView>
+
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>

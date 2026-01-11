@@ -2,53 +2,59 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.mycompany.javafxapplication1.controller.UploadFileController"
-            style="-fx-padding: 30;">
+            style="-fx-background-color: #E8F1F5;">
 
     <top>
-        <Label text="Upload File"
-               styleClass="title"
-               BorderPane.alignment="CENTER"/>
+        <VBox alignment="CENTER" style="-fx-padding: 10;">
+            <Label text="Upload File"
+                   style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
+        </VBox>
     </top>
 
     <center>
-        <VBox spacing="16" maxWidth="480">
-            <Label text="File Name:"/>
-            <TextField fx:id="nameField"/>
+        <StackPane style="-fx-padding: 10;">
+            <VBox spacing="8" maxWidth="460"
+                  style="-fx-background-color: #F7FAFC; -fx-padding: 12; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 4);">
 
-            <Label text="Local File:"/>
-            <HBox spacing="10">
-                <TextField fx:id="localPathField"
-                           editable="false"
-                           HBox.hgrow="ALWAYS"/>
-                <Button text="Browse"
-                        prefWidth="120"
-                        onAction="#browseFile"/>
-            </HBox>
+                <Label text="File Name"
+                       style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #555;"/>
 
-        </VBox>
+                <TextField fx:id="nameField" prefHeight="30"
+                           style="-fx-font-size: 12; -fx-background-radius: 6; -fx-padding: 6; -fx-border-color: #ccc; -fx-border-radius: 6;"/>
+
+                <Label text="Local File"
+                       style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+
+                <HBox spacing="8">
+                    <TextField fx:id="localPathField" editable="false" HBox.hgrow="ALWAYS" prefHeight="30"
+                               style="-fx-font-size: 12; -fx-background-radius: 6; -fx-padding: 6; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-background-color: #E0E0E0;"/>
+
+                    <Button text="Browse" prefWidth="90" prefHeight="30"
+                            onAction="#browseFile"
+                            style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 12; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;"/>
+                </HBox>
+
+            </VBox>
+        </StackPane>
     </center>
 
     <bottom>
-        <VBox alignment="CENTER">
-            <HBox spacing="16"
-                  alignment="CENTER_RIGHT"
-                  maxWidth="480">
+        <HBox spacing="12" alignment="CENTER_RIGHT" style="-fx-padding: 8 12 12 12;">
 
-                <Button text="Cancel"
-                        prefWidth="140"
-                        onAction="#closeWindow"/>
+            <Button text="Cancel" prefWidth="110" prefHeight="30"
+                    onAction="#closeWindow"
+                    style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-text-fill: #1A2E3B; -fx-font-size: 12; -fx-font-weight: bold; -fx-cursor: hand;"/>
 
-                <Button text="Upload"
-                        prefWidth="140"
-                        styleClass="primary"
-                        onAction="#uploadFile"/>
+            <Button text="Upload" prefWidth="110" prefHeight="30"
+                    onAction="#uploadFile"
+                    style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 12; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;"/>
 
-            </HBox>
-        </VBox>
+        </HBox>
     </bottom>
 
 </BorderPane>

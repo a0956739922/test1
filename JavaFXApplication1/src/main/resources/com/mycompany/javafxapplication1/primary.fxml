@@ -2,49 +2,62 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.mycompany.javafxapplication1.controller.PrimaryController">
+            fx:controller="com.mycompany.javafxapplication1.controller.PrimaryController"
+            style="-fx-background-color: #E8F1F5;">
 
     <center>
-        <VBox spacing="28"
-              alignment="CENTER"
-              maxWidth="520"
-              style="-fx-padding: 32;">
+        <StackPane style="-fx-padding: 48;">
+            <VBox spacing="28" alignment="CENTER" maxWidth="520"
+                  style="-fx-padding: 40; -fx-background-color: #F7FAFC; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
 
-            <Label text="User Login" styleClass="title"/>
+                <VBox spacing="6" alignment="CENTER">
+                    <Label text="User Login"
+                           style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
+                    <Label text="Sign in to access the system"
+                           style="-fx-font-size: 14; -fx-text-fill: #6B7C8A;"/>
+                </VBox>
 
-            <GridPane hgap="20" vgap="20">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="140"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
+                <Separator maxWidth="420" style="-fx-opacity: 0.4;"/>
 
-                <Label text="Username:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <TextField fx:id="userTextField"
-                           GridPane.rowIndex="0"
-                           GridPane.columnIndex="1"/>
+                <GridPane hgap="20" vgap="20" maxWidth="420" alignment="CENTER">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="100" halignment="RIGHT"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
 
-                <Label text="Password:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <PasswordField fx:id="passPasswordField"
-                               GridPane.rowIndex="1"
-                               GridPane.columnIndex="1"/>
-            </GridPane>
+                    <Label text="Username:" GridPane.rowIndex="0" GridPane.columnIndex="0"
+                           style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #555;"/>
 
-            <HBox spacing="24" alignment="CENTER">
-                <Button fx:id="primaryButton"
-                        text="Login"
-                        prefWidth="140"
-                        styleClass="primary"
-                        onAction="#switchToSecondary"/>
-                <Button fx:id="registerBtn"
-                        text="Register"
-                        prefWidth="140"
-                        onAction="#registerBtnHandler"/>
-            </HBox>
+                    <TextField fx:id="userTextField" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                               prefHeight="40"
+                               style="-fx-font-size: 14; -fx-background-radius: 8; -fx-padding: 10; -fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 8;"/>
 
-        </VBox>
+                    <Label text="Password:" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                           style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+
+                    <PasswordField fx:id="passPasswordField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                   prefHeight="40"
+                                   style="-fx-font-size: 14; -fx-background-radius: 8; -fx-padding: 10; -fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 8;"/>
+                </GridPane>
+
+                <Pane prefHeight="8"/>
+
+                <HBox spacing="24" alignment="CENTER">
+                    <Button fx:id="primaryButton" text="Login" prefWidth="160" prefHeight="42"
+                            onAction="#switchToSecondary"
+                            style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                    <Button fx:id="registerBtn" text="Register" prefWidth="160" prefHeight="42"
+                            onAction="#registerBtnHandler"
+                            style="-fx-background-color: transparent; -fx-border-color: #2378A6; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #2378A6; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                </HBox>
+
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>

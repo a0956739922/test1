@@ -113,7 +113,6 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("Create File");
             Scene scene = new Scene(root, 600, 450);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.showAndWait();
             loadFiles();
@@ -132,7 +131,6 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("Upload File");
             Scene scene = new Scene(root, 500, 320);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.showAndWait();
             loadFiles();
@@ -161,7 +159,6 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("Update File");
             Scene scene = new Scene(root, 600, 450);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
@@ -252,7 +249,6 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("Share File");
             Scene scene = new Scene(root, 480, 300);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
@@ -273,7 +269,6 @@ public class FileManagementController {
             Stage stage = new Stage();
             stage.setTitle("View File: " + selected.getFileName());
             Scene scene = new Scene(root, 600, 450);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.showAndWait();
             loadFiles();
@@ -333,7 +328,6 @@ public class FileManagementController {
             SecondaryController controller = loader.getController();
             controller.initialise(sessionUser);
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) backBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Welcome, " + sessionUser.getUsername());
@@ -351,7 +345,6 @@ public class FileManagementController {
             new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) logoutBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -365,7 +358,6 @@ public class FileManagementController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

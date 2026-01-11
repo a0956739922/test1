@@ -2,47 +2,55 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.mycompany.javafxapplication1.controller.UpdateFileController"
-            style="-fx-padding: 30;">
+            style="-fx-background-color: #E8F1F5;">
 
     <top>
-        <Label text="Update File"
-               styleClass="title"
-               BorderPane.alignment="CENTER"/>
+        <VBox alignment="CENTER" spacing="4" style="-fx-padding: 16;">
+            <Label text="Update File"
+                   style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
+            <Label text="Modify file name or content"
+                   style="-fx-font-size: 12; -fx-text-fill: #6B7C8A;"/>
+        </VBox>
     </top>
 
     <center>
-        <VBox spacing="16" maxWidth="480">
-            <Label text="File Name:"/>
-            <TextField fx:id="nameField"/>
+        <StackPane style="-fx-padding: 16;">
+            <VBox spacing="14" maxWidth="480" VBox.vgrow="ALWAYS"
+                  style="-fx-background-color: #F7FAFC; -fx-padding: 20; -fx-background-radius: 12;">
 
-            <Label text="Content:"/>
-            <TextArea fx:id="contentArea"
-                      VBox.vgrow="ALWAYS"
-                      wrapText="true"/>
-        </VBox>
+                <Label text="File Name"
+                       style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+
+                <TextField fx:id="nameField" prefHeight="36"
+                           style="-fx-font-size: 13; -fx-background-radius: 6; -fx-padding: 8; -fx-border-color: #ccc; -fx-border-radius: 6;"/>
+
+                <Label text="Content"
+                       style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+
+                <TextArea fx:id="contentArea" VBox.vgrow="ALWAYS" wrapText="true"
+                          style="-fx-font-size: 13; -fx-background-radius: 6; -fx-padding: 8; -fx-border-color: #ccc; -fx-border-radius: 6;"/>
+
+            </VBox>
+        </StackPane>
     </center>
 
     <bottom>
-        <VBox alignment="CENTER">
-            <HBox spacing="16"
-                  alignment="CENTER_RIGHT"
-                  maxWidth="480">
+        <HBox spacing="16" alignment="CENTER_RIGHT" style="-fx-padding: 12 20 20 20;">
 
-                <Button text="Cancel"
-                        prefWidth="140"
-                        onAction="#closeWindow"/>
+            <Button text="Cancel" prefWidth="130" prefHeight="36"
+                    onAction="#closeWindow"
+                    style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #1A2E3B; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;"/>
 
-                <Button text="Save"
-                        prefWidth="140"
-                        styleClass="primary"
-                        onAction="#updateFile"/>
+            <Button text="Save" prefWidth="130" prefHeight="36"
+                    onAction="#updateFile"
+                    style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
 
-            </HBox>
-        </VBox>
+        </HBox>
     </bottom>
 
 </BorderPane>

@@ -2,72 +2,88 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.mycompany.javafxapplication1.controller.UserManagementController">
+            fx:controller="com.mycompany.javafxapplication1.controller.UserManagementController"
+            style="-fx-background-color: #E8F1F5;">
 
     <left>
-        <VBox spacing="24"
-              prefWidth="250"
-              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+        <VBox spacing="22" prefWidth="260" style="-fx-padding: 36 28 36 28; -fx-background-color: #1A5675;">
 
-            <Label text="Account" styleClass="section"/>
+            <VBox spacing="6">
+                <Label text="User Account"
+                       style="-fx-text-fill: white; -fx-font-size: 22; -fx-font-weight: bold;"/>
+                <Label text="Manage Profile"
+                       style="-fx-text-fill: #BFD7E5; -fx-font-size: 14;"/>
+            </VBox>
 
-            <Button fx:id="updatePasswordBtn"
-                    text="Update Password"
-                    prefWidth="210"
-                    onAction="#updatePassword"/>
+            <Separator style="-fx-opacity: 0.4;"/>
 
-            <Button fx:id="deleteAccountBtn"
-                    text="Delete Account"
-                    prefWidth="210"
-                    onAction="#deleteAccount"/>
+            <VBox spacing="14">
+                <Label text="ACTIONS" style="-fx-text-fill: #BFD7E5; -fx-font-size: 13; -fx-font-weight: bold;"/>
+
+                <Button fx:id="updatePasswordBtn" text="Update Password" maxWidth="Infinity" prefHeight="44"
+                        onAction="#updatePassword"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="deleteAccountBtn" text="Delete Account" maxWidth="Infinity" prefHeight="44"
+                        onAction="#deleteAccount"
+                        style="-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+            </VBox>
 
             <Pane VBox.vgrow="ALWAYS"/>
 
-            <Button fx:id="backBtn"
-                    text="Back"
-                    prefWidth="210"
-                    onAction="#goBack"/>
+            <VBox spacing="10">
+                <Button fx:id="backBtn" text="Back" maxWidth="Infinity" prefHeight="42"
+                        onAction="#goBack"
+                        style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #BFD7E5; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
 
-            <Button fx:id="logoutBtn"
-                    text="Logout"
-                    prefWidth="210"
-                    styleClass="danger"
-                    onAction="#logout"/>
+                <Button fx:id="logoutBtn" text="Logout" maxWidth="Infinity" prefHeight="42"
+                        onAction="#logout"
+                        style="-fx-background-color: transparent; -fx-border-color: #FF6B6B; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #FF6B6B; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </VBox>
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="24"
-              alignment="TOP_CENTER"
-              style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+        <StackPane style="-fx-padding: 36;">
+            <VBox spacing="24" style="-fx-background-color: #F7FAFC; -fx-padding: 40; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);"
+                  maxWidth="600" maxHeight="500" alignment="TOP_CENTER">
 
-            <Label text="User Management" styleClass="title"/>
-            <GridPane hgap="20" vgap="20" maxWidth="480">
-                <Label text="Username:"/>
-                <TextField fx:id="usernameField"
-                           editable="false"
-                           GridPane.columnIndex="1"/>
+                <Label text="Edit Profile"
+                       style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
 
-                <Label text="Current Password:" GridPane.rowIndex="1"/>
-                <PasswordField fx:id="currentPassField"
-                               GridPane.rowIndex="1"
-                               GridPane.columnIndex="1"/>
+                <GridPane hgap="20" vgap="20" alignment="CENTER">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" minWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="250"/>
+                    </columnConstraints>
 
-                <Label text="New Password:" GridPane.rowIndex="2"/>
-                <PasswordField fx:id="newPassField"
-                               GridPane.rowIndex="2"
-                               GridPane.columnIndex="1"/>
+                    <Label text="Username:" style="-fx-font-size: 14; -fx-text-fill: #555; -fx-font-weight: bold;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="usernameField" editable="false"
+                               style="-fx-background-radius: 6; -fx-padding: 10; -fx-font-size: 14; -fx-background-color: #E0E0E0;"
+                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                <Label text="Retype Password:" GridPane.rowIndex="3"/>
-                <PasswordField fx:id="retypeField"
-                               GridPane.rowIndex="3"
-                               GridPane.columnIndex="1"/>
-            </GridPane>
+                    <Label text="Current Password:" style="-fx-font-size: 14; -fx-text-fill: #555; -fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <PasswordField fx:id="currentPassField"
+                                   style="-fx-background-radius: 6; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-padding: 10; -fx-font-size: 14;"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-        </VBox>
+                    <Label text="New Password:" style="-fx-font-size: 14; -fx-text-fill: #555; -fx-font-weight: bold;" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <PasswordField fx:id="newPassField"
+                                   style="-fx-background-radius: 6; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-padding: 10; -fx-font-size: 14;"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Retype Password:" style="-fx-font-size: 14; -fx-text-fill: #555; -fx-font-weight: bold;" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <PasswordField fx:id="retypeField"
+                                   style="-fx-background-radius: 6; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-padding: 10; -fx-font-size: 14;"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                </GridPane>
+
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>

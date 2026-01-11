@@ -39,7 +39,6 @@ public class SecondaryController {
             UserManagementController controller = loader.getController();
             controller.initialise(sessionUser);
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) userManageBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("User Management");
@@ -56,7 +55,6 @@ public class SecondaryController {
             FileManagementController controller = loader.getController();
             controller.initialise(sessionUser);
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) fileManageBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("File Management");
@@ -73,7 +71,6 @@ public class SecondaryController {
             AdvancedController controller = loader.getController();
             controller.initialise(sessionUser);
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) advancedPanelBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Advanced Panel");
@@ -91,7 +88,6 @@ public class SecondaryController {
             new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) logoutBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -105,7 +101,6 @@ public class SecondaryController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

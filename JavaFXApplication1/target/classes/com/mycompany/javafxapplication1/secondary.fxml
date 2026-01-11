@@ -2,32 +2,57 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.mycompany.javafxapplication1.controller.SecondaryController">
+            fx:controller="com.mycompany.javafxapplication1.controller.SecondaryController"
+            style="-fx-background-color: #E8F1F5;">
 
     <left>
-        <VBox spacing="24"
-              prefWidth="250"
-              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+        <VBox spacing="22" prefWidth="260" style="-fx-padding: 36 28 36 28; -fx-background-color: #1A5675;">
 
-            <Label text="Menu" styleClass="section"/>
+            <VBox spacing="6">
+                <Label text="Admin Panel"
+                       style="-fx-text-fill: white; -fx-font-size: 22; -fx-font-weight: bold;"/>
+                <Label text="System Control"
+                       style="-fx-text-fill: #BFD7E5; -fx-font-size: 14;"/>
+            </VBox>
 
-            <Button fx:id="userManageBtn" text="User Management" prefWidth="210" onAction="#openUserManagement"/>
-            <Button fx:id="fileManageBtn" text="File Management" prefWidth="210" onAction="#openFileManagement"/>
-            <Button fx:id="advancedPanelBtn" text="Advanced Panel" prefWidth="210" onAction="#openAdvancedPanel"/>
+            <Separator style="-fx-opacity: 0.4;"/>
+
+            <VBox spacing="14">
+                <Label text="MENU" style="-fx-text-fill: #BFD7E5; -fx-font-size: 13; -fx-font-weight: bold;"/>
+
+                <Button fx:id="userManageBtn" text="User Management" maxWidth="Infinity" prefHeight="44"
+                        onAction="#openUserManagement"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="fileManageBtn" text="File Management" maxWidth="Infinity" prefHeight="44"
+                        onAction="#openFileManagement"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="advancedPanelBtn" text="Advanced Panel" maxWidth="Infinity" prefHeight="44"
+                        onAction="#openAdvancedPanel"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+            </VBox>
 
             <Pane VBox.vgrow="ALWAYS"/>
 
-            <Button fx:id="logoutBtn" text="Logout" prefWidth="210"
-                    styleClass="danger" onAction="#logout"/>
+            <Button fx:id="logoutBtn" text="Logout" maxWidth="Infinity" prefHeight="42"
+                    onAction="#logout"
+                    style="-fx-background-color: transparent; -fx-border-color: #FF6B6B; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #FF6B6B; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
         </VBox>
     </left>
 
     <center>
-        <StackPane style="-fx-background-color: #E8F1F5;">
-            <Label text="Dashboard Area (Empty for now)"/>
+        <StackPane style="-fx-padding: 36;">
+            <VBox spacing="22" style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
+                <Label text="Dashboard"
+                       style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
+                <Label text="System overview and monitoring information will appear here."
+                       style="-fx-font-size: 15; -fx-text-fill: #6B7C8A;"/>
+            </VBox>
         </StackPane>
     </center>
 

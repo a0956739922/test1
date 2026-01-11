@@ -2,71 +2,78 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedUserManagementController">
+            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedUserManagementController"
+            style="-fx-background-color: #E8F1F5;">
 
     <left>
-        <VBox spacing="24"
-              prefWidth="250"
-              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+        <VBox spacing="22" prefWidth="260" style="-fx-padding: 36 28 36 28; -fx-background-color: #1A5675;">
 
-            <Label text="User Actions" styleClass="section"/>
+            <VBox spacing="6">
+                <Label text="User Management"
+                       style="-fx-text-fill: white; -fx-font-size: 22; -fx-font-weight: bold;"/>
+                <Label text="Administrative Actions"
+                       style="-fx-text-fill: #BFD7E5; -fx-font-size: 14;"/>
+            </VBox>
 
-            <Button fx:id="changePasswordBtn"
-                    text="Change Password"
-                    prefWidth="210"
-                    onAction="#changePassword"/>
+            <Separator style="-fx-opacity: 0.4;"/>
 
-            <Button fx:id="promoteDemoteBtn"
-                    text="Promote / Demote"
-                    prefWidth="210"
-                    onAction="#promoteDemote"/>
+            <VBox spacing="14">
+                <Label text="USER ACTIONS" style="-fx-text-fill: #BFD7E5; -fx-font-size: 13; -fx-font-weight: bold;"/>
 
-            <Button fx:id="deleteUserBtn"
-                    text="Delete User"
-                    prefWidth="210"
-                    onAction="#deleteUser"/>
+                <Button fx:id="changePasswordBtn" text="Change Password" maxWidth="Infinity" prefHeight="44"
+                        onAction="#changePassword"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="promoteDemoteBtn" text="Promote / Demote" maxWidth="Infinity" prefHeight="44"
+                        onAction="#promoteDemote"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="deleteUserBtn" text="Delete User" maxWidth="Infinity" prefHeight="44"
+                        onAction="#deleteUser"
+                        style="-fx-background-color: #C0392B; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+            </VBox>
 
             <Pane VBox.vgrow="ALWAYS"/>
 
-            <Button fx:id="backBtn"
-                    text="Back"
-                    prefWidth="210"
-                    onAction="#goBack"/>
+            <VBox spacing="12">
+                <Button fx:id="backBtn" text="Back" maxWidth="Infinity" prefHeight="42"
+                        onAction="#goBack"
+                        style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #BFD7E5; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
 
-            <Button fx:id="logoutBtn"
-                    text="Logout"
-                    prefWidth="210"
-                    styleClass="danger"
-                    onAction="#logout"/>
+                <Button fx:id="logoutBtn" text="Logout" maxWidth="Infinity" prefHeight="42"
+                        onAction="#logout"
+                        style="-fx-background-color: transparent; -fx-border-color: #FF6B6B; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #FF6B6B; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </VBox>
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="24"
-              alignment="TOP_CENTER"
-              style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+        <StackPane style="-fx-padding: 36;">
+            <VBox spacing="22" maxWidth="900" style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
 
-            <Label text="All Users" styleClass="title"/>
+                <Label text="All Users"
+                       style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
 
-            <TableView fx:id="userTable"
-                       VBox.vgrow="ALWAYS"
-                       maxWidth="720">
-                <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                </columnResizePolicy>
-                <columns>
-                    <TableColumn fx:id="colUserId" text="ID" prefWidth="80"/>
-                    <TableColumn fx:id="colUsername" text="Username" prefWidth="260"/>
-                    <TableColumn fx:id="colRole" text="Role" prefWidth="150"/>
-                </columns>
-            </TableView>
+                <TableView fx:id="userTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 14;">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colUserId" text="ID" prefWidth="100"/>
+                        <TableColumn fx:id="colUsername" text="Username" prefWidth="300"/>
+                        <TableColumn fx:id="colRole" text="Role" prefWidth="150"/>
+                    </columns>
+                </TableView>
 
-            <Label fx:id="selectionLabel"/>
+                <Label fx:id="selectionLabel"
+                       style="-fx-font-size: 14; -fx-text-fill: #6B7C8A;"/>
 
-        </VBox>
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>

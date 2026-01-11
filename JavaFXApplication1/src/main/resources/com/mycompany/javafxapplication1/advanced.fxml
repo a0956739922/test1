@@ -2,64 +2,71 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedController">
+            fx:controller="com.mycompany.javafxapplication1.controller.AdvancedController"
+            style="-fx-background-color: #E8F1F5;">
 
     <left>
-        <VBox spacing="24"
-              prefWidth="250"
-              style="-fx-padding: 30; -fx-background-color: #1A5675;">
+        <VBox spacing="22" prefWidth="260" style="-fx-padding: 36 28 36 28; -fx-background-color: #1A5675;">
 
-            <Label text="Management" styleClass="section"/>
+            <VBox spacing="6">
+                <Label text="Advanced Panel"
+                       style="-fx-text-fill: white; -fx-font-size: 22; -fx-font-weight: bold;"/>
+                <Label text="Administration Tools"
+                       style="-fx-text-fill: #BFD7E5; -fx-font-size: 14;"/>
+            </VBox>
 
-            <Button fx:id="userManageBtn"
-                    text="User Management"
-                    prefWidth="210"
-                    onAction="#openUserManagement"/>
+            <Separator style="-fx-opacity: 0.4;"/>
 
-            <Button fx:id="logBtn"
-                    text="Logs"
-                    prefWidth="210"
-                    onAction="#openLogView"/>
+            <VBox spacing="14">
+                <Label text="MANAGEMENT" style="-fx-text-fill: #BFD7E5; -fx-font-size: 13; -fx-font-weight: bold;"/>
+
+                <Button fx:id="userManageBtn" text="User Management" maxWidth="Infinity" prefHeight="44"
+                        onAction="#openUserManagement"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+                <Button fx:id="logBtn" text="Logs" maxWidth="Infinity" prefHeight="44"
+                        onAction="#openLogView"
+                        style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+            </VBox>
 
             <Pane VBox.vgrow="ALWAYS"/>
 
-            <Button fx:id="backBtn"
-                    text="Back"
-                    prefWidth="210"
-                    onAction="#goBack"/>
+            <VBox spacing="12">
+                <Button fx:id="backBtn" text="Back" maxWidth="Infinity" prefHeight="42"
+                        onAction="#goBack"
+                        style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #BFD7E5; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
 
-            <Button fx:id="logoutBtn"
-                    text="Logout"
-                    prefWidth="210"
-                    styleClass="danger"
-                    onAction="#logout"/>
+                <Button fx:id="logoutBtn" text="Logout" maxWidth="Infinity" prefHeight="42"
+                        onAction="#logout"
+                        style="-fx-background-color: transparent; -fx-border-color: #FF6B6B; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #FF6B6B; -fx-font-size: 15; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </VBox>
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="16"
-            alignment="TOP_LEFT"
-            style="-fx-padding: 40; -fx-background-color: #E8F1F5;">
+        <StackPane style="-fx-padding: 36;">
+            <VBox spacing="18" maxWidth="900" style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
 
-            <Label text="Advanced Panel" styleClass="title"/>
-            <Label text="Welcome to Admin Terminal.&#10;Type a command and press Enter."/>
-            <TextArea
-                fx:id="terminalOutput"
-                editable="false"
-                wrapText="true"
-                VBox.vgrow="ALWAYS"
-            />
+                <Label text="Advanced Administration"
+                       style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
 
-            <TextField
-                fx:id="terminalInput"
-                promptText="available command: ls, whoami, ps, tree, mkdir, cp, mv, nano"
-                onAction="#handleCommand"
-            />
+                <Label text="Remote command execution and system diagnostics."
+                       style="-fx-font-size: 15; -fx-text-fill: #6B7C8A;"/>
 
-        </VBox>
+                <TextArea fx:id="terminalOutput" editable="false" wrapText="true" VBox.vgrow="ALWAYS"
+                          style="-fx-font-family: Consolas; -fx-font-size: 14; -fx-control-inner-background: #0F172A; -fx-text-fill: #E5E7EB; -fx-background-radius: 8;"/>
+
+                <TextField fx:id="terminalInput"
+                           promptText="Available commands: ls, whoami, ps, tree, mkdir, cp, mv, nano"
+                           onAction="#handleCommand"
+                           style="-fx-font-family: Consolas; -fx-font-size: 14; -fx-background-radius: 8; -fx-padding: 10;"/>
+
+            </VBox>
+        </StackPane>
     </center>
 
 </BorderPane>

@@ -109,7 +109,6 @@ public class AdvancedUserManagementController {
             Stage stage = new Stage();
             stage.setTitle("Change Password");
             Scene scene = new Scene(root, 600, 400);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
@@ -170,7 +169,6 @@ public class AdvancedUserManagementController {
             AdvancedController controller = loader.getController();
             controller.initialise(sessionUser);
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) backBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Welcome, " + sessionUser.getUsername());
@@ -188,7 +186,6 @@ public class AdvancedUserManagementController {
             new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
             Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
             Stage stage = (Stage) logoutBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -202,7 +199,6 @@ public class AdvancedUserManagementController {
         alert.setTitle("Confirmation");
         alert.setHeaderText(headerMsg);
         alert.setContentText(contentMsg);
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/mycompany/javafxapplication1/app.css").toExternalForm());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }

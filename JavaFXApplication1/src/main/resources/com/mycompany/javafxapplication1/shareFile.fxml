@@ -2,48 +2,56 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.mycompany.javafxapplication1.controller.ShareFileController"
-            style="-fx-padding: 30;">
+            style="-fx-background-color: #E8F1F5;">
 
     <top>
-        <Label text="Share File" styleClass="title" BorderPane.alignment="CENTER"/>
+        <VBox alignment="CENTER" style="-fx-padding: 12;">
+            <Label text="Share File"
+                   style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
+        </VBox>
     </top>
 
     <center>
-        <GridPane hgap="20" vgap="16" maxWidth="420" alignment="CENTER">
+        <StackPane style="-fx-padding: 14;">
+            <VBox spacing="12" maxWidth="420"
+                  style="-fx-background-color: #F7FAFC; -fx-padding: 16; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 4);">
 
-            <columnConstraints>
-                <ColumnConstraints minWidth="160"/>
-                <ColumnConstraints hgrow="ALWAYS"/>
-            </columnConstraints>
+                <!-- inner container: 視覺置中 -->
+                <VBox spacing="8" alignment="CENTER">
 
-            <Label text="Share with (username):" GridPane.columnIndex="0"/>
+                    <Label text="Share with (username)"
+                           style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #555;"/>
 
-            <TextField fx:id="usernameField" GridPane.columnIndex="1"/>
+                    <TextField fx:id="usernameField" prefHeight="32" maxWidth="360"
+                               style="-fx-font-size: 13; -fx-background-radius: 6; -fx-padding: 6; -fx-border-color: #ccc; -fx-border-radius: 6;"/>
 
-        </GridPane>
+                </VBox>
+
+            </VBox>
+        </StackPane>
     </center>
 
     <bottom>
-        <VBox alignment="CENTER">
-            <GridPane hgap="16" maxWidth="420">
+        <HBox spacing="12" alignment="CENTER" style="-fx-padding: 10 10 14 10;">
 
-                <columnConstraints>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
+            <Button text="Read" prefWidth="120" prefHeight="32"
+                    onAction="#shareRead"
+                    style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;"/>
 
-                <Button text="Read" maxWidth="Infinity" GridPane.columnIndex="0" onAction="#shareRead"/>
-                <Button text="Write" maxWidth="Infinity" GridPane.columnIndex="1" onAction="#shareWrite"/>
-                <Button text="Cancel" maxWidth="Infinity" GridPane.columnIndex="2" onAction="#closeWindow"/>
+            <Button text="Write" prefWidth="120" prefHeight="32"
+                    onAction="#shareWrite"
+                    style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;"/>
 
-            </GridPane>
-        </VBox>
-        
+            <Button text="Cancel" prefWidth="120" prefHeight="32"
+                    onAction="#closeWindow"
+                    style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-text-fill: #1A2E3B; -fx-font-size: 13; -fx-font-weight: bold; -fx-cursor: hand;"/>
+
+        </HBox>
     </bottom>
-    
+
 </BorderPane>
