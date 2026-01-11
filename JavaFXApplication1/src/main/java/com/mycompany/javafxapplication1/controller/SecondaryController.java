@@ -1,6 +1,5 @@
 package com.mycompany.javafxapplication1.controller;
 
-import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
 import java.io.IOException;

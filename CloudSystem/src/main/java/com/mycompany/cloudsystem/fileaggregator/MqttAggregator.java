@@ -5,6 +5,8 @@
 package com.mycompany.cloudsystem.fileaggregator;
 
 import java.io.StringReader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -20,7 +22,7 @@ public class MqttAggregator {
     private static final String AGG_RES = "/agg/response";
     private static final String CLIENT_ID = "AggregatorClient";
     private static final FileAggregator aggregator = new FileAggregator();
-
+    private static final ExecutorService workers = Executors.newFixedThreadPool(4);
     public static void main(String[] args) {
         try {
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
@@ -39,17 +41,18 @@ public class MqttAggregator {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage msg) {
-                    try {
-                        String payload = new String(msg.getPayload());
-                        System.out.println("Received: " + payload);
-                        String responseContent = processRequest(payload);
-                        MqttMessage responseMsg = new MqttMessage(responseContent.getBytes());
-                        responseMsg.setQos(1);
-                        client.publish(AGG_RES, responseMsg);
-                        System.out.println("Sent: " + responseContent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    workers.submit(() -> {
+                        try {
+                            String payload = new String(msg.getPayload());
+                            String responseContent = processRequest(payload);
+                            MqttMessage responseMsg = new MqttMessage(responseContent.getBytes());
+                            responseMsg.setQos(1);
+                            client.publish(AGG_RES, responseMsg);
+                            System.out.println("Sent: " + responseContent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
                 
                 @Override
@@ -73,10 +76,12 @@ public class MqttAggregator {
             JsonObject req = Json.createReader(new StringReader(payload)).readObject();
             String reqId = req.getString("req_id", "unknown");
             String action = req.getString("action", "unknown");
-            resBuilder.add("req_id", reqId).add("action", action);
+            int group = req.getInt("target_group", 1);
+            resBuilder.add("req_id", reqId).add("action", action).add("target_group", group);
             switch (action) {
                 case "create" -> {
                     int fileId = aggregator.create(
+                            group,
                             req.getJsonNumber("ownerId").intValue(),
                             req.getString("fileName"),
                             req.getString("content")
@@ -85,18 +90,20 @@ public class MqttAggregator {
                 }
                 case "download" -> {
                     String path = aggregator.download(
-                            req.getJsonNumber("ownerId").intValue(), 
+                            group,
+                            req.getJsonNumber("ownerId").intValue(),
                             req.getJsonNumber("fileId").intValue(),
                             req.getString("fileName")
                     );
                     resBuilder.add("fileId", req.getJsonNumber("fileId").intValue()).add("remoteFilePath", path);
                 }
                 case "loadContent" -> {
-                    String content = aggregator.loadContent(req.getJsonNumber("fileId").intValue());
+                    String content = aggregator.loadContent(group, req.getJsonNumber("fileId").intValue());
                     resBuilder.add("fileId", req.getJsonNumber("fileId").intValue()).add("content", content);
                 }
                 case "update" -> {
                     aggregator.update(
+                            group,
                             req.getJsonNumber("ownerId").intValue(),
                             req.getJsonNumber("fileId").intValue(),
                             req.containsKey("newName") ? req.getString("newName") : null,
@@ -106,7 +113,8 @@ public class MqttAggregator {
                 }
                 case "delete" -> {
                     aggregator.delete(
-                            req.getJsonNumber("ownerId").intValue(), 
+                            group,
+                            req.getJsonNumber("ownerId").intValue(),
                             req.getJsonNumber("fileId").intValue(),
                             req.getString("fileName")
                     );
@@ -121,9 +129,10 @@ public class MqttAggregator {
                             req.getString("targetUsername"),
                             req.getString("permission")
                     );
-                    resBuilder.add("fileId", req.getJsonNumber("fileId").intValue())
-                              .add("targetUsername", req.getString("targetUsername"))
-                              .add("permission", req.getString("permission"));
+                    resBuilder
+                            .add("fileId", req.getJsonNumber("fileId").intValue())
+                            .add("targetUsername", req.getString("targetUsername"))
+                            .add("permission", req.getString("permission"));
                 }
                 default -> throw new IllegalArgumentException("Unknown action: " + action);
             }

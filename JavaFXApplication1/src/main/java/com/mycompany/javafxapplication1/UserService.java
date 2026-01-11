@@ -23,7 +23,7 @@ public class UserService {
         try {
             User user = remote.getUserByName(username);
             if (user == null) {
-                remote.log(null, username, "LOGIN_FAIL", "User not found: ");
+                remote.log(null, username, "LOGIN_FAIL", "User not found");
                 throw new IllegalArgumentException("USER_NOT_FOUND");
             }
             if (!remote.verifyPassword(password, user.getPasswordHash())) {

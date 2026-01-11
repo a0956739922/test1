@@ -4,58 +4,81 @@
  */
 package com.mycompany.cloudsystem.loadbalancer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Queue;
 
 /**
  *
  * @author ntu-user
  */
-class Scheduler {
+public class Scheduler {
 
-    enum Algo { FCFS, SJF, RR }
+    public enum Algo { FCFS, PRIORITY, RR }
 
     private Algo currentAlgo = Algo.FCFS;
+    private int rrIndex = 0;
 
-    void chooseAlgo(int readySize) {
-        if (readySize <= 2) {
+    public void chooseAlgo(int waitingSize) {
+        if (waitingSize <= 2) {
             currentAlgo = Algo.FCFS;
-        } else if (readySize <= 5) {
-            currentAlgo = Algo.SJF;
+        } else if (waitingSize <= 5) {
+            currentAlgo = Algo.PRIORITY;
         } else {
             currentAlgo = Algo.RR;
         }
     }
 
-    List<Request> select(Queue<Request> readyQueue, int slots) {
-        List<Request> selected = new ArrayList<>();
-        if (readyQueue.isEmpty()) return selected;
-        chooseAlgo(readyQueue.size());
-        for (int i = 0; i < slots && !readyQueue.isEmpty(); i++) {
-            Request r;
-            switch (currentAlgo) {
-                case SJF:
-                    r = selectSJF(readyQueue);
-                    break;
-                case RR:
-                case FCFS:
-                default:
-                    r = readyQueue.poll();
-            }
-            selected.add(r);
-        }
-        return selected;
+    public Algo getCurrentAlgo() {
+        return currentAlgo;
     }
 
-    private Request selectSJF(Queue<Request> queue) {
-        Request shortest = null;
-        for (Request r : queue) {
-            if (shortest == null || r.delay < shortest.delay) {
-                shortest = r;
+    public Task select(Queue<Task> queue) {
+        if (queue.isEmpty()) return null;
+
+        switch (currentAlgo) {
+            case PRIORITY:
+                return selectPriority(queue);
+            case RR:
+                return selectRR(queue);
+            case FCFS:
+            default:
+                return queue.poll();
+        }
+    }
+
+    private Task selectPriority(Queue<Task> queue) {
+        Task best = null;
+        for (Task t : queue) {
+            if (best == null || priorityOf(t) < priorityOf(best)) {
+                best = t;
             }
         }
-        queue.remove(shortest);
-        return shortest;
+        queue.remove(best);
+        return best;
+    }
+
+    private int priorityOf(Task t) {
+        if ("CREATE".equals(t.getAction()) || "UPLOAD".equals(t.getAction())) {
+            return 1;
+        }
+        if ("UPDATE".equals(t.getAction()) || "DELETE".equals(t.getAction())) {
+            return 2;
+        }
+        return 3;
+    }
+
+    private Task selectRR(Queue<Task> queue) {
+        rrIndex = rrIndex % queue.size();
+        Iterator<Task> it = queue.iterator();
+        Task selected = null;
+        for (int i = 0; it.hasNext(); i++) {
+            Task t = it.next();
+            if (i == rrIndex) {
+                selected = t;
+                it.remove();
+                break;
+            }
+        }
+        return selected;
     }
 }

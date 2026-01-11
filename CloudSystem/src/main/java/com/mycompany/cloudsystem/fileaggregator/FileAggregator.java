@@ -23,22 +23,14 @@ public class FileAggregator {
     private final FileDB db = new FileDB();
     private final FileCrypto crypto = new FileCrypto();
     private final FileSftp sftp = new FileSftp();
-
-    private static final String[] VOLUMES = {
-            "fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4"
-    };
-
-    private static String containerForVolume(String volume) {
-        return switch (volume) {
-            case "fs-vol-1" -> "soft40051-files-container1";
-            case "fs-vol-2" -> "soft40051-files-container2";
-            case "fs-vol-3" -> "soft40051-files-container3";
-            case "fs-vol-4" -> "soft40051-files-container4";
-            default -> throw new IllegalArgumentException("Unknown volume: " + volume);
-        };
+    private static final int GROUP_SIZE = 4;
+    
+    private static String containerFor(int group, int volumeIndex) {
+        int containerId = (group - 1) * GROUP_SIZE + volumeIndex + 1;
+        return "soft40051-files-container" + containerId;
     }
 
-    public int create(int ownerId, String fileName, String content) throws Exception {
+    public int create(int group, int ownerId, String fileName, String content) throws Exception {
         try {
             Path tmpDir = Path.of("/home/ntu-user/tmp/upload");
             Files.createDirectories(tmpDir);
@@ -62,36 +54,34 @@ public class FileAggregator {
             );
             for (int i = 0; i < chunks.size(); i++) {
                 File chunk = chunks.get(i);
-                String volume = VOLUMES[i];
-                String container = containerForVolume(volume);
+                String container = containerFor(group, i);
                 String remoteDir = "/home/ntu-user/data/" + fileId;
                 String remotePath = remoteDir + "/" + i + ".part";
                 sftp.mkdirIfNotExists(remoteDir, container);
                 sftp.upload(chunk.getAbsolutePath(), remotePath, container);
                 chunkArr.add(
-                    Json.createObjectBuilder()
-                            .add("index", i)
-                            .add("volume", volume)
-                            .add("remote_path", remotePath)
-                            .add("crc32", crypto.calcFileCRC32(chunk.getAbsolutePath()))
-                            .build()
+                        Json.createObjectBuilder()
+                                .add("index", i)
+                                .add("remote_path", remotePath)
+                                .add("crc32", crypto.calcFileCRC32(chunk.getAbsolutePath()))
+                                .build()
                 );
             }
             db.updateMetadata(
-                fileId,
-                Json.createObjectBuilder()
-                        .add("file_id", fileId)
-                        .add("file_name", fileName)
-                        .add("size_bytes", sizeBytes)
-                        .add("encryption_key", key)
-                        .add("total_chunks", chunks.size())
-                        .add("chunks", chunkArr.build())
-                        .build()
+                    fileId,
+                    Json.createObjectBuilder()
+                            .add("file_id", fileId)
+                            .add("file_name", fileName)
+                            .add("size_bytes", sizeBytes)
+                            .add("encryption_key", key)
+                            .add("total_chunks", chunks.size())
+                            .add("chunks", chunkArr.build())
+                            .build()
             );
             for (File f : chunks) f.delete();
             Files.deleteIfExists(zipFile);
             Files.deleteIfExists(localFile);
-            db.log(ownerId, null, "FILE_CREATE_OK", "file=" + fileName + ", size=" + sizeBytes + " bytes, chunks=" + chunks.size());
+            db.log(ownerId, null, "FILE_CREATE_OK", "file=" + fileName + ", size=" + sizeBytes + ", chunks=" + chunks.size());
             return fileId;
         } catch (Exception e) {
             db.log(ownerId, null, "FILE_CREATE_FAIL", "fileName=" + fileName + ", error=" + e.getClass().getSimpleName());
@@ -99,20 +89,18 @@ public class FileAggregator {
         }
     }
     
-    private String assembleFile(int fileId) throws Exception {
+    private String assembleFile(int group, int fileId) throws Exception {
         String baseDir = "/home/ntu-user/tmp/" + fileId;
         JsonObject meta = db.getMetadata(fileId);
         String fileName = meta.getString("file_name");
         String key = meta.getString("encryption_key");
         String chunkDirPath = baseDir + "/chunks";
         File chunkDir = new File(chunkDirPath);
-        if (!chunkDir.exists()) {
-            chunkDir.mkdirs();
-        }
+        if (!chunkDir.exists()) chunkDir.mkdirs();
         JsonArray chunksMeta = meta.getJsonArray("chunks");
         for (int i = 0; i < chunksMeta.size(); i++) {
             JsonObject c = chunksMeta.getJsonObject(i);
-            String container = containerForVolume(c.getString("volume"));
+            String container = containerFor(group, i);
             String remotePath = c.getString("remote_path");
             File localChunk = new File(chunkDirPath + "/" + i + ".part");
             sftp.download(remotePath, localChunk.getAbsolutePath(), container);
@@ -138,9 +126,9 @@ public class FileAggregator {
         return baseDir + "/" + fileName;
     }
 
-    public String download(int ownerId, int fileId, String fileName) throws Exception {
+    public String download(int group, int ownerId, int fileId, String fileName) throws Exception {
         try {
-            String path = assembleFile(fileId);
+            String path = assembleFile(group, fileId);
             db.log(ownerId, null, "FILE_DOWNLOAD_OK", "file=" + fileName);
             return path;
         } catch (Exception e) {
@@ -149,29 +137,24 @@ public class FileAggregator {
         }
     }
 
-    public String loadContent(int fileId) throws Exception {
-        String filePath = assembleFile(fileId);
+    public String loadContent(int group, int fileId) throws Exception {
+        String filePath = assembleFile(group, fileId);
         return Files.readString(Path.of(filePath));
     }
 
-    public void update(int ownerId, int fileId, String newName, String content) throws Exception {
-        String detail = ""; 
+    public void update(int group, int ownerId, int fileId, String newName, String content) throws Exception {
+        String detail = "";
         try {
             JsonObject oldMeta = db.getMetadata(fileId);
             String oldName = oldMeta.getString("file_name");
             boolean nameChanged = newName != null && !newName.equals(oldName);
             boolean contentChanged = content != null;
             String finalName = nameChanged ? newName : oldName;
-            if (nameChanged) {
-                detail = "renamed '" + oldName + "' to '" + newName + "', content_modified=" + (contentChanged ? "yes" : "no");
-            } else {
-                detail = "file=" + finalName + ", content_modified=" + (contentChanged ? "yes" : "no");
-            }
             if (contentChanged) {
                 JsonArray oldChunks = oldMeta.getJsonArray("chunks");
                 for (int i = 0; i < oldChunks.size(); i++) {
                     JsonObject c = oldChunks.getJsonObject(i);
-                    sftp.delete(c.getString("remote_path"), containerForVolume(c.getString("volume")));
+                    sftp.delete(c.getString("remote_path"), containerFor(group, i));
                 }
                 Path tmp = Files.createTempFile("update-", ".tmp");
                 Files.writeString(tmp, content);
@@ -183,14 +166,12 @@ public class FileAggregator {
                 JsonArrayBuilder chunkArr = Json.createArrayBuilder();
                 for (int i = 0; i < chunks.size(); i++) {
                     File chunk = chunks.get(i);
-                    String volume = VOLUMES[i];
-                    String container = containerForVolume(volume);
+                    String container = containerFor(group, i);
                     String remotePath = "/home/ntu-user/data/" + fileId + "/" + i + ".part";
                     sftp.upload(chunk.getAbsolutePath(), remotePath, container);
                     chunkArr.add(
                             Json.createObjectBuilder()
                                     .add("index", i)
-                                    .add("volume", volume)
                                     .add("remote_path", remotePath)
                                     .add("crc32", crypto.calcFileCRC32(chunk.getAbsolutePath()))
                                     .build()
@@ -206,24 +187,24 @@ public class FileAggregator {
                         .build();
                 db.updateMetadata(fileId, newMeta);
                 db.updateFile(fileId, finalName, sizeBytes);
-                detail += ", size=" + sizeBytes + ", chunks=" + chunks.size();
                 for (File chunk : chunks) chunk.delete();
                 Files.deleteIfExists(tmp);
                 Files.deleteIfExists(Path.of(zipPath));
+                detail = "file=" + finalName + ", updated";
             } else if (nameChanged) {
                 JsonObject updated = Json.createObjectBuilder(oldMeta).add("file_name", finalName).build();
                 db.updateMetadata(fileId, updated);
                 db.updateFile(fileId, finalName, null);
+                detail = "renamed '" + oldName + "' to '" + finalName + "'";
             }
             db.log(ownerId, null, "FILE_UPDATE_OK", detail);
         } catch (Exception e) {
-            String logMsg = detail.isEmpty() ? "fileId=" + fileId : detail;
-            db.log(ownerId, null, "FILE_UPDATE_FAIL", logMsg + ", error=" + e.getClass().getSimpleName());
+            db.log(ownerId, null, "FILE_UPDATE_FAIL", "fileId=" + fileId + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }
 
-    public void delete(int ownerId, int fileId, String fileName) throws Exception {
+    public void delete(int group, int ownerId, int fileId, String fileName) throws Exception {
         try {
             db.deleteShares(fileId);
             JsonObject meta = db.getMetadata(fileId);
@@ -231,7 +212,7 @@ public class FileAggregator {
                 JsonArray chunks = meta.getJsonArray("chunks");
                 for (int i = 0; i < chunks.size(); i++) {
                     JsonObject c = chunks.getJsonObject(i);
-                    sftp.delete(c.getString("remote_path"), containerForVolume(c.getString("volume")));
+                    sftp.delete(c.getString("remote_path"), containerFor(group, i));
                 }
             }
             db.markFileDeleted(fileId);
@@ -246,15 +227,13 @@ public class FileAggregator {
         try {
             if (db.shareExists(fileId, targetId)) {
                 db.updateShare(fileId, targetId, permission);
-            }
-            else {
+            } else {
                 db.insertShare(fileId, ownerId, targetId, permission);
             }
             db.log(ownerId, null, "FILE_SHARE_OK", "file=" + fileName + ", target_user=" + targetUsername + ", permission=" + permission);
         } catch (Exception e) {
-            db.log(ownerId, null, "FILE_SHARE_FAIL", "file=" + fileName + ", target_user=" + targetUsername + ", error=" + e.getClass().getSimpleName());
+            db.log(ownerId, null, "FILE_SHARE_FAIL", "file=" + fileName + ", error=" + e.getClass().getSimpleName());
             throw e;
         }
     }
-
 }
