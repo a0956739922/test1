@@ -5,9 +5,7 @@
 package com.mycompany.cloudsystem.loadbalancer;
 
 import java.io.StringReader;
-import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.*;
