@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
 /**
  *
  * @author ntu-user
@@ -189,13 +188,12 @@ public class SQLiteDB {
         }
     }
 
-    public List<LocalFile> getFilesByState(int userId, String syncState) {
+    public List<LocalFile> getFilesByState(String syncState) {
         List<LocalFile> files = new ArrayList<>();
-        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND sync_state = ?";
+        String sql = "SELECT * FROM local_files WHERE sync_state = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            stmt.setString(2, syncState);
+            stmt.setString(1, syncState);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 LocalFile lf = new LocalFile();
@@ -205,12 +203,8 @@ public class SQLiteDB {
                 lf.setUserId(rs.getInt("owner_user_id"));
                 lf.setUsername(rs.getString("username"));
                 lf.setName(rs.getString("name"));
-                lf.setPermission(rs.getString("permission"));
                 lf.setSharedTo(rs.getString("share_to"));
                 lf.setContent(rs.getString("content"));
-                lf.setSyncState(rs.getString("sync_state"));
-                lf.setDeleted(rs.getInt("deleted") == 1);
-                lf.setUpdatedAt(rs.getString("updated_at"));
                 files.add(lf);
             }
         } catch (Exception e) {

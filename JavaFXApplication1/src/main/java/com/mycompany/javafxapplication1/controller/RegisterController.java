@@ -27,9 +27,6 @@ import javafx.stage.Stage;
  */
 public class RegisterController {
 
-    /**
-     * Initializes the controller class.
-     */
     @FXML
     private Button registerBtn;
 
@@ -43,28 +40,7 @@ public class RegisterController {
     private PasswordField rePassPasswordField;
 
     @FXML
-    private TextField userTextField;
-    
-    @FXML
-    private Text fileText;
-    
-    @FXML
-    private Button selectBtn;
-    
-    @FXML
-    private void selectBtnHandler(ActionEvent event) throws IOException {
-        Stage primaryStage = (Stage) selectBtn.getScene().getWindow();
-        primaryStage.setTitle("Select a File");
-
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
-        File selectedFile = fileChooser.showOpenDialog(primaryStage);
-        
-        if(selectedFile!=null){
-            fileText.setText((String)selectedFile.getCanonicalPath());
-        }
-        
-    }
+    private TextField userTextField;    
 
     @FXML
     private void registerBtnHandler(ActionEvent event) throws IOException, Exception {
@@ -101,15 +77,13 @@ public class RegisterController {
     @FXML
     private void backLoginBtnHandler(ActionEvent event) {
         try {
-            Stage primaryStage = (Stage) backLoginBtn.getScene().getWindow();
-            Stage secondaryStage = new Stage();
-            Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
+            Parent root = loader.load();
             Scene scene = new Scene(root, 1000, 700);
-            secondaryStage.setScene(scene);
-            secondaryStage.setTitle("Login");
-            secondaryStage.show();
-            primaryStage.close();
-        } catch (Exception e) {
+            Stage stage = (Stage) backLoginBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Login");
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

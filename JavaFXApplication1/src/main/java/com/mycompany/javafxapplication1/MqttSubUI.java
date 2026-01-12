@@ -21,7 +21,7 @@ public class MqttSubUI {
 
     private static final String BROKER = "tcp://mqtt-broker:1883";
     private static final String AGG_RES = "/agg/response";
-    private static final String CLIENT_ID = "UIClientSub";
+    private static final String CLIENT_ID = "UIClientSub-" + java.util.UUID.randomUUID();
     private final FileService fileService = new FileService();
 
     private static final List<Runnable> refreshListeners = new CopyOnWriteArrayList<>();

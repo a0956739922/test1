@@ -14,29 +14,14 @@ import java.io.IOException;
 public class App extends Application {
     
     private MqttSubUI mqttSubUI;
-    private SyncService syncService;
     
     @Override
     public void start(Stage stage) throws IOException {
         try {
             mqttSubUI = new MqttSubUI();
             mqttSubUI.start();
-            SQLiteDB sqlite = new SQLiteDB();
-            User cached = sqlite.loadSession();
-            FileService fileService = new FileService();
-            syncService = new SyncService(fileService);
+            SyncService syncService = new SyncService();
             syncService.start();
-            boolean mysqlOnline = true;
-            try {
-                MySQLDB mysql = new MySQLDB();
-                mysql.testConnection();
-            } catch (Exception e) {
-                mysqlOnline = false;
-            }
-            if (!mysqlOnline && cached != null) {
-                openSecondary(stage, cached, true);
-                return;
-            }
             FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
             Parent root = loader.load();
             Scene scene = new Scene(root, 1000, 700);
@@ -73,7 +58,6 @@ public class App extends Application {
         if (mqttSubUI != null) {
             mqttSubUI.stop();
         }
-        syncService.shutdown();
     }
 
 }
