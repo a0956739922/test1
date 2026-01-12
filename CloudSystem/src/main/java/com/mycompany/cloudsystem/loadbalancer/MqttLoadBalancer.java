@@ -47,36 +47,30 @@ public class MqttLoadBalancer {
                         JsonObject st = Json.createReader(new StringReader(payload)).readObject();
                         activeGroups = st.getInt("active_groups", activeGroups);
                         lb.updateGroups(activeGroups);
-                        System.out.println("[LB] Host updated groups=" + activeGroups);
                         if (activeGroups > 0 && pendingLoadContent != null) {
-                            System.out.println("[LB] Groups active, processing pending loadContent...");
                             client.publish(LB_REQ, new MqttMessage(pendingLoadContent.getBytes()));
                             pendingLoadContent = null;
+                            System.out.println("[LB] Dispatch pending loadContent after cold start");
                         }
                         return;
                     }
                     if (!UI_REQ.equals(topic)) return;
                     JsonObject in = Json.createReader(new StringReader(payload)).readObject();
-                    String reqId = in.getString("req_id", "");
+                    String reqId  = in.getString("req_id", "");
                     String action = in.getString("action", "");
+                    if ("loadContent".equals(action)) {
+                        if (activeGroups == 0 && targetGroups == 0) {
+                            requestScale(client, 1);
+                            pendingLoadContent = payload;
+                            System.out.println("[LB] Cold start for loadContent");
+                            return;
+                        }
+                        client.publish(LB_REQ, new MqttMessage(payload.getBytes()));
+                        return;
+                    }
                     if (activeGroups == 0 && targetGroups == 0) {
                         requestScale(client, 1);
                         System.out.println("[LB] Cold start triggered by action=" + action);
-                        if ("loadContent".equals(action)) {
-                            System.out.println("[LB] Buffering loadContent request until scale up complete.");
-                            pendingLoadContent = payload;
-                            return;
-                        }
-                    }
-                    if ("loadContent".equals(action)) {
-                        if (activeGroups > 0) {
-                            client.publish(LB_REQ, new MqttMessage(payload.getBytes()));
-                            System.out.println("[LB] Bypass loadContent");
-                        } else {
-                             System.out.println("[LB] Buffering loadContent (waiting for groups)");
-                             pendingLoadContent = payload;
-                        }
-                        return;
                     }
                     lb.addTask(reqId, action, 1 + (int)(Math.random() * 5), payload);
                 }

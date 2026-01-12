@@ -78,7 +78,7 @@ public class TrafficEmulator {
     }
 
     public boolean scaleDown() {
-        return groups > 0 && waitingQueue.isEmpty() && processingQueue.isEmpty() && System.currentTimeMillis() - lastTaskTime > 30_000;
+        return groups > 0 && waitingQueue.isEmpty() && processingQueue.isEmpty() && readyQueue.isEmpty() && System.currentTimeMillis() - lastTaskTime > 30_000;
     }
     
     public void updateGroups(int newGroups) {
@@ -86,6 +86,10 @@ public class TrafficEmulator {
         groups = newGroups;
         resources.clear();
         processingSlots.clear();
+        if (!processingQueue.isEmpty()) {
+            System.out.println("[WARN] Scale event triggered. Clearing " + processingQueue.size() + " tasks to prevent zombies.");
+            processingQueue.clear(); 
+        }
         for (int i = 0; i < groups * REQ_PER_GROUP; i++) {
             resources.add(0L);
             processingSlots.add(null);
