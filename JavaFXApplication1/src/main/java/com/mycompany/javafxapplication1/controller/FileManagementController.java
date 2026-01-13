@@ -184,7 +184,7 @@ public class FileManagementController {
         if (selected.getRemoteFileId() == null) {
             sqlite.deleteLocalFile(selected.getLocalId());
         } else {
-            sqlite.markAsDeleted(sessionUser.getUserId(), selected.getRemoteFileId());
+            sqlite.markDeleted(sessionUser.getUserId(), selected.getRemoteFileId());
         }
         loadFiles();
     }
