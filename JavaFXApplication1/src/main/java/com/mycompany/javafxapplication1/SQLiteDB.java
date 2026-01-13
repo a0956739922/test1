@@ -105,7 +105,7 @@ public class SQLiteDB {
 
     public ObservableList<LocalFile> getAllOwnedFiles(Integer userId) {
         ObservableList<LocalFile> files = FXCollections.observableArrayList();
-        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND deleted = 0 ORDER BY updated_at DESC";
+        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND deleted = 0";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
@@ -246,7 +246,7 @@ public class SQLiteDB {
         }
     }
 
-    public void markAsDeleted(Integer userId, Integer remoteFileId) {
+    public void markDeleted(Integer userId, Integer remoteFileId) {
         String sql = "UPDATE local_files SET deleted = 1, sync_state = 'PENDING_DELETE', updated_at = datetime('now') WHERE remote_file_id = ? AND owner_user_id = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -373,7 +373,7 @@ public class SQLiteDB {
     }
     
     public boolean isFileExists(Integer userId, String fileName) {
-        String sql = "SELECT 1 FROM local_files WHERE owner_user_id = ? AND name = ? AND deleted = 0";
+        String sql = "SELECT * FROM local_files WHERE owner_user_id = ? AND name = ? AND deleted = 0";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
