@@ -66,9 +66,16 @@
     <center>
         <StackPane style="-fx-padding: 36;">
             <VBox spacing="22" maxWidth="900" style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Files"
+                           style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
 
-                <Label text="Files"
-                       style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="refreshBtn" text="Refresh" prefWidth="120" prefHeight="36"
+                            onAction="#refreshFiles"
+                            style="-fx-background-color: #2378A6; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                </HBox>
 
                 <TableView fx:id="fileTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 14;">
                     <columnResizePolicy>

@@ -38,7 +38,7 @@ public class SyncService extends Thread {
         for (LocalFile lf : sqlite.getFilesByState("PENDING_DELETE")) {
             Integer remoteId = lf.getRemoteFileId();
             if (remoteId == null) continue;
-            sqlite.updateSyncStateByFileId(remoteId, "DELETING");
+            sqlite.updateSyncState("DELETING", remoteId, null);
             try {
                 fileService.delete(lf.getUserId(), lf.getUsername(), remoteId, lf.getFileName());
             } catch (Exception e) {
@@ -51,7 +51,7 @@ public class SyncService extends Thread {
         for (LocalFile lf : sqlite.getFilesByState("PENDING_CREATE")) {
             String reqId = lf.getReqId();
             if (reqId == null) continue;
-            sqlite.updateSyncStateByReqId(reqId, "CREATING");
+            sqlite.updateSyncState("CREATING", null, reqId);
             try {
                 fileService.create(reqId, lf.getUserId(), lf.getUsername(), lf.getFileName(), lf.getContent());
             } catch (Exception e) {
@@ -64,7 +64,7 @@ public class SyncService extends Thread {
         for (LocalFile lf : sqlite.getFilesByState("PENDING_UPDATE")) {
             Integer remoteId = lf.getRemoteFileId();
             if (remoteId == null) continue;
-            sqlite.updateSyncStateByFileId(remoteId, "UPDATING");
+            sqlite.updateSyncState("UPDATING", remoteId, null);
             try {
                 fileService.update(lf.getUserId(), lf.getUsername(), remoteId, lf.getFileName(), lf.getContent());
             } catch (Exception e) {

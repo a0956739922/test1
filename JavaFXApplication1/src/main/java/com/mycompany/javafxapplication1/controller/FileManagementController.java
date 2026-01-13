@@ -48,6 +48,9 @@ public class FileManagementController {
     
     @FXML
     private TableColumn<LocalFile, String> colShareTo;
+    
+    @FXML
+    private Button refreshBtn;
 
     @FXML
     private Button createBtn;
@@ -83,7 +86,6 @@ public class FileManagementController {
         colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
-        MqttSubUI.addRefreshListener(this::loadFiles);
         loadFiles();
         fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
         fileTable.setRowFactory(tv -> {
@@ -101,6 +103,11 @@ public class FileManagementController {
         SQLiteDB sqlite = new SQLiteDB();
         List<LocalFile> files = sqlite.getAllOwnedFiles(sessionUser.getUserId());
         fileTable.getItems().setAll(files);
+    }
+    
+    @FXML
+    private void refreshFiles() {
+        loadFiles();
     }
 
     @FXML

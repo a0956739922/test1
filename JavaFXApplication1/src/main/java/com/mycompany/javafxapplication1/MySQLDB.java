@@ -102,7 +102,7 @@ public class MySQLDB {
     public void ensureDefaultAdmin() throws Exception {
         try (Connection conn = getConnection()) {
             PreparedStatement check = conn.prepareStatement(
-                "SELECT user_id FROM users WHERE username = 'admin' LIMIT 1"
+                "SELECT user_id FROM users WHERE username = 'admin'"
             );
             ResultSet rs = check.executeQuery();
             if (rs.next()) return;

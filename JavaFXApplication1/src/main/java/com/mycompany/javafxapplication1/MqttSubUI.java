@@ -24,25 +24,12 @@ public class MqttSubUI {
     private static final String CLIENT_ID = "UIClientSub-" + java.util.UUID.randomUUID();
     private final FileService fileService = new FileService();
 
-    private static final List<Runnable> refreshListeners = new CopyOnWriteArrayList<>();
     private static final Map<String, Consumer<String>> requestCallbacks = new ConcurrentHashMap<>();
     
     private MqttClient client;
 
-    public static void addRefreshListener(Runnable listener) {
-        refreshListeners.add(listener);
-    }
-
     public static void registerRequestCallback(String reqId, Consumer<String> callback) {
         requestCallbacks.put(reqId, callback);
-    }
-
-    private void notifyRefresh() {
-        javafx.application.Platform.runLater(() -> {
-            for (Runnable listener : refreshListeners) {
-                listener.run();
-            }
-        });
     }
 
     public void start() {
@@ -68,19 +55,15 @@ public class MqttSubUI {
                             switch (action) {
                                 case "delete" -> {
                                     fileService.finalizeLocalDelete(res.getInt("fileId"));
-                                    notifyRefresh();
                                 }
                                 case "create" -> {
                                     fileService.finalizeLocalCreate(reqId, res.getInt("fileId"));
-                                    notifyRefresh();
                                 }
                                 case "update" -> {
                                     fileService.finalizeLocalUpdate(res.getInt("fileId"));
-                                    notifyRefresh();
                                 }
                                 case "share" -> {
                                     fileService.finalizeLocalShare(res.getInt("fileId"), res.getString("targetUsername"), res.getString("permission"));
-                                    notifyRefresh();
                                 }
                             }
                         }

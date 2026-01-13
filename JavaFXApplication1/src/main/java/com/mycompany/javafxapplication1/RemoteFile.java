@@ -10,24 +10,24 @@ package com.mycompany.javafxapplication1;
  */
 public class RemoteFile {
 
-    private int fileId;
-    private int ownerUserId;
+    private Integer fileId;
+    private Integer ownerUserId;
     private String name;
     private String ownerName;
     private String permission;
     private String sharedTo;
 
-    public RemoteFile(int fileId, int ownerUserId, String name) {
+    public RemoteFile(Integer fileId, Integer ownerUserId, String name) {
         this.fileId = fileId;
         this.ownerUserId = ownerUserId;
         this.name = name;
     }
 
-    public int getFileId() {
+    public Integer getFileId() {
         return fileId;
     }
 
-    public int getOwnerUserId() {
+    public Integer getOwnerUserId() {
         return ownerUserId;
     }
 

@@ -13,7 +13,7 @@ public class LocalFile {
     private Integer localId;
     private Integer remoteFileId;
     private String reqId;
-    private int userId;
+    private Integer userId;
     private String username;
     private String fileName;
     private String permission;
@@ -47,11 +47,11 @@ public class LocalFile {
         this.reqId = reqId;
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
