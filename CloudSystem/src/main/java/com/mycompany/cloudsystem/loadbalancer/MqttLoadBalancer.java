@@ -47,6 +47,7 @@ public class MqttLoadBalancer {
                         JsonObject st = Json.createReader(new StringReader(payload)).readObject();
                         activeGroups = st.getInt("active_groups", activeGroups);
                         lb.updateGroups(activeGroups);
+                        lb.processTasks();
                         if (activeGroups > 0 && pendingLoadContent != null) {
                             client.publish(LB_REQ, new MqttMessage(pendingLoadContent.getBytes()));
                             pendingLoadContent = null;
@@ -86,21 +87,20 @@ public class MqttLoadBalancer {
             });
 
             while (true) {
-                if (activeGroups != targetGroups) {
-                    Thread.sleep(500);
-                    continue;
-                }
-                if (lb.scaleUp()) {
-                    requestScale(client, activeGroups + 1);
-                    continue;
-                }
-                if (lb.scaleDown()) {
-                    long now = System.currentTimeMillis();
-                    if (now - lastScaleUpTime < SCALE_DOWN_COOLDOWN_MS) {
+                boolean scaling = (activeGroups != targetGroups);
+                if (!scaling) {
+                    if (lb.scaleUp()) {
+                        requestScale(client, activeGroups + 1);
                         continue;
                     }
-                    requestScale(client, activeGroups - 1);
-                    continue;
+                    if (lb.scaleDown()) {
+                        long now = System.currentTimeMillis();
+                        if (now - lastScaleUpTime < SCALE_DOWN_COOLDOWN_MS) {
+                            continue;
+                        }
+                        requestScale(client, activeGroups - 1);
+                        continue;
+                    }
                 }
                 lb.processTasks();
                 dispatchReady(client, lb);

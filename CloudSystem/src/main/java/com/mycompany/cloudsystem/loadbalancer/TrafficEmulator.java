@@ -86,10 +86,10 @@ public class TrafficEmulator {
         groups = newGroups;
         resources.clear();
         processingSlots.clear();
-        if (!processingQueue.isEmpty()) {
-            System.out.println("[WARN] Scale event triggered. Clearing " + processingQueue.size() + " tasks to prevent zombies.");
-            processingQueue.clear(); 
-        }
+//        if (!processingQueue.isEmpty()) {
+//            System.out.println("[WARN] Scale event triggered. Clearing " + processingQueue.size() + " tasks to prevent zombies.");
+//            processingQueue.clear(); 
+//        }
         for (int i = 0; i < groups * REQ_PER_GROUP; i++) {
             resources.add(0L);
             processingSlots.add(null);
