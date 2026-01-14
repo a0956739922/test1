@@ -4,7 +4,6 @@
  */
 package com.mycompany.cloudsystem.host;
 
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -26,12 +25,16 @@ public class MqttHost {
     private static final String HOST_STATUS = "/host/status";
     
     private static final Map<Integer, List<String>> groupContainers = new HashMap<>();
+    private static final Map<Integer, GroupState> groupState = new HashMap<>();
+    private static final List<String> VOLUMES = List.of("fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4");
     private static final int GROUP_SIZE = 4;
     private static final int MAX_CONTAINERS = 12;
     private static int activeGroups = 0;
     private static int nextContainerId = 1;
-
-    private static final List<String> VOLUMES = List.of("fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4");
+    
+    private enum GroupState {
+        STARTING, UP, DOWN
+    }
 
     public static void main(String[] args) {
         try {
@@ -51,7 +54,6 @@ public class MqttHost {
                     } else if ("scale_down".equals(action)) {
                         scaleDownTo(targetGroups);
                     }
-                    publishStatus(client);
                 }
 
                 @Override public void connectionLost(Throwable cause) {
@@ -79,6 +81,7 @@ public class MqttHost {
         while (activeGroups < targetGroups && nextContainerId <= MAX_CONTAINERS) {
             int groupId = activeGroups + 1;
             System.out.println("[HOST] SCALE UP group " + groupId);
+            groupState.put(groupId, GroupState.STARTING);
             List<String> containers = new java.util.ArrayList<>();
             for (int i = 0; i < GROUP_SIZE; i++) {
                 String name = "soft40051-files-container" + nextContainerId;
@@ -105,25 +108,36 @@ public class MqttHost {
     }
 
     private static void publishStatus(MqttClient client) throws Exception {
+        if (!client.isConnected()) return;
         client.publish(HOST_STATUS, new MqttMessage(Json.createObjectBuilder().add("active_groups", activeGroups).build().toString().getBytes()));
         for (int groupId = 1; groupId <= activeGroups; groupId++) {
-            boolean groupHealthy = true;
-            List<String> containers = groupContainers.get(groupId);
-            if (containers == null) {
-                groupHealthy = false;
-            } else {
-                for (String c : containers) {
-                    boolean running = isContainerRunning(c);
-                    if (!running) {
-                        groupHealthy = false;
-                        break;
-                    }
+            boolean allRunning = true;
+            for (String c : groupContainers.get(groupId)) {
+                if (!isContainerRunning(c)) {
+                    allRunning = false;
+                    break;
                 }
             }
-            JsonObject health = Json.createObjectBuilder().add("group", groupId).add("status", groupHealthy ? "UP" : "DOWN").build();
-            client.publish(HOST_STATUS, new MqttMessage(health.toString().getBytes()));
-            System.out.println("[HealthCheck] group-" + groupId + " -> " + (groupHealthy ? "UP" : "DOWN"));
+            GroupState prev = groupState.get(groupId);
+            if (allRunning) {
+                groupState.put(groupId, GroupState.UP);
+            } else {
+                if (prev == GroupState.STARTING) {
+                    groupState.put(groupId, GroupState.STARTING);
+                } else {
+                    groupState.put(groupId, GroupState.DOWN);
+                }
+            }
+            publishGroupState(client, groupId, groupState.get(groupId));
         }
+    }
+
+
+    private static void publishGroupState(
+        MqttClient client, int groupId, GroupState state) throws Exception {
+        JsonObject msg = Json.createObjectBuilder().add("group", groupId).add("status", state.name()).build();
+        client.publish(HOST_STATUS, new MqttMessage(msg.toString().getBytes()));
+        System.out.println("[HealthCheck] group-" + groupId + " -> " + state);
     }
     
     private static boolean isContainerRunning(String name) {
