@@ -5,8 +5,10 @@
 package com.mycompany.cloudsystem.loadbalancer;
 
 import java.io.StringReader;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.*;
@@ -23,6 +25,7 @@ public class MqttLoadBalancer {
     private static final String LB_SCALE = "/lb/scale";
     private static final String HOST_STATUS = "/host/status";
 
+    private static final Map<Integer, Boolean> groupHealth = new ConcurrentHashMap<>();
     private static int activeGroups = 0;
     private static int targetGroups = 0;
     private static long lastScaleUpTime = 0;
@@ -46,8 +49,16 @@ public class MqttLoadBalancer {
                     String payload = new String(message.getPayload());
                     if (HOST_STATUS.equals(topic)) {
                         JsonObject st = Json.createReader(new StringReader(payload)).readObject();
-                        activeGroups = st.getInt("active_groups", activeGroups);
-                        lb.updateGroups(activeGroups);
+                        if (st.containsKey("active_groups")) {
+                            activeGroups = st.getInt("active_groups", activeGroups);
+                            lb.updateGroups(activeGroups);
+                        }
+                        if (st.containsKey("group") && st.containsKey("status")) {
+                            int gid = st.getInt("group");
+                            boolean healthy = "UP".equals(st.getString("status"));
+                            groupHealth.put(gid, healthy);
+                            System.out.println("[HealthCheck] group-" + gid + " -> " + (healthy ? "UP" : "DOWN"));
+                        }
                         return;
                     }
                     if (!UI_REQ.equals(topic)) return;
@@ -57,6 +68,10 @@ public class MqttLoadBalancer {
                     if (activeGroups == 0 && targetGroups == 0) {
                         requestScale(client, 1);
                         System.out.println("[LB] Cold start triggered by action=" + action);
+                    }
+                    else if (activeGroups > 0 && !hasHealthyGroup()) {
+                        requestScale(client, activeGroups + 1);
+                        System.out.println("[LB] No healthy group, scale up triggered");
                     }
                     lb.addTask(reqId, action, 1 + random.nextInt(1000, 5000), payload);
                 }
@@ -114,12 +129,32 @@ public class MqttLoadBalancer {
         int groups = activeGroups;
         while (!ready.isEmpty()) {
             Task t = ready.poll();
-            int groupId = (groupCursor++ % groups) + 1;
+            int tries = 0;
+            int groupId = -1;
+            while (tries < groups) {
+                int candidate = (groupCursor++ % groups) + 1;
+                if (groupHealth.getOrDefault(candidate, true)) {
+                    groupId = candidate;
+                    break;
+                }
+                tries++;
+            }
+            if (groupId == -1) {
+                System.out.println("[LB] No healthy group available, dropping req=" + t.getName());
+                continue;
+            }
             JsonObject original = Json.createReader(new StringReader(t.getPayload())).readObject();
             JsonObject routed = Json.createObjectBuilder(original).add("target_group", groupId).build();
             client.publish(LB_REQ, new MqttMessage(routed.toString().getBytes()));
             System.out.println("[LB] Dispatch req=" + t.getName() + " to group-" + groupId);
         }
+    }
+    
+    private static boolean hasHealthyGroup() {
+        for (boolean healthy : groupHealth.values()) {
+            if (healthy) return true;
+        }
+        return false;
     }
 
 }

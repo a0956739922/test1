@@ -23,6 +23,8 @@ public class MqttHost {
     private static final String CLIENT_ID = "HostManagerClient";
     private static final String LB_SCALE   = "/lb/scale";
     private static final String HOST_STATUS = "/host/status";
+    
+    private static final Map<Integer, List<String>> groupContainers = new HashMap<>();
     private static final int GROUP_SIZE = 4;
     private static final int MAX_CONTAINERS = 12;
     private static int activeGroups = 0;
@@ -30,10 +32,7 @@ public class MqttHost {
 
     private static final List<String> VOLUMES = List.of("fs-vol-1", "fs-vol-2", "fs-vol-3", "fs-vol-4");
 
-    private static final Map<Integer, String> groupVolume = new HashMap<>();
-
     public static void main(String[] args) {
-
         try {
             MqttClient client = new MqttClient(BROKER, CLIENT_ID);
             client.connect();
@@ -62,7 +61,14 @@ public class MqttHost {
                 }
                 
             });
-            while (true) Thread.sleep(1000);
+            while (true) {
+                try {
+                    publishStatus(client);
+                    Thread.sleep(3000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -70,16 +76,18 @@ public class MqttHost {
 
     private static void scaleUpTo(int targetGroups) {
         while (activeGroups < targetGroups && nextContainerId <= MAX_CONTAINERS) {
-            int groupIndex = activeGroups;
-            System.out.println("[HOST] SCALE UP group " + (groupIndex + 1));
+            int groupId = activeGroups + 1;
+            System.out.println("[HOST] SCALE UP group " + groupId);
+            List<String> containers = new java.util.ArrayList<>();
             for (int i = 0; i < GROUP_SIZE; i++) {
                 String name = "soft40051-files-container" + nextContainerId;
                 int volumeIndex = (nextContainerId - 1) % VOLUMES.size();
                 String volume = VOLUMES.get(volumeIndex);
-                System.out.println("   -> Starting " + name + " with " + volume);
                 dockerRun(name, volume);
+                containers.add(name);
                 nextContainerId++;
             }
+            groupContainers.put(groupId, containers);
             activeGroups++;
         }
     }
@@ -96,8 +104,37 @@ public class MqttHost {
     }
 
     private static void publishStatus(MqttClient client) throws Exception {
-        JsonObject status = Json.createObjectBuilder().add("active_groups", activeGroups).build();
-        client.publish(HOST_STATUS, new MqttMessage(status.toString().getBytes()));
+        client.publish(HOST_STATUS, new MqttMessage(Json.createObjectBuilder().add("active_groups", activeGroups).build().toString().getBytes()));
+        for (int groupId = 1; groupId <= activeGroups; groupId++) {
+            boolean groupHealthy = true;
+            List<String> containers = groupContainers.get(groupId);
+            if (containers == null) {
+                groupHealthy = false;
+            } else {
+                for (String c : containers) {
+                    boolean running = isContainerRunning(c);
+                    if (!running) {
+                        groupHealthy = false;
+                        break;
+                    }
+                }
+            }
+            JsonObject health = Json.createObjectBuilder().add("group", groupId).add("status", groupHealthy ? "UP" : "DOWN").build();
+            client.publish(HOST_STATUS, new MqttMessage(health.toString().getBytes()));
+            System.out.println("[HealthCheck] group-" + groupId + " -> " + (groupHealthy ? "UP" : "DOWN"));
+        }
+    }
+    
+    private static boolean isContainerRunning(String name) {
+        try {
+            Process p = new ProcessBuilder("docker", "inspect", "-f", "{{.State.Running}}", name).start();
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = r.readLine();
+            p.waitFor();
+            return "true".equalsIgnoreCase(line);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static void dockerRun(String name, String volume) {
@@ -117,7 +154,7 @@ public class MqttHost {
     private static void exec(ProcessBuilder pb) {
         try {
             Process p = pb.start();
-            BufferedReader r = new BufferedReader( new InputStreamReader(p.getInputStream()));
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while (r.readLine() != null) {}
             p.waitFor();
         } catch (Exception ignore) {}

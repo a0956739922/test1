@@ -15,9 +15,6 @@ public class SyncService extends Thread {
 
     @Override
     public void run() {
-        sqlite.resetSyncState("CREATING", "PENDING_CREATE");
-        sqlite.resetSyncState("DELETING", "PENDING_DELETE");
-        sqlite.resetSyncState("UPDATING", "PENDING_UPDATE");
         while (true) {
             try {
                 if (!isOnline()) {

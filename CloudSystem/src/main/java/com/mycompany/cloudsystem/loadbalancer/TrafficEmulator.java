@@ -48,8 +48,6 @@ public class TrafficEmulator {
                 Task task = scheduler.select(waitingQueue);
                 processingQueue.offer(task);
                 processingSlots.set(i, task);
-//                int groupId = (i / REQ_PER_GROUP) + 1;
-//                taskToGroup.put(task.getName(), groupId);
                 resources.set(i, task.getStartTime() + task.getDelay());
                 System.out.printf("[PROCESS] %-8s | slots-%d -> %s%n", scheduler.getCurrentAlgo(), i + 1, task);
             }
@@ -80,22 +78,7 @@ public class TrafficEmulator {
     public boolean scaleDown() {
         return groups > 0 && waitingQueue.isEmpty() && processingQueue.isEmpty() && readyQueue.isEmpty() && System.currentTimeMillis() - lastTaskTime > 30_000;
     }
-    
-//    public void updateGroups(int newGroups) {
-//        if (groups == newGroups) return;
-//        groups = newGroups;
-//        resources.clear();
-//        processingSlots.clear();
-//        if (!processingQueue.isEmpty()) {
-//            System.out.println("[WARN] Scale event triggered. Clearing " + processingQueue.size() + " tasks to prevent zombies.");
-//            processingQueue.clear(); 
-//        }
-//        for (int i = 0; i < groups * REQ_PER_GROUP; i++) {
-//            resources.add(0L);
-//            processingSlots.add(null);
-//        }
-//        System.out.println("[LB] Emulator updated groups=" + groups);
-//    }
+
     public void updateGroups(int newGroups) {
         if (groups == newGroups) return;
         int oldCapacity = groups * REQ_PER_GROUP;
@@ -119,9 +102,5 @@ public class TrafficEmulator {
     public Queue<Task> getReadyQueue() {
         return readyQueue;
     }
-    
-//    public int getGroupOfTask(String reqId) {
-//        return taskToGroup.getOrDefault(reqId, -1);
-//    }
-    
+
 }

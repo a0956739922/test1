@@ -133,34 +133,25 @@ public class SQLiteDB {
     }
 
     public void cacheRemoteOwnedFiles(Integer userId, List<RemoteFile> remoteFiles) {
-        String selectSql = "SELECT sync_state, deleted FROM local_files WHERE remote_file_id = ? AND owner_user_id = ?";
-        String updateSql = "UPDATE local_files SET name = ?, permission = ?, username = ?, share_to = ?, updated_at = datetime('now') " +
-                           "WHERE remote_file_id = ? AND owner_user_id = ?";
+        String deleteSql = "DELETE FROM local_files WHERE owner_user_id = ?";
+        String insertSql =
+            "INSERT INTO local_files " +
+            "(remote_file_id, owner_user_id, username, name, permission, share_to, content, sync_state, deleted, updated_at) " +
+            "VALUES (?, ?, ?, ?, ?, ?, NULL, 'SYNCED', 0, datetime('now'))";
         try (Connection conn = DriverManager.getConnection(dbUrl)) {
+            try (PreparedStatement delete = conn.prepareStatement(deleteSql)) {
+                delete.setInt(1, userId);
+                delete.executeUpdate();
+            }
             for (RemoteFile file : remoteFiles) {
-                try (PreparedStatement check = conn.prepareStatement(selectSql)) {
-                    check.setInt(1, file.getFileId());
-                    check.setInt(2, userId);
-                    try (ResultSet rs = check.executeQuery()) {
-                        if (rs.next()) {
-                            String syncState = rs.getString("sync_state");
-                            boolean deleted = rs.getInt("deleted") == 1;
-                            if (!"SYNCED".equals(syncState) || deleted) {
-                                continue;
-                            }
-                            try (PreparedStatement update = conn.prepareStatement(updateSql)) {
-                                update.setString(1, file.getName());
-                                update.setString(2, file.getPermission());
-                                update.setString(3, file.getOwnerName());
-                                update.setString(4, file.getSharedTo());
-                                update.setInt(5, file.getFileId());
-                                update.setInt(6, userId);
-                                update.executeUpdate();
-                            }
-                        } else {
-                            insertLocalFile(null, file.getFileId(), userId, file.getOwnerName(), file.getName(), file.getPermission(), file.getSharedTo(), null, "SYNCED");
-                        }
-                    }
+                try (PreparedStatement insert = conn.prepareStatement(insertSql)) {
+                    insert.setInt(1, file.getFileId());
+                    insert.setInt(2, userId);
+                    insert.setString(3, file.getOwnerName());
+                    insert.setString(4, file.getName());
+                    insert.setString(5, file.getPermission());
+                    insert.setString(6, file.getSharedTo());
+                    insert.executeUpdate();
                 }
             }
         } catch (Exception e) {
@@ -228,18 +219,6 @@ public class SQLiteDB {
             } else {
                 stmt.setString(2, reqId);
             }
-            stmt.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void resetSyncState(String fromState, String toState) {
-        String sql = "UPDATE local_files SET sync_state = ? WHERE sync_state = ?";
-        try (Connection conn = DriverManager.getConnection(dbUrl);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, toState);
-            stmt.setString(2, fromState);
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
