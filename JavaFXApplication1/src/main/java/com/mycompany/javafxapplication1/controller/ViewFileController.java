@@ -7,7 +7,6 @@ package com.mycompany.javafxapplication1.controller;
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
-import com.mycompany.javafxapplication1.SQLiteDB;
 import java.io.StringReader;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;

@@ -5,7 +5,6 @@
 package com.mycompany.javafxapplication1.controller;
 
 import com.mycompany.javafxapplication1.UserService;
-import java.io.File;
 import java.io.IOException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
