@@ -20,58 +20,52 @@ public class TrafficEmulator {
     private final Queue<Task> readyQueue = new LinkedList<>();
 
     private final List<Long> resources = new ArrayList<>();
-
-    private final Scheduler scheduler = new Scheduler();
-
-    private static final long RR_TIME_SLICE_MS = 1000;
-
     private int groups = 0;
+    private static final int REQ_PER_GROUP = 5;
+    private static final int MAX_GROUPS = 3;
+
     private long lastTaskTime = System.currentTimeMillis();
 
-    public void addTask(String name, String action, int delaySec, String payload) {
-        Task t = new Task(name, action, delaySec, payload);
+    public void addTask(String name, String action, long delayMs, String payload) {
+        Task t = new Task(name, action, delayMs, payload);
         waitingQueue.offer(t);
         lastTaskTime = System.currentTimeMillis();
         System.out.println("[ADD] " + t);
     }
-    
+
     public void processTasks() {
         if (groups == 0) return;
-        scheduler.chooseAlgo(waitingQueue.size());
+
+        // waiting -> processing (network slot)
         for (int i = 0; i < resources.size() && !waitingQueue.isEmpty(); i++) {
-            if (resources.get(i) == 0L) {   // resource free
-                Task t = scheduler.select(waitingQueue);
+            if (resources.get(i) == 0L) {
+                Task t = waitingQueue.poll();
                 processingQueue.offer(t);
-                resources.set(i, System.currentTimeMillis());
-                System.out.printf("[PROCESS] %-8s | R%d -> %s%n",
-                        scheduler.getCurrentAlgo(), i + 1, t);
+                resources.set(i, 1L); // mark busy
+                System.out.println("[NETWORK] R" + (i + 1) + " -> " + t);
             }
         }
 
+        // processing -> ready
         Iterator<Task> it = processingQueue.iterator();
         for (int i = 0; i < resources.size() && it.hasNext(); i++) {
             Task t = it.next();
-            long used = scheduler.getCurrentAlgo() == Scheduler.Algo.RR ? t.consume(RR_TIME_SLICE_MS) : t.consume(t.getRemainingTimeMs());
-            if (t.isCompleted()) {
+            if (t.isNetworkDone()) {
                 it.remove();
                 readyQueue.offer(t);
                 resources.set(i, 0L);
                 System.out.println("[READY] " + t.getName());
-            } else {
-                it.remove();
-                waitingQueue.offer(t);
-                resources.set(i, 0L);
-                System.out.println("[RR] " + t);
             }
         }
+
         printQueues();
     }
     
     public boolean scaleUp() {
-        if (groups <= 0 || groups >= 3) {
-            return false;
-        }
-        return waitingQueue.size() >= 4;
+        if (groups == 0) return false;
+        int capacity = groups * REQ_PER_GROUP;
+        double ratio = (double) waitingQueue.size() / capacity;
+        return ratio >= 0.8 && groups < MAX_GROUPS;
     }
 
     public boolean scaleDown() {
@@ -81,13 +75,15 @@ public class TrafficEmulator {
     public void updateGroups(int newGroups) {
         if (groups == newGroups) return;
         groups = newGroups;
-        while (resources.size() < groups) {
-            resources.add(0L);
-        }
-        while (resources.size() > groups) {
-            resources.remove(resources.size() - 1);
-        }
-        System.out.println("[LB] Emulator updated groups=" + groups);
+
+        while (resources.size() < groups) resources.add(0L);
+        while (resources.size() > groups) resources.remove(resources.size() - 1);
+
+        System.out.println("[LB] Network slots=" + groups);
+    }
+
+    public Queue<Task> getReadyQueue() {
+        return readyQueue;
     }
 
     private void printQueues() {
@@ -96,9 +92,5 @@ public class TrafficEmulator {
         System.out.println("PROCESSING: " + processingQueue);
         System.out.println("READY     : " + readyQueue);
         System.out.println("------------------------\n");
-    }
-
-    public Queue<Task> getReadyQueue() {
-        return readyQueue;
     }
 }
