@@ -1,9 +1,12 @@
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
 import java.io.IOException;
 import java.util.Optional;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,11 +14,26 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 
 
 public class SecondaryController {
+    
+    @FXML
+    private TableView<User> userTable;
+    
+    @FXML
+    private TableColumn<User, Integer> colUserId;
+    
+    @FXML 
+    private TableColumn<User, String> colUsername;
+    
+    @FXML 
+    private TableColumn<User, String> colRole;
     
     @FXML 
     private Button userManageBtn;
@@ -30,6 +48,7 @@ public class SecondaryController {
     private Button logoutBtn;
     
     private User sessionUser;
+    private final ObservableList<User> userItems = FXCollections.observableArrayList();
     
     @FXML
     private void openUserManagement() {
@@ -107,9 +126,27 @@ public class SecondaryController {
 
     public void initialise(User user) {
         this.sessionUser = user;
+        colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
+        colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
+        userTable.setItems(userItems);
+        loadUsers();
         if (!"admin".equals(user.getRole())) {
             advancedPanelBtn.setVisible(false);
         }
     }
-    
+    private void loadUsers() {
+        try {
+            MySQLDB mysql = new MySQLDB();
+            ObservableList<User> users = mysql.getAllUsers();
+
+            users.removeIf(u -> u.getUsername().equals("admin"));
+            users.removeIf(u -> u.getUserId() == sessionUser.getUserId());
+
+            userItems.setAll(users);
+        } catch (Exception e) {
+            System.err.println("Cannot load users");
+        }
+    }
+
 }

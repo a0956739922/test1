@@ -47,11 +47,26 @@
 
     <center>
         <StackPane style="-fx-padding: 36;">
-            <VBox spacing="22" style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
-                <Label text="Dashboard"
+            <VBox spacing="22" maxWidth="900"
+                  style="-fx-background-color: #F7FAFC; -fx-padding: 36; -fx-background-radius: 14;">
+
+                <Label text="All Users"
                        style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A2E3B;"/>
-                <Label text="System overview and monitoring information will appear here."
-                       style="-fx-font-size: 15; -fx-text-fill: #6B7C8A;"/>
+
+                <TableView fx:id="userTable" VBox.vgrow="ALWAYS"
+                           style="-fx-font-size: 14;">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colUserId" text="ID" prefWidth="100"/>
+                        <TableColumn fx:id="colUsername" text="Username" prefWidth="300"/>
+                        <TableColumn fx:id="colRole" text="Role" prefWidth="150"/>
+                    </columns>
+                </TableView>
+
+                <Label fx:id="selectionLabel"
+                       style="-fx-font-size: 14; -fx-text-fill: #6B7C8A;"/>
             </VBox>
         </StackPane>
     </center>
