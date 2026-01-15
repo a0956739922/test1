@@ -12,40 +12,37 @@ public class Task {
 
     private final String name;
     private final String action;
-    private final long delay;
-    private final long startTime;
     private final String payload;
+    private final long totalTimeMs;
+    private long remainingTimeMs;
+    private long startTime;
 
-    public Task(String name, String action, long delay, String payload) {
+    public Task(String name, String action, int delaySec, String payload) {
         this.name = name;
         this.action = action;
-        this.delay = delay;
-        this.startTime = System.currentTimeMillis();
         this.payload = payload;
+        this.totalTimeMs = delaySec;
+        this.remainingTimeMs = this.totalTimeMs;
+        this.startTime = System.currentTimeMillis();
     }
 
-    public String getName() {
-        return name;
+    public String getName() { return name; }
+    public String getAction() { return action; }
+    public String getPayload() { return payload; }
+    public long getRemainingTimeMs() { return remainingTimeMs; }
+
+    public long consume(long sliceMs) {
+        long used = Math.min(sliceMs, remainingTimeMs);
+        remainingTimeMs -= used;
+        return used;
     }
 
-    public String getAction() {
-        return action;
-    }
-
-    public long getDelay() {
-        return delay;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-    
-    public String getPayload() {
-        return payload;
+    public boolean isCompleted() {
+        return remainingTimeMs <= 0;
     }
 
     @Override
     public String toString() {
-        return name + "(" + action + "," + delay / 1000 + "s)";
+        return name + "(" + action + ", remaining=" + remainingTimeMs + "ms)";
     }
 }

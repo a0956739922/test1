@@ -6,7 +6,6 @@ package com.mycompany.cloudsystem.loadbalancer;
 
 import java.util.Iterator;
 import java.util.Queue;
-
 /**
  *
  * @author ntu-user
@@ -58,27 +57,24 @@ public class Scheduler {
     }
 
     private int priorityOf(Task t) {
-        if ("CREATE".equals(t.getAction()) || "UPLOAD".equals(t.getAction())) {
-            return 1;
-        }
-        if ("UPDATE".equals(t.getAction()) || "DELETE".equals(t.getAction())) {
-            return 2;
-        }
-        return 3;
+        return switch (t.getAction()) {
+            case "CREATE", "UPLOAD" -> 1;
+            case "UPDATE", "DELETE" -> 2;
+            default -> 3;
+        };
     }
-
+    
     private Task selectRR(Queue<Task> queue) {
         rrIndex = rrIndex % queue.size();
         Iterator<Task> it = queue.iterator();
-        Task selected = null;
         for (int i = 0; it.hasNext(); i++) {
             Task t = it.next();
             if (i == rrIndex) {
-                selected = t;
                 it.remove();
-                break;
+                rrIndex++;
+                return t;
             }
         }
-        return selected;
+        return queue.poll();
     }
 }
