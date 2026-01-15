@@ -4,6 +4,7 @@
  */
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.DbStatusClient;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
@@ -62,10 +63,12 @@ public class AdvancedUserManagementController {
     private Button logoutBtn;
 
     private User sessionUser;
+    private DbStatusClient statusClient;
     private final ObservableList<User> userItems = FXCollections.observableArrayList();
     
-    public void initialise(User user) {
+    public void initialise(User user, DbStatusClient statusClient) {
         this.sessionUser = user;
+        this.statusClient = statusClient;
         colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
         colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
@@ -166,7 +169,7 @@ public class AdvancedUserManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/advanced.fxml"));
             Parent root = loader.load();
             AdvancedController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) backBtn.getScene().getWindow();
             stage.setScene(scene);

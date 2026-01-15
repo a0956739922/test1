@@ -8,6 +8,7 @@
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/PrimaryController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/App.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/AdminChangePasswordController.java
+/home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/DbStatusClient.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/UserManagementController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/User.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/MySQLDB.java
@@ -19,6 +20,7 @@
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/LocalFile.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/SecondaryController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/SQLiteDB.java
+/home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/DbStatusServer.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/FileService.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/CreateFileController.java
 /home/ntu-user/NetBeansProjects/soft40051_cwk/JavaFXApplication1/src/main/java/com/mycompany/javafxapplication1/controller/UpdateFileController.java

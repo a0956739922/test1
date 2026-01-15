@@ -1,5 +1,6 @@
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.DbStatusClient;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.RemoteFile;
 import com.mycompany.javafxapplication1.SQLiteDB;
@@ -27,6 +28,12 @@ public class PrimaryController {
 
     @FXML
     private PasswordField passPasswordField;
+    
+    private DbStatusClient statusClient;
+
+    public void initialise(DbStatusClient statusClient) {
+        this.statusClient = statusClient;
+    }
     
     @FXML
     private void registerBtnHandler(ActionEvent event) {
@@ -65,7 +72,7 @@ public class PrimaryController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             stage.setScene(scene);
             stage.setTitle("Welcome, " + sessionUser.getUsername());

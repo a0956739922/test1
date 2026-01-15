@@ -12,19 +12,37 @@ public class SyncService extends Thread {
 
     private final FileService fileService = new FileService();
     private final SQLiteDB sqlite = new SQLiteDB();
+    private final DbStatusClient statusClient;
+
+    private boolean lastDbAvailable = false;
+
+    public SyncService(DbStatusClient statusClient) {
+        this.statusClient = statusClient;
+    }
 
     @Override
     public void run() {
         while (true) {
             try {
-                if (!isOnline()) {
+                boolean dbAvailable = statusClient.isDbAvailable();
+                if (!lastDbAvailable && dbAvailable) {
+                    System.out.println("[SYNC] DB reconnected, trigger immediate sync");
+                    syncDeletes();
+                    syncCreates();
+                    syncUpdates();
+                }
+                if (!dbAvailable) {
+                    lastDbAvailable = false;
                     Thread.sleep(3000);
                     continue;
                 }
                 syncDeletes();
                 syncCreates();
                 syncUpdates();
+
+                lastDbAvailable = true;
                 Thread.sleep(3000);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -67,15 +85,6 @@ public class SyncService extends Thread {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private boolean isOnline() {
-        try {
-            new MySQLDB().testConnection();
-            return true;
-        } catch (Exception e) {
-            return false;
         }
     }
 

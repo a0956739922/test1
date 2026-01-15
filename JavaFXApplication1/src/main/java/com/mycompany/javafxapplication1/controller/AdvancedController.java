@@ -4,6 +4,7 @@
  */
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.DbStatusClient;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import java.io.BufferedReader;
@@ -47,6 +48,8 @@ public class AdvancedController {
     private Button logoutBtn;
     
     private User sessionUser;
+    private DbStatusClient statusClient;
+
     private static final Set<String> ALLOWED_COMMANDS = Set.of("ls", "whoami", "ps", "tree","mkdir", "cp", "mv", "nano");
 
     @FXML
@@ -55,7 +58,7 @@ public class AdvancedController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/advancedUserManagement.fxml"));
             Parent root = loader.load();
             AdvancedUserManagementController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) userManageBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -71,7 +74,7 @@ public class AdvancedController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/log.fxml"));
             Parent root = loader.load();
             LogController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) logBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -138,7 +141,7 @@ public class AdvancedController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) backBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -174,8 +177,9 @@ public class AdvancedController {
         return result.isPresent() && result.get() == ButtonType.OK;
     }
     
-    public void initialise(User user) {
+    public void initialise(User user, DbStatusClient statusClient) {
         this.sessionUser = user;
+        this.statusClient = statusClient;
     }
     
 }

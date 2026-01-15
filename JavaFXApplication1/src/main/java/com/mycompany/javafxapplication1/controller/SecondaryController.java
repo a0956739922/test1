@@ -1,5 +1,6 @@
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.DbStatusClient;
 import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
@@ -48,7 +49,9 @@ public class SecondaryController {
     private Button logoutBtn;
     
     private User sessionUser;
+    
     private final ObservableList<User> userItems = FXCollections.observableArrayList();
+    private DbStatusClient statusClient;
     
     @FXML
     private void openUserManagement() {
@@ -56,7 +59,7 @@ public class SecondaryController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/userManagement.fxml"));
             Parent root = loader.load();
             UserManagementController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) userManageBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -72,7 +75,7 @@ public class SecondaryController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/fileManagement.fxml"));
             Parent root = loader.load();
             FileManagementController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) fileManageBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -88,7 +91,7 @@ public class SecondaryController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/advanced.fxml"));
             Parent root = loader.load();
             AdvancedController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) advancedPanelBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -124,8 +127,9 @@ public class SecondaryController {
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    public void initialise(User user) {
+    public void initialise(User user, DbStatusClient statusClient) {
         this.sessionUser = user;
+        this.statusClient = statusClient;
         colUserId.setCellValueFactory(new PropertyValueFactory<>("userId"));
         colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));

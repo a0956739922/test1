@@ -1,11 +1,14 @@
 com/mycompany/javafxapplication1/RemoteFile.class
 com/mycompany/javafxapplication1/controller/ShareFileController.class
 com/mycompany/javafxapplication1/controller/CreateFileController.class
+com/mycompany/javafxapplication1/DbStatusClient.class
 com/mycompany/javafxapplication1/UserService.class
+com/mycompany/javafxapplication1/DbStatusServer$ClientHandler.class
 com/mycompany/javafxapplication1/controller/SecondaryController.class
 com/mycompany/javafxapplication1/controller/UserManagementController.class
 com/mycompany/javafxapplication1/controller/RegisterController.class
 com/mycompany/javafxapplication1/MySQLDB.class
+com/mycompany/javafxapplication1/DbStatusServer.class
 com/mycompany/javafxapplication1/LocalFile.class
 module-info.class
 com/mycompany/javafxapplication1/controller/AdminChangePasswordController.class

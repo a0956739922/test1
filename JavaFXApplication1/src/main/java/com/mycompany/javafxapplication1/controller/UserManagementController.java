@@ -4,6 +4,7 @@
  */
 package com.mycompany.javafxapplication1.controller;
 
+import com.mycompany.javafxapplication1.DbStatusClient;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
@@ -50,6 +51,7 @@ public class UserManagementController {
     private Button logoutBtn;
     
     private User sessionUser;
+    private DbStatusClient statusClient;
     private UserService userService = new UserService();
 
     @FXML
@@ -111,7 +113,7 @@ public class UserManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
-            controller.initialise(sessionUser);
+            controller.initialise(sessionUser, statusClient);
             Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) backBtn.getScene().getWindow();
             stage.setScene(scene);
@@ -147,8 +149,9 @@ public class UserManagementController {
         return result.isPresent() && result.get() == ButtonType.OK;
     }
     
-    public void initialise(User user) {
+    public void initialise(User user, DbStatusClient statusClient) {
         this.sessionUser = user;
+        this.statusClient = statusClient;
         usernameField.setText(user.getUsername());
         usernameField.setEditable(false);
     }

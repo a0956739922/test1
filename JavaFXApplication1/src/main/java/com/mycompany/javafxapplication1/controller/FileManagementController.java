@@ -7,10 +7,10 @@ package com.mycompany.javafxapplication1.controller;
 import com.mycompany.javafxapplication1.FileService;
 import com.mycompany.javafxapplication1.LocalFile;
 import com.mycompany.javafxapplication1.MqttSubUI;
-import com.mycompany.javafxapplication1.MySQLDB;
 import com.mycompany.javafxapplication1.SQLiteDB;
 import com.mycompany.javafxapplication1.User;
 import com.mycompany.javafxapplication1.UserService;
+import com.mycompany.javafxapplication1.DbStatusClient;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -28,10 +28,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-/**
- *
- * @author ntu-user
- */
+
 public class FileManagementController {
     
     @FXML
@@ -50,48 +47,38 @@ public class FileManagementController {
     private TableColumn<LocalFile, String> colShareTo;
     
     @FXML
-    private Button refreshBtn;
-
-    @FXML
-    private Button createBtn;
-
-    @FXML
-    private Button updateBtn;
-
-    @FXML
-    private Button deleteBtn;
-
-    @FXML
-    private Button uploadBtn;
-
-    @FXML
-    private Button downloadBtn;
-    
-    @FXML
-    private Button shareBtn;
-
-    @FXML
-    private Button backBtn;
-
-    @FXML
-    private Button logoutBtn;
+    private Button refreshBtn, createBtn, updateBtn, deleteBtn,
+                   uploadBtn, downloadBtn, shareBtn, backBtn, logoutBtn;
 
     private User sessionUser;
     private FileService fileService;
 
-    public void initialise(User user) {
+    private DbStatusClient statusClient;
+
+    public void initialise(User user, DbStatusClient statusClient) {
+        System.out.println("[INIT] FileManagementController statusClient=" + statusClient);
+
         this.sessionUser = user;
+        this.statusClient = statusClient;
         this.fileService = new FileService();
+
         colOwner.setCellValueFactory(new PropertyValueFactory<>("username"));
         colFilename.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         colPermission.setCellValueFactory(new PropertyValueFactory<>("permission"));
         colShareTo.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
+
         loadFiles();
-        fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
+
+        fileTable.getSelectionModel()
+                 .selectedItemProperty()
+                 .addListener((obs, oldSel, newSel) -> updateButtonState(newSel));
+
         fileTable.setRowFactory(tv -> {
             TableRow<LocalFile> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
+                    System.out.println("[CLICK] statusClient=" + statusClient);
+
                     openViewer(row.getItem());
                 }
             });
@@ -119,8 +106,7 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService);
             Stage stage = new Stage();
             stage.setTitle("Create File");
-            Scene scene = new Scene(root, 600, 450);
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 600, 450));
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {
@@ -137,8 +123,7 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService);
             Stage stage = new Stage();
             stage.setTitle("Upload File");
-            Scene scene = new Scene(root, 500, 320);
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 500, 320));
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {
@@ -154,10 +139,12 @@ public class FileManagementController {
             dialogue("No File Selected", "Please select a file to update.");
             return;
         }
-        if (selected.getRemoteFileId() != null && !isOnline()) {
-            dialogue("DB connect Failed", "Cannot update remote file while offline.");
+
+        if (selected.getRemoteFileId() != null && !statusClient.isDbAvailable()) {
+            dialogue("Offline", "Cannot update remote file while offline.");
             return;
         }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/updateFile.fxml"));
             Parent root = loader.load();
@@ -165,8 +152,7 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService, selected);
             Stage stage = new Stage();
             stage.setTitle("Update File");
-            Scene scene = new Scene(root, 600, 450);
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 600, 450));
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -177,9 +163,11 @@ public class FileManagementController {
     private void deleteFile() {
         LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
+
         if (!dialogue("Delete", "Proceed to delete " + selected.getFileName() + "?")) {
             return;
         }
+
         SQLiteDB sqlite = new SQLiteDB();
         if (selected.getRemoteFileId() == null) {
             sqlite.deleteLocalFile(selected.getLocalId());
@@ -196,19 +184,22 @@ public class FileManagementController {
             dialogue("No File Selected", "Please select a file to download.");
             return;
         }
-        if (selected.getRemoteFileId() != null && !isOnline()) {
-            dialogue("DB connect Failed", "Cannot download remote file while offline.");
+
+        // ★ CHANGED
+        if (selected.getRemoteFileId() != null && !statusClient.isDbAvailable()) {
+            dialogue("Offline", "Cannot download remote file while offline.");
             return;
         }
-        if (!dialogue("Download", "Proceed to download?")) {
-            return;
-        }
+
+        if (!dialogue("Download", "Proceed to download?")) return;
+
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save File As");
         chooser.setInitialFileName(selected.getFileName());
         Stage stage = (Stage) downloadBtn.getScene().getWindow();
         File file = chooser.showSaveDialog(stage);
         if (file == null) return;
+
         if (selected.getRemoteFileId() == null) {
             try {
                 fileService.downloadLocal(selected.getLocalId(), file);
@@ -218,13 +209,26 @@ public class FileManagementController {
             }
             return;
         }
+
         try {
-            String reqId = fileService.download(sessionUser.getUserId(), sessionUser.getUsername(), selected.getRemoteFileId(), selected.getFileName());
+            String reqId = fileService.download(
+                    sessionUser.getUserId(),
+                    sessionUser.getUsername(),
+                    selected.getRemoteFileId(),
+                    selected.getFileName()
+            );
+
             MqttSubUI.registerRequestCallback(reqId, (finalResult) -> {
                 new Thread(() -> {
                     try {
-                        fileService.downloadSftp(sessionUser.getUserId(), sessionUser.getUsername(), finalResult, file.getName(), file.getParent());
-                        javafx.application.Platform.runLater(() -> 
+                        fileService.downloadSftp(
+                                sessionUser.getUserId(),
+                                sessionUser.getUsername(),
+                                finalResult,
+                                file.getName(),
+                                file.getParent()
+                        );
+                        javafx.application.Platform.runLater(() ->
                             dialogue("Success", "Download completed: " + file.getName())
                         );
                     } catch (Exception e) {
@@ -240,14 +244,15 @@ public class FileManagementController {
     @FXML
     private void shareFile() {
         LocalFile selected = fileTable.getSelectionModel().getSelectedItem();
-        if (selected == null) { 
-            dialogue("No File Selected", "Please select a file to share."); 
-            return; 
-        }
-        if (!isOnline()) {
-            dialogue("DB connect Failed", "Cannot share file while offline.");
+        if (selected == null) {
+            dialogue("No File Selected", "Please select a file to share.");
             return;
         }
+        if (!statusClient.isDbAvailable()) {
+            dialogue("Offline", "Cannot share file while offline.");
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/shareFile.fxml"));
             Parent root = loader.load();
@@ -255,8 +260,7 @@ public class FileManagementController {
             controller.initialise(sessionUser, fileService, selected);
             Stage stage = new Stage();
             stage.setTitle("Share File");
-            Scene scene = new Scene(root, 480, 300);
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 480, 300));
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -264,10 +268,11 @@ public class FileManagementController {
     }
     
     private void openViewer(LocalFile selected) {
-        if (selected.getRemoteFileId() != null && !isOnline()) {
-            dialogue("DB connect Failed", "Cannot read remote file while offline.");
+        if (selected.getRemoteFileId() != null && !statusClient.isDbAvailable()) {
+            dialogue("Offline", "Cannot read remote file while offline.");
             return;
         }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/viewFile.fxml"));
             Parent root = loader.load();
@@ -275,21 +280,11 @@ public class FileManagementController {
             controller.initialise(fileService, selected);
             Stage stage = new Stage();
             stage.setTitle("View File: " + selected.getFileName());
-            Scene scene = new Scene(root, 600, 450);
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 600, 450));
             stage.showAndWait();
             loadFiles();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-    
-    private boolean isOnline() {
-        try {
-            new MySQLDB().testConnection();
-            return true;
-        } catch (Exception e) {
-            return false;
         }
     }
     
@@ -301,9 +296,9 @@ public class FileManagementController {
             downloadBtn.setDisable(true);
             return;
         }
-        String permission = selected.getPermission();
+
         downloadBtn.setDisable(false);
-        switch (permission) {
+        switch (selected.getPermission()) {
             case "owner" -> {
                 updateBtn.setDisable(false);
                 deleteBtn.setDisable(false);
@@ -311,11 +306,6 @@ public class FileManagementController {
             }
             case "write" -> {
                 updateBtn.setDisable(false);
-                deleteBtn.setDisable(true);
-                shareBtn.setDisable(true);
-            }
-            case "read" -> {
-                updateBtn.setDisable(true);
                 deleteBtn.setDisable(true);
                 shareBtn.setDisable(true);
             }
@@ -333,10 +323,9 @@ public class FileManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/mycompany/javafxapplication1/secondary.fxml"));
             Parent root = loader.load();
             SecondaryController controller = loader.getController();
-            controller.initialise(sessionUser);
-            Scene scene = new Scene(root, 1000, 700);
+            controller.initialise(sessionUser, statusClient);
             Stage stage = (Stage) backBtn.getScene().getWindow();
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 1000, 700));
             stage.setTitle("Welcome, " + sessionUser.getUsername());
         } catch (IOException e) {
             e.printStackTrace();
@@ -345,15 +334,13 @@ public class FileManagementController {
     
     @FXML
     private void logout() {
-        if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) {
-            return;
-        }
+        if (!dialogue("Confirm Logout", "Are you sure you want to log out?")) return;
+
         try {
             new UserService().logout();
             Parent root = FXMLLoader.load(getClass().getResource("/com/mycompany/javafxapplication1/primary.fxml"));
-            Scene scene = new Scene(root, 1000, 700);
             Stage stage = (Stage) logoutBtn.getScene().getWindow();
-            stage.setScene(scene);
+            stage.setScene(new Scene(root, 1000, 700));
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
