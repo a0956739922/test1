@@ -12,29 +12,51 @@ public class Task {
 
     private final String name;
     private final String action;
+    private final long delay;
     private final String payload;
+    private long startTime = -1;
 
-    private final long networkDelayMs;
-    private final long startTime;
-
-    public Task(String name, String action, long networkDelayMs, String payload) {
+    public Task(String name, String action, long delay, String payload) {
         this.name = name;
         this.action = action;
+        this.delay = delay;
         this.payload = payload;
-        this.networkDelayMs = networkDelayMs;
+    }
+    
+    public void markProcessingStart() {
         this.startTime = System.currentTimeMillis();
     }
 
-    public String getName() { return name; }
-    public String getAction() { return action; }
-    public String getPayload() { return payload; }
+    public boolean hasStarted() {
+        return startTime > 0;
+    }
 
-    public boolean isNetworkDone() {
-        return System.currentTimeMillis() >= startTime + networkDelayMs;
+    public boolean isReady(long now) {
+        return hasStarted() && now >= startTime + delay;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public long getDelay() {
+        return delay;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+    
+    public String getPayload() {
+        return payload;
     }
 
     @Override
     public String toString() {
-        return name + "(" + action + ", delay=" + networkDelayMs + "ms)";
+        return name + "(" + action + "," + delay / 1000 + "s)";
     }
 }

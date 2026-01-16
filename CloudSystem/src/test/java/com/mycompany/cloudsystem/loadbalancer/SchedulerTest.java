@@ -1,76 +1,93 @@
 package com.mycompany.cloudsystem.loadbalancer;
 
-import java.util.ArrayDeque;
+import java.util.LinkedList;
 import java.util.Queue;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests for Scheduler.
- */
 public class SchedulerTest {
 
     @Test
-    public void testChooseAlgo() {
+    public void testChooseAlgoFCFS() {
         Scheduler scheduler = new Scheduler();
+        scheduler.chooseAlgo(1);
 
-        scheduler.chooseAlgo(2);
         assertEquals(Scheduler.Algo.FCFS, scheduler.getCurrentAlgo());
+    }
 
-        scheduler.chooseAlgo(5);
+    @Test
+    public void testChooseAlgoPriority() {
+        Scheduler scheduler = new Scheduler();
+        scheduler.chooseAlgo(4);
+
         assertEquals(Scheduler.Algo.PRIORITY, scheduler.getCurrentAlgo());
+    }
 
-        scheduler.chooseAlgo(6);
+    @Test
+    public void testChooseAlgoRR() {
+        Scheduler scheduler = new Scheduler();
+        scheduler.chooseAlgo(10);
+
         assertEquals(Scheduler.Algo.RR, scheduler.getCurrentAlgo());
     }
 
     @Test
-    public void testSelectFcfs() {
+    public void testSelectFCFS() {
         Scheduler scheduler = new Scheduler();
-        Queue<Task> queue = new ArrayDeque<>();
-        Task first = new Task("t1", "UPLOAD", 1, "p1");
-        Task second = new Task("t2", "UPDATE", 1, "p2");
-        queue.add(first);
-        queue.add(second);
+        scheduler.chooseAlgo(1);
 
-        Task selected = scheduler.select(queue);
-        assertSame(first, selected);
-        assertEquals(1, queue.size());
+        Queue<Task> q = new LinkedList<>();
+        q.add(new Task("A", "CREATE", 100, "{}"));
+        q.add(new Task("B", "DELETE", 100, "{}"));
+
+        Task t = scheduler.select(q);
+
+        assertEquals("A", t.getName());
+        assertEquals(1, q.size());
     }
 
     @Test
     public void testSelectPriority() {
         Scheduler scheduler = new Scheduler();
-        scheduler.chooseAlgo(4);
-        Queue<Task> queue = new ArrayDeque<>();
-        Task low = new Task("t1", "READ", 1, "p1");
-        Task mid = new Task("t2", "UPDATE", 1, "p2");
-        Task high = new Task("t3", "CREATE", 1, "p3");
-        queue.add(low);
-        queue.add(mid);
-        queue.add(high);
+        scheduler.chooseAlgo(4); // PRIORITY
 
-        Task selected = scheduler.select(queue);
-        assertSame(high, selected);
-        assertEquals(2, queue.size());
+        Queue<Task> q = new LinkedList<>();
+        q.add(new Task("low", "DELETE", 100, "{}"));
+        q.add(new Task("high", "CREATE", 100, "{}"));
+
+        Task t = scheduler.select(q);
+
+        assertEquals("high", t.getName());
+        assertEquals(1, q.size());
     }
 
     @Test
-    public void testRoundRobinIndexPersists() {
+    public void testSelectRRRotation() {
         Scheduler scheduler = new Scheduler();
-        scheduler.chooseAlgo(10);
+        scheduler.chooseAlgo(10); // RR
 
-        Queue<Task> queue = new ArrayDeque<>();
-        Task t1 = new Task("t1","CREATE",1,"p1");
-        Task t2 = new Task("t2","CREATE",1,"p2");
-        Task t3 = new Task("t3","CREATE",1,"p3");
-        queue.add(t1);
-        queue.add(t2);
-        queue.add(t3);
+        Queue<Task> q = new LinkedList<>();
+        q.add(new Task("A", "CREATE", 100, "{}"));
+        q.add(new Task("B", "CREATE", 100, "{}"));
+        q.add(new Task("C", "CREATE", 100, "{}"));
 
-        assertSame(t1, scheduler.select(queue));
-        assertSame(t3, scheduler.select(queue));
+        Task first = scheduler.select(q);
+        Task second = scheduler.select(q);
+        Task third = scheduler.select(q);
+
+        assertEquals("A", first.getName());
+        assertEquals("C", second.getName());
+        assertEquals("B", third.getName());
     }
 
+    @Test
+    public void testSelectEmptyQueueReturnsNull() {
+        Scheduler scheduler = new Scheduler();
+        scheduler.chooseAlgo(1);
+
+        Queue<Task> q = new LinkedList<>();
+
+        assertNull(scheduler.select(q));
+    }
 }

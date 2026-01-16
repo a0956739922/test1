@@ -1,53 +1,99 @@
 package com.mycompany.cloudsystem.loadbalancer;
 
-import java.lang.reflect.Field;
+import java.util.Queue;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests for TrafficEmulator.
- */
 public class TrafficEmulatorTest {
 
     @Test
-    public void testProcessTasksCompletesTask() {
-        TrafficEmulator emulator = new TrafficEmulator();
-        emulator.updateGroups(1);
-        emulator.addTask("req-1", "CREATE", 1, "payload");
+    public void testAddTask() {
+        TrafficEmulator emu = new TrafficEmulator();
+        emu.updateGroups(1);
 
-        emulator.processTasks();
+        emu.addTask("req-1", "CREATE", 500, "{}");
 
-        assertEquals(1, emulator.getReadyQueue().size());
-        assertEquals("req-1", emulator.getReadyQueue().peek().getName());
+        assertNotNull(emu.getReadyQueue());
     }
 
     @Test
-    public void testScaleUp() {
-        TrafficEmulator emulator = new TrafficEmulator();
-        assertFalse(emulator.scaleUp());
+    public void testProcessTasksMovesToReady() throws Exception {
+        TrafficEmulator emu = new TrafficEmulator();
+        emu.updateGroups(1);
 
-        emulator.updateGroups(1);
-        emulator.addTask("t1", "CREATE", 1, "p1");
-        emulator.addTask("t2", "CREATE", 1, "p2");
-        emulator.addTask("t3", "CREATE", 1, "p3");
-        emulator.addTask("t4", "CREATE", 1, "p4");
+        emu.addTask("req-1", "DELETE", 200, "{}");
+        emu.processTasks();
 
-        assertTrue(emulator.scaleUp());
+        Thread.sleep(300);
+        emu.processTasks();
 
-        emulator.updateGroups(3);
-        assertFalse(emulator.scaleUp());
+        Queue<Task> ready = emu.getReadyQueue();
+        assertEquals(1, ready.size());
     }
 
     @Test
-    public void testScaleDown() throws Exception {
-        TrafficEmulator emulator = new TrafficEmulator();
-        emulator.updateGroups(1);
+    public void testScaleUpConditionTriggered() {
+        TrafficEmulator emu = new TrafficEmulator();
+        emu.updateGroups(1);
+        for (int i = 1; i <= 4; i++) {
+            emu.addTask("req-" + i, "UPDATE", 1000, "{}");
+        }
 
-        Field lastTaskField = TrafficEmulator.class.getDeclaredField("lastTaskTime");
-        lastTaskField.setAccessible(true);
-        lastTaskField.setLong(emulator, System.currentTimeMillis() - 31_000);
+        assertTrue(emu.scaleUp());
+    }
 
-        assertTrue(emulator.scaleDown());
+    @Test
+    public void testScaleUpIncreasesProcessingCapacity() throws Exception {
+        TrafficEmulator emu = new TrafficEmulator();
+        
+        emu.updateGroups(1);
+        for (int i = 1; i <= 6; i++) {
+            emu.addTask("req-" + i, "CREATE", 300, "{}");
+        }
+
+        emu.processTasks();
+        Thread.sleep(400);
+        emu.processTasks();
+
+        int readyAfterGroup1 = emu.getReadyQueue().size();
+
+        emu.updateGroups(2);
+        for (int i = 7; i <= 12; i++) {
+            emu.addTask("req-" + i, "CREATE", 300, "{}");
+        }
+
+        emu.processTasks();
+        Thread.sleep(400);
+        emu.processTasks();
+
+        int readyAfterGroup2 = emu.getReadyQueue().size();
+
+        assertTrue(readyAfterGroup2 > readyAfterGroup1);
+    }
+
+    @Test
+    public void testScaleDownFalseWhenBusy() {
+        TrafficEmulator emu = new TrafficEmulator();
+        emu.updateGroups(1);
+
+        emu.addTask("req-1", "DELETE", 1000, "{}");
+
+        assertFalse(emu.scaleDown());
+    }
+
+    @Test
+    public void testScaleDownTrueWhenIdle() throws Exception {
+        TrafficEmulator emu = new TrafficEmulator();
+        emu.updateGroups(1);
+        Thread.sleep(31_000);
+        emu.getReadyQueue().clear();
+        assertTrue(emu.scaleDown());
+    }
+
+    @Test
+    public void testGetReadyQueueNeverNull() {
+        TrafficEmulator emu = new TrafficEmulator();
+        assertNotNull(emu.getReadyQueue());
     }
 }

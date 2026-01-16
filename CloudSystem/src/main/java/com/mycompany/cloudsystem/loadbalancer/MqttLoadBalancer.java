@@ -5,6 +5,8 @@
 package com.mycompany.cloudsystem.loadbalancer;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
@@ -28,8 +30,9 @@ public class MqttLoadBalancer {
     private static final Map<Integer, String> groupStatus = new ConcurrentHashMap<>();
     private static int activeGroups = 0;
     private static int targetGroups = 0;
-    private static int groupCursor = 0;
     private static long lastScaleUpTime = 0;
+    private static int rrCursor = 0;
+    private static int groupCursor = 0;
     private static Random random = new Random();
     private static final long SCALE_DOWN_COOLDOWN_MS = 60_000;
 
@@ -135,39 +138,22 @@ public class MqttLoadBalancer {
     }
 
     private static void dispatchReady(MqttClient client, TrafficEmulator lb) throws Exception {
-        if (activeGroups != targetGroups || activeGroups <= 0) {
-            return;
-        }
-        boolean hasUp = false;
-        for (String s : groupStatus.values()) {
-            if ("UP".equals(s)) {
-                hasUp = true;
-                break;
+        List<Integer> upGroups = new ArrayList<>();
+        for (Map.Entry<Integer, String> e : groupStatus.entrySet()) {
+            if ("UP".equals(e.getValue())) {
+                upGroups.add(e.getKey());
             }
         }
-        if (!hasUp) {
-            return;
-        }
+        if (upGroups.isEmpty()) return;
         Queue<Task> ready = lb.getReadyQueue();
-        int groups = activeGroups;
         while (!ready.isEmpty()) {
             Task t = ready.poll();
-            int groupId = -1;
-            for (int i = 0; i < groups; i++) {
-                int candidate = (groupCursor++ % groups) + 1;
-                if ("UP".equals(groupStatus.get(candidate))) {
-                    groupId = candidate;
-                    break;
-                }
-            }
-            if (groupId == -1) {
-                System.out.println("[LB] No UP group found, skip req" + t.getName());
-                continue;
-            }
+            int groupId = upGroups.get(rrCursor % upGroups.size());
+            rrCursor++;
             JsonObject original = Json.createReader(new StringReader(t.getPayload())).readObject();
             JsonObject routed = Json.createObjectBuilder(original).add("target_group", groupId).build();
             client.publish(LB_REQ, new MqttMessage(routed.toString().getBytes()));
-            System.out.println("[LB] Dispatch req=" + t.getName()+ " to group-" + groupId);
+            System.out.println("[LB] Dispatch req=" + t.getName() + " to group-" + groupId);
         }
     }
 

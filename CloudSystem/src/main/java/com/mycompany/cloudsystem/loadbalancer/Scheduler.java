@@ -6,6 +6,7 @@ package com.mycompany.cloudsystem.loadbalancer;
 
 import java.util.Iterator;
 import java.util.Queue;
+
 /**
  *
  * @author ntu-user
@@ -15,7 +16,7 @@ public class Scheduler {
     public enum Algo { FCFS, PRIORITY, RR }
 
     private Algo currentAlgo = Algo.FCFS;
-    private int rrIndex = 0;
+    private int rrCursor = 0;
 
     public void chooseAlgo(int waitingSize) {
         if (waitingSize <= 2) {
@@ -33,7 +34,6 @@ public class Scheduler {
 
     public Task select(Queue<Task> queue) {
         if (queue.isEmpty()) return null;
-
         switch (currentAlgo) {
             case PRIORITY:
                 return selectPriority(queue);
@@ -52,29 +52,39 @@ public class Scheduler {
                 best = t;
             }
         }
-        queue.remove(best);
+        if (best != null) {
+            queue.remove(best);
+        }
         return best;
     }
 
     private int priorityOf(Task t) {
-        return switch (t.getAction()) {
-            case "CREATE", "UPLOAD" -> 1;
-            case "UPDATE", "DELETE" -> 2;
-            default -> 3;
-        };
+        String action = t.getAction() == null ? "" : t.getAction().toUpperCase();
+        if ("CREATE".equals(action) || "UPLOAD".equals(action)) {
+            return 1;
+        }
+        if ("UPDATE".equals(action) || "DELETE".equals(action)) {
+            return 2;
+        }
+        return 3;
     }
     
     private Task selectRR(Queue<Task> queue) {
-        rrIndex = rrIndex % queue.size();
+        if (queue.isEmpty()) return null;
+        rrCursor = rrCursor % queue.size();
         Iterator<Task> it = queue.iterator();
-        for (int i = 0; it.hasNext(); i++) {
+        Task selected = null;
+        int currentIndex = 0;
+        while (it.hasNext()) {
             Task t = it.next();
-            if (i == rrIndex) {
+            if (currentIndex == rrCursor) {
+                selected = t;
                 it.remove();
-                rrIndex++;
-                return t;
+                break;
             }
+            currentIndex++;
         }
-        return queue.poll();
+        rrCursor++;
+        return selected;
     }
 }
