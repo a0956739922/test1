@@ -1,0 +1,106 @@
+services:
+  ntu-vm-soft40051:
+    image: pedrombmachado/ntu_lubuntu:soft40051
+    container_name: ntu-vm-soft40051
+    ports:
+      - "3390:3389"
+      - "2022:22"
+    volumes:
+      - software_docker_soft40051:/home/ntu-user/NetBeansProjects
+    networks:
+      - soft40051_network
+    restart: always
+    tty: true
+
+  mysql:
+    image: mattrayner/lamp:latest-1804
+    container_name: lamp-server
+    ports:
+      - "8080:80"
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - lamp_mysql:/var/lib/mysql
+    networks:
+      - soft40051_network
+    restart: always
+
+  mqtt-broker:
+    image: pedrombmachado/mqtt:base
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"
+    command: mosquitto -c /mosquitto-no-auth.conf
+    networks:
+      - soft40051_network
+    restart: always
+
+  load-balancer:
+    build:
+      context: ./CloudSystem
+    container_name: load-balancer
+    ports:
+      - "1234:1234"
+      - "2023:22"
+    networks:
+      - soft40051_network
+    command: ["loadbalancer"]
+    restart: always
+    tty: true
+  
+  file-aggregator:
+    build:
+      context: ./CloudSystem
+    container_name: file-aggregator
+    ports:
+      - "2024:22"
+    networks:
+      - soft40051_network
+    command: ["fileaggregator"]
+    restart: always
+    tty: true
+
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: jenkins-soft40051
+    ports:
+      - "8081:8080"
+      - "50001:50000"
+    volumes:
+      - jenkins_soft40051:/var/jenkins_home
+    networks:
+      - soft40051_network
+    restart: always
+
+  gitea:
+    image: docker.gitea.com/gitea:latest
+    container_name: gitea
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    volumes:
+      - gitea_data:/data
+      - gitea_config:/etc/gitea
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - soft40051_network
+    restart: always
+
+networks:
+  soft40051_network:
+    driver: bridge
+    name: soft40051_network
+
+volumes:
+  lamp_mysql:
+    name: lamp_mysql
+  jenkins_soft40051:
+    name: jenkins_soft40051
+  software_docker_soft40051:
+    name: software_docker_soft40051
+  gitea_data:
+    name: gitea_data
+  gitea_config:
+    name: gitea_config

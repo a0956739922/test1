@@ -15,7 +15,6 @@ public class App extends Application {
 
     private MqttSubUI mqttSubUI;
     private DbStatusClient statusClient;
-    private DbStatusServer statusServer;
     private SyncService syncService;
 
     @Override
@@ -23,8 +22,6 @@ public class App extends Application {
         try {
             mqttSubUI = new MqttSubUI();
             mqttSubUI.start();
-            statusServer = new DbStatusServer();
-            statusServer.start();
             statusClient = new DbStatusClient();
             statusClient.start();
             syncService = new SyncService(statusClient);

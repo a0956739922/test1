@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.javafxapplication1.controller.LogController"
+            style="-fx-background-color: #E8F1F5;">
+
+    <top>
+        <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-background-color: #1A5675; -fx-padding: 18 28;">
+
+            <Label text="System Logs"
+                   style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <HBox spacing="12">
+                <Button fx:id="backBtn" text="Back" prefWidth="110"
+                        onAction="#goBack"
+                        style="-fx-background-color: transparent; -fx-border-color: #BFD7E5; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #BFD7E5; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;"/>
+
+                <Button fx:id="logoutBtn" text="Logout" prefWidth="110"
+                        onAction="#logout"
+                        style="-fx-background-color: transparent; -fx-border-color: #FF6B6B; -fx-border-width: 2; -fx-border-radius: 8; -fx-text-fill: #FF6B6B; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane style="-fx-padding: 32;">
+            <VBox spacing="18" style="-fx-background-color: #F7FAFC; -fx-padding: 32; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+
+                <HBox spacing="18" alignment="CENTER_LEFT">
+
+                    <TextField fx:id="searchField" promptText="Search by user, action, or detail..." HBox.hgrow="ALWAYS" prefHeight="38"
+                               style="-fx-font-size: 14; -fx-background-radius: 8; -fx-padding: 10; -fx-border-color: #ccc; -fx-border-radius: 8;"/>
+
+                    <Separator orientation="VERTICAL" prefHeight="28" style="-fx-opacity: 0.4;"/>
+
+                    <CheckBox fx:id="chkUser" text="User Logs"
+                              style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+
+                    <CheckBox fx:id="chkFile" text="File Logs"
+                              style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #555;"/>
+                </HBox>
+
+                <TableView fx:id="logTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 14;">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colUser" text="User" minWidth="90" maxWidth="90"/>
+                        <TableColumn fx:id="colAction" text="Action" minWidth="160" maxWidth="160"/>
+                        <TableColumn fx:id="colDetail" text="Detail" minWidth="360"/>
+                        <TableColumn fx:id="colTime" text="Time" minWidth="180" maxWidth="180"/>
+                    </columns>
+                </TableView>
+
+            </VBox>
+        </StackPane>
+    </center>
+
+</BorderPane>

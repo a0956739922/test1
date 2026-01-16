@@ -26,21 +26,11 @@ public class SyncService extends Thread {
             try {
                 boolean dbAvailable = statusClient.isDbAvailable();
                 if (!lastDbAvailable && dbAvailable) {
-                    System.out.println("[SYNC] DB reconnected, trigger immediate sync");
                     syncDeletes();
                     syncCreates();
                     syncUpdates();
                 }
-                if (!dbAvailable) {
-                    lastDbAvailable = false;
-                    Thread.sleep(3000);
-                    continue;
-                }
-                syncDeletes();
-                syncCreates();
-                syncUpdates();
-
-                lastDbAvailable = true;
+                lastDbAvailable = dbAvailable;
                 Thread.sleep(3000);
 
             } catch (Exception e) {
